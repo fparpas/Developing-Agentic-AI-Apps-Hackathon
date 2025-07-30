@@ -89,10 +89,16 @@ The intended audience are individuals with coding skills.
 [Build your code-first agent with Azure AI Foundry](https://microsoft.github.io/build-your-first-agent-with-azure-ai-agent-service-workshop/lab-1-function_calling/)
 [Model Context Protocol (MCP): Integrating Azure OpenAI for Enhanced Tool Integration and Prompting](https://techcommunity.microsoft.com/blog/azure-ai-services-blog/model-context-protocol-mcp-integrating-azure-openai-for-enhanced-tool-integratio/4393788)
 [Microsoft GitHub Repo - MCP for beginners](https://github.com/microsoft/mcp-for-beginners)
-[GitHub Repo - MCP](https://github.com/modelcontextprotocol)
+[MCP GitHub Repo](https://github.com/modelcontextprotocol)
 [MCP - Model Context Protocol](https://modelcontextprotocol.io/docs/getting-started/intro)
 [Remote MCP Servers](https://mcpservers.org/remote-mcp-servers)
-[MCP Servers](https://github.com/modelcontextprotocol/servers)
+[MCP GitHub Repo - MCP Servers](https://github.com/modelcontextprotocol/servers)
+[VS Code - MCP Servers](https://code.visualstudio.com/mcp)
+https://learn.microsoft.com/en-us/training/paths/develop-ai-agents-azure-open-ai-semantic-kernel-sdk/
+[Microsoft Learn - Develop generative AI apps with Azure OpenAI and Semantic Kernel](https://learn.microsoft.com/en-us/training/paths/develop-ai-agents-azure-open-ai-semantic-kernel-sdk/)
+[Full Course (Lessons 1-11) MCP for Beginners](https://www.youtube.com/watch?v=VfZlglOWWZw)
+
+
 ## Repository Contents
 
 - `./Student`
