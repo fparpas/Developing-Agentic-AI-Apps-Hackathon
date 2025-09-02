@@ -97,7 +97,7 @@ The intended audience are individuals with coding skills.
 https://learn.microsoft.com/en-us/training/paths/develop-ai-agents-azure-open-ai-semantic-kernel-sdk/
 [Microsoft Learn - Develop generative AI apps with Azure OpenAI and Semantic Kernel](https://learn.microsoft.com/en-us/training/paths/develop-ai-agents-azure-open-ai-semantic-kernel-sdk/)
 [Full Course (Lessons 1-11) MCP for Beginners](https://www.youtube.com/watch?v=VfZlglOWWZw)
-
+[Microsoft GitHub repo - MCP servers ](https://github.com/Microsoft/mcp)
 
 ## Repository Contents
 
