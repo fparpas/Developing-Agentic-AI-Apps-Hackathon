@@ -25,18 +25,7 @@ Setup and configure the following tools
 - Use the latest version of [Visual Studio](https://visualstudio.microsoft.com) or [Visual Studio Code](https://code.visualstudio.com) if you don't have it.n
 - Install .NET .0 SDK or later version
 - Set up [GitHub Copilot](https://github.com/features/copilot/plans) - if you don't have a license, sign up for the free tier or start a Copilot Pro trial for enhanced AI assistance during development
-- Install Playwright for .NET by running: `dotnet tool install --global Microsoft.Playwright.CLI`
 - Clone the GitHub repository onto your workstation.
-
-### Practical Exercise: Test Playwright with Google Maps
-
-Create a simple Playwright script to automate getting driving directions:
-
-- Create a new console application
-- Use Playwright to navigate to Google Maps
-- Search for directions from "London Piccadilly Circus" to "University of Surrey, Guildford"
-- Extract and display the estimated driving time and distance
-- Take a screenshot of the directions
 
 ## Success Criteria
 
@@ -44,6 +33,4 @@ Create a simple Playwright script to automate getting driving directions:
 - You have a bash shell or PowerShell at your disposal (you can also use Azure Cloud Shell)
 - Running az --version shows the version of your Azure CLI
 - Visual Studio or Visual Studio Code is installed.
-- Playwright CLI is installed and functional
-- Successfully created and ran a Playwright script that gets driving directions from London Piccadilly Circus to University of Surrey in Guildford
 - Ensure that you clone the GitHub repository onto your workstation.
