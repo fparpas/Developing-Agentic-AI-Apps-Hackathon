@@ -2,9 +2,6 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
-using SecureWeatherMcpServer.Services;
-
-namespace SecureWeatherMcpServer.Authentication;
 
 public class ApiKeyAuthenticationSchemeOptions : AuthenticationSchemeOptions
 {
@@ -16,16 +13,13 @@ public class ApiKeyAuthenticationSchemeOptions : AuthenticationSchemeOptions
 public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthenticationSchemeOptions>
 {
     private const string ApiKeyHeaderName = "X-API-Key";
-    private readonly IApiKeyService _apiKeyService;
 
     public ApiKeyAuthenticationHandler(
         IOptionsMonitor<ApiKeyAuthenticationSchemeOptions> options,
         ILoggerFactory logger,
-        UrlEncoder encoder,
-        IApiKeyService apiKeyService)
+        UrlEncoder encoder)
         : base(options, logger, encoder)
     {
-        _apiKeyService = apiKeyService;
     }
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
@@ -41,23 +35,15 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
             return AuthenticateResult.Fail("API Key was not provided");
         }
 
-        var isValidKey = await _apiKeyService.ValidateApiKeyAsync(apiKey);
+        var isValidKey = ValidateApiKey(apiKey);
         if (!isValidKey)
         {
             return AuthenticateResult.Fail("Invalid API Key");
         }
 
-        var keyInfo = await _apiKeyService.GetApiKeyInfoAsync(apiKey);
-        if (keyInfo == null)
-        {
-            return AuthenticateResult.Fail("API Key not found");
-        }
-
         var claims = new[]
         {
-            new Claim(ClaimTypes.Name, keyInfo.Name),
-            new Claim("ApiKeyId", keyInfo.Id),
-            new Claim("ApiKeyName", keyInfo.Name)
+            new Claim(ClaimTypes.Name, apiKey),
         };
 
         var identity = new ClaimsIdentity(claims, Options.Scheme);
@@ -65,6 +51,11 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
         var ticket = new AuthenticationTicket(principal, Options.Scheme);
 
         return AuthenticateResult.Success(ticket);
+    }
+
+    private bool ValidateApiKey(string key)
+    {
+        return string.Compare(key, "SuperSecureSecretUsedAsApiKey", StringComparison.Ordinal) == 0;
     }
 
     protected override async Task HandleChallengeAsync(AuthenticationProperties properties)
