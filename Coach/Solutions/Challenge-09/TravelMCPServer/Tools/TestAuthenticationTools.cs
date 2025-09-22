@@ -9,7 +9,7 @@ namespace TravelMcpServer.Tools;
 /// Authentication demonstration tools for Amadeus API
 /// </summary>
 [McpServerToolType]
-public static class AuthenticationTools
+public class TestAuthenticationTools
 {
     [McpServerTool, Description("[TEST] Test Amadeus API authentication and get access token information.")]
     public static async Task<string> TestAmadeusAuthentication(AmadeusHttpClient amadeusClient)

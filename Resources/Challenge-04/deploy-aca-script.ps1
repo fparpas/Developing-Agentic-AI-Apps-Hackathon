@@ -10,7 +10,7 @@
 
 param(
     [Parameter(Mandatory = $false)]
-    [string]$ResourceGroupName = "rg-weathermcp-workshop",
+    [string]$ResourceGroupName = "AgenticAI",
     
     [Parameter(Mandatory = $false)]
     [string]$Location = "swedencentral",

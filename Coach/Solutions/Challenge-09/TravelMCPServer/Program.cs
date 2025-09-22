@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -8,6 +9,7 @@ using ModelContextProtocol.AspNetCore;
 using System.Net.Http.Headers;
 using TravelMcpServer.Http;
 using TravelMcpServer.Services;
+using TravelMcpServer.Tools;
 
 
 
@@ -35,10 +37,15 @@ var httpPort = int.Parse(Environment.GetEnvironmentVariable("HttpPort") ?? "8080
 // Configure MCP server with HTTP transport
 builder.Services.AddMcpServer()
         .WithHttpTransport()
-        .WithToolsFromAssembly();
-    
+        .WithTools<HotelTools>()
+        .WithTools<FlightTools>()
+        .WithTools<TransferTools>()
+        .WithTools<ActivitiesTools>()
+        .WithTools<ReferenceDataTools>()
+        .WithTools<TestAuthenticationTools>();
+
     // Configure services
-    ConfigureServices(builder.Services, builder.Configuration);
+ConfigureServices(builder.Services, builder.Configuration);
     
     var app = builder.Build();
     

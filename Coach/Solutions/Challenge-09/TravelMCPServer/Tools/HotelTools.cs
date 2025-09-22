@@ -10,7 +10,7 @@ namespace TravelMcpServer.Tools;
 /// </summary>
 [McpServerToolType]
 [Description("Comprehensive hotel operations including search, booking, and reviews")]
-public static class HotelTools
+public class HotelTools
 {
     #region Hotel Search Operations
 
