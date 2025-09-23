@@ -36,10 +36,10 @@ class Program
             var deploymentName = configuration["AzureOpenAI:DeploymentName"] ?? "Enter value here if not set in app.settings";
 
             // Load Azure AD settings for OAuth
-            var clientId = "2fdee425-73e3-4611-87c1-7c76d4b3f38e";
-            var clientSecret =  "3o58Q~CUANbUIuGzJV7K6XwP.CD.JA2YSeLz_boU";
-            var tenantId =  "0f64c39d-2e8d-4339-909a-12bd5577ba8e"; // Use 'common' for multi-tenant
-            var scopes = new[] { "api://2fdee425-73e3-4611-87c1-7c76d4b3f38e/.default" };
+            var clientId = configuration["AzureAD:ClientId"] ?? "Enter value here if not set in app.settings";
+            var clientSecret = configuration["AzureAD:ClientSecret"] ?? "Enter value here if not set in app.settings";
+            var tenantId = configuration["AzureAD:TenantId"] ?? "Enter value here if not set in app.settings"; // Use 'common' for multi-tenant
+            var scopes = new[] { $"api://{clientId}/.default" };
 
             //Load MCP settings
             var useLocalMCP = configuration.GetValue<bool>("MCPServer:UseLocalMCP", true);

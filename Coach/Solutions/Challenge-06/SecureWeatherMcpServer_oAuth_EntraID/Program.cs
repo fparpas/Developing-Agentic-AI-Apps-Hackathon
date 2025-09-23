@@ -9,8 +9,9 @@ using SecureWeatherMcpServer.Authentication;
 
 var builder = WebApplication.CreateBuilder(args);
 
-string entraTenenatId = "0f64c39d-2e8d-4339-909a-12bd5577ba8e";
-string entraClientId = "2fdee425-73e3-4611-87c1-7c76d4b3f38e";
+
+string entraTenantId = "<Your-Tenant-ID>";
+string entraClientId = "<Your-Entra-Client-ID>";
 
 // Configure to use HTTP only
 builder.WebHost.UseUrls("http://localhost:5001");
@@ -40,7 +41,7 @@ builder.Services.AddAuthentication(options =>
 .AddJwtBearer(options =>
 {
     // Configure to validate tokens from our in-memory OAuth server
-    options.Authority = $"https://login.microsoftonline.com/{entraTenenatId}";
+    options.Authority = $"https://login.microsoftonline.com/{entraTenantId}";
     options.Audience = entraClientId;
     options.TokenValidationParameters = new TokenValidationParameters
     {
@@ -54,7 +55,7 @@ builder.Services.AddAuthentication(options =>
         // Add valid issuers
         ValidIssuers = new[]
         {
-            $"https://sts.windows.net/{entraTenenatId}/"
+            $"https://sts.windows.net/{entraTenantId}/"
         },
         // Allow some flexibility in audience validation for service principals
         RequireAudience = true,
