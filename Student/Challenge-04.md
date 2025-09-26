@@ -65,7 +65,7 @@ This challenge consists of three main tasks that build upon each other:
 
 ##### Project Structure
 
-Your project starting point is located at [Resources/Challenge-04/src/WeatherRemoteMcpServer/](../Resources/Challenge-04/src/WeatherRemoteMcpServer/)
+Your project starting point is located at [Resources/Challenge-04/src/WeatherRemoteMcpServer/](./Resources/Challenge-04/src/WeatherRemoteMcpServer/)
 
 
 ```
@@ -87,11 +87,11 @@ Once your MCP server is working locally, it's time to deploy it to Azure so it c
 
 **Choose your deployment method:**
 - **Option A:** Azure Container Apps (recommended for flexibility)
-  - Script: [deploy-aca-script.ps1](../Resources/Challenge-04/deploy-aca-script.ps1)
-  - Instructions: [Azure Container Apps README](../Resources/Challenge-04/README-ACA.md)
+  - Script: [deploy-aca-script.ps1](./Resources/Challenge-04/deploy-aca-script.ps1)
+  - Instructions: [Azure Container Apps README](./Resources/Challenge-04/README-ACA.md)
 - **Option B:** Azure Functions (recommended for simplicity)
-  - Script: [deploy-functions-script.ps1](../Resources/Challenge-04/deploy-functions-script.ps1)
-  - Instructions: [Azure Functions README](../Resources/Challenge-04/README-Functions.md)
+  - Script: [deploy-functions-script.ps1](./Resources/Challenge-04/deploy-functions-script.ps1)
+  - Instructions: [Azure Functions README](./Resources/Challenge-04/README-Functions.md)
 
 **What you'll do:**
 - Choose your preferred deployment option and read the corresponding README file
@@ -124,11 +124,8 @@ Once your MCP server is working locally, it's time to deploy it to Azure so it c
 
 ## Learning Resources
 ### Deployment Documentation
-- 📖 [Azure Container Apps README](../Resources/Challenge-04/README-ACA.md)
-- 📖 [Azure Functions README](../Resources/Challenge-04/README-Functions.md)
-
-### Reference Implementation
-- 🔍 Check `Coach/Solutions/Challenge-05/WeatherRemoteMcpServer/Program.cs` if you get stuck
+- 📖 [Azure Container Apps README](./Resources/Challenge-04/README-ACA.md)
+- 📖 [Azure Functions README](./Resources/Challenge-04/README-Functions.md)
 
 ### MCP Documentation
 - [Model Context Protocol Specification](https://modelcontextprotocol.io/)

@@ -1,147 +1,212 @@
-# Challenge 09 - Develop Agentic AI Applications using Semantic Kernel and Multi-Agent Architectures
+# Challenge 06 - Secure your MCP remote server using an API key
 
 [< Previous Challenge](./Challenge-08.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-10.md)
 
 ## Introduction
 
-In this challenge you'll practice how to use the powerful capabilities of Semantic Kernel to design and orchestrate intelligent agents that work collaboratively to solve complex problems. You'll build a multi-agent application that leverages the strengths of different agents to achieve a common goal.
+In previous challenges, you built MCP servers and clients that communicate over stdio (standard input/output). While this works well for local development, production scenarios often require remote MCP servers that can be accessed over HTTP/HTTPS from multiple clients. However, exposing your MCP server to the internet without proper security measures creates significant risks.
 
-You'll also learn about the different types of orchestration patterns available, and use the Semantic Kernel Agents Framework to develop your own AI agents that can collaborate for a multi-agent solution.
+In this challenge, you will learn how to secure your MCP server by implementing API key authentication, enabling safe remote access while protecting your tools and resources from unauthorized use.
 
-## Key Concepts
+## Concepts
 
-The Semantic Kernel SDK's agent orchestration framework makes it possible to design, manage, and scale complex multi-agent workflows without having to manually handle the details of agent coordination. Instead of relying on a single agent to manage every aspect of a task, you can combine multiple specialized agents. Each agent with a unique role or area of expertise can collaborate to create systems that are more robust, adaptive, and capable of solving real-world problems collaboratively.
+### API Key Authentication
+API keys are a simple and effective method for authenticating clients to your MCP server. They provide:
+- **Client Identification**: Each client gets a unique key to identify requests
+- **Access Control**: Keys can be revoked or have different permission levels
+- **Usage Tracking**: Monitor which clients are making requests
+- **Rate Limiting**: Control request frequency per client
 
-By orchestrating agents together, you can take on tasks that would be too complex for a single agent—from running parallel analyses, to building multi-stage processing pipelines, to managing dynamic, context-driven handoffs between experts.
+### MCP Security Considerations
+When securing MCP servers, consider:
+- **Transport Security**: Use HTTPS for encrypted communication
+- **Authentication**: Verify client identity before processing requests
+- **Authorization**: Control which tools/resources clients can access
+- **Input Validation**: Sanitize all inputs to prevent injection attacks
+- **Audit Logging**: Track all requests for security monitoring
+- **Rate Limiting**: Prevent abuse and DoS attacks
 
-### Why multi-agent orchestration matters
-
-Traditional single-agent systems are limited in their ability to handle complex, multi-faceted tasks. By orchestrating multiple agents, each with specialized skills or roles, we can create systems that are more robust, adaptive, and capable of solving real-world problems collaboratively. Multi-agent orchestration in Semantic Kernel provides a flexible foundation for building such systems, supporting a variety of coordination patterns.
-
-### Supported orchestration patterns
-
-Like well-known cloud design patterns, agent orchestration patterns are technology agnostic approaches to coordinating multiple agents to work together towards a common goal. To learn more about the patterns themselves, refer to the AI agent orchestration patterns documentation.
-
-Semantic Kernel supports you by implementing these orchestration patterns directly in the SDK. These patterns are available as part of the framework and can be easily extended or customized so you can tune your agent collaboration scenario.
-
-| Pattern | Description | Typical Use Case |
-|---------|-------------|------------------|
-| **Concurrent** | Broadcasts a task to all agents, collects results independently | Parallel analysis, independent subtasks, ensemble decision making |
-| **Sequential** | Passes the result from one agent to the next in a defined order | Step-by-step workflows, pipelines, multi-stage processing |
-| **Handoff** | Dynamically passes control between agents based on context or rules | Dynamic workflows, escalation, fallback, or expert handoff scenarios |
-| **Group Chat** | All agents participate in a group conversation, coordinated by a group manager | Brainstorming, collaborative problem solving, consensus building |
-| **Magentic** | Group chat-like orchestration inspired by MagenticOne research | Complex, generalist multi-agent collaboration |
-
-### A unified orchestration workflow
-
-Regardless of which orchestration pattern you choose, the Semantic Kernel SDK provides a consistent, developer-friendly interface for building and running them. The typical flow looks like this:
-
-1. Define your agents and describe their capabilities
-2. Select and create an orchestration pattern, optionally adding a manager agent if needed
-3. Optionally configure callbacks or transforms for custom input and output handling
-4. Start a runtime to manage execution
-5. Invoke the orchestration with your task
-6. Retrieve results in an asynchronous, non-blocking way
-
-Because all patterns share the same core interface, you can easily experiment with different orchestration strategies without rewriting agent logic or learning new APIs. The SDK abstracts the complexity of agent communication, coordination, and result aggregation so you can focus on designing workflows that deliver results.
-
-Multi-agent orchestration in the Semantic Kernel SDK provides a flexible, scalable way to build intelligent systems that combine the strengths of multiple specialized agents. With built-in orchestration patterns, a unified development model, and runtime features for managing execution, you can quickly prototype, refine, and deploy collaborative AI workflows. Whether you’re running agents in parallel, coordinating sequential steps, or enabling dynamic conversations, the framework gives you the tools to turn multiple agents into a cohesive problem-solving team.
+### Remote MCP Architecture
+```
+Client Application → HTTPS Request → API Gateway/Load Balancer → MCP Server
+                   (with API Key)    (SSL Termination)      (Authenticated)
+```
 
 ## Description
 
-In this challenge, you will build a sophisticated multi-agent application using Semantic Kernel's Agent Orchestration framework. You'll create specialized agents that work together to solve a complex business scenario requiring multiple areas of expertise.
+In this challenge, you will enhance your Weather MCP Server from Challenge 02 to support remote access with API key authentication. You'll deploy it as a web service and secure it properly.
 
-Your task is to develop a **Travel Planning Assistant** that uses multiple agents to collaboratively plan a comprehensive trip. This scenario requires:
+### Task 1: Convert MCP Server to Web API
 
-1. **Weather Agent** - Provides weather forecasts and recommendations
-2. **Budget Agent** - Calculates costs and suggests budget-friendly alternatives
-3. **Activity Agent** - Recommends activities and attractions based on interests
-4. **Restaurant Agent** - Suggests dining options based on preferences and budget
-5. **Coordinator Agent** - Orchestrates the collaboration and provides final recommendations
+Transform your console-based MCP server into a web API that can handle HTTP requests:
 
-You'll implement different orchestration patterns to demonstrate how agents can work together in various ways:
+1. **Create a new ASP.NET Core Web API project**:
+```bash
+dotnet new webapi -n SecureWeatherMcpServer
+cd SecureWeatherMcpServer
+```
 
-- Use **Sequential Orchestration** for the main planning pipeline
-- Use **Concurrent Orchestration** for gathering parallel information
-- Use **Group Chat Orchestration** for collaborative decision-making scenarios
+2. **Add required NuGet packages**:
+```bash
+dotnet add package ModelContextProtocol
+dotnet add package Microsoft.AspNetCore.Authentication
+dotnet add package Microsoft.Extensions.Logging
+dotnet add package Swashbuckle.AspNetCore
+```
 
-### Requirements
+3. **Configure the web API** to expose MCP endpoints over HTTP instead of stdio.
 
-1. **Set up the Semantic Kernel Agent Framework**:
-   - Install the required NuGet packages for agent orchestration
-   - Configure the agent runtime environment
+### Task 2: Implement API Key Authentication
 
-2. **Create Specialized Agents**:
-   - Implement each agent with specific instructions and capabilities
-   - Configure appropriate AI models for each agent's role
-   - Define clear interfaces and responsibilities
+Create a secure API key authentication system:
 
-3. **Implement Orchestration Patterns**:
-   - **Sequential Pattern**: Chain agents for step-by-step planning
-   - **Concurrent Pattern**: Run multiple agents in parallel for information gathering
-   - **Group Chat Pattern**: Enable collaborative discussion between agents
+1. **Create an API Key Authentication Handler**:
+```csharp
+public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthenticationSchemeOptions>
+{
+    private const string ApiKeyHeaderName = "X-API-Key";
+    
+    // Implementation details
+}
+```
 
-4. **Build the Travel Planning Workflow**:
-   - Accept user input for destination, dates, budget, and preferences
-   - Coordinate agents to gather and process relevant information
-   - Generate a comprehensive travel plan with recommendations
+2. **API Key Storage**: Implement secure storage for API keys (in-memory for this challenge, but consider Azure Key Vault for production)
 
-5. **Add Error Handling and Fallbacks**:
-   - Implement proper error handling for agent failures
-   - Add fallback mechanisms for when agents cannot complete tasks
-   - Ensure graceful degradation of functionality
+3. **Key Validation**: Validate incoming API keys against your stored keys
+
+4. **Authentication Middleware**: Configure ASP.NET Core to use your API key authentication
+
+### Task 3: Secure MCP Endpoints
+
+Create secure HTTP endpoints for MCP operations:
+
+1. **Tools Endpoint**: `GET /api/mcp/tools` - List available tools (requires authentication)
+2. **Tool Execution Endpoint**: `POST /api/mcp/tools/{toolName}` - Execute a specific tool (requires authentication)
+3. **Health Endpoint**: `GET /api/health` - Health check (public, no authentication required)
+
+Example controller structure:
+```csharp
+[ApiController]
+[Route("api/mcp")]
+[Authorize(AuthenticationSchemes = "ApiKey")]
+public class McpController : ControllerBase
+{
+    [HttpGet("tools")]
+    public async Task<IActionResult> GetTools()
+    {
+        // Return available tools
+    }
+    
+    [HttpPost("tools/{toolName}")]
+    public async Task<IActionResult> ExecuteTool(string toolName, [FromBody] JsonElement arguments)
+    {
+        // Execute the specified tool with given arguments
+    }
+}
+```
+
+### Task 4: Add Security Headers and CORS
+
+Implement additional security measures:
+
+1. **Security Headers**: Add security headers to prevent common attacks
+```csharp
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Add("X-Content-Type-Options", "nosniff");
+    context.Response.Headers.Add("X-Frame-Options", "DENY");
+    context.Response.Headers.Add("X-XSS-Protection", "1; mode=block");
+    await next();
+});
+```
+
+2. **CORS Configuration**: Configure Cross-Origin Resource Sharing for web clients
+3. **HTTPS Enforcement**: Ensure all communication is encrypted
+4. **Request Validation**: Validate all input parameters
+
+### Task 5: Create Admin Endpoints
+
+Add administrative functionality for managing API keys:
+
+1. **Generate API Key**: `POST /api/admin/keys` - Generate new API keys
+2. **List API Keys**: `GET /api/admin/keys` - List all API keys (without showing the actual key)
+3. **Revoke API Key**: `DELETE /api/admin/keys/{keyId}` - Revoke an API key
+
+These endpoints should use a different authentication mechanism (e.g., admin token or Azure AD).
+
+### Task 6: Update MCP Client
+
+Modify your MCP client from Challenge 03 to work with the remote, secured server:
+
+1. **HTTP Transport**: Replace stdio transport with HTTP transport
+2. **API Key Configuration**: Add API key to all requests
+3. **Error Handling**: Handle authentication errors gracefully
+4. **Connection Management**: Implement proper HTTP connection management
+
+Example client code:
+```csharp
+public class HttpMcpClient
+{
+    private readonly HttpClient _httpClient;
+    private readonly string _apiKey;
+    
+    public HttpMcpClient(string baseUrl, string apiKey)
+    {
+        _httpClient = new HttpClient { BaseAddress = new Uri(baseUrl) };
+        _apiKey = apiKey;
+        _httpClient.DefaultRequestHeaders.Add("X-API-Key", apiKey);
+    }
+    
+    public async Task<IEnumerable<Tool>> GetToolsAsync()
+    {
+        var response = await _httpClient.GetAsync("api/mcp/tools");
+        response.EnsureSuccessStatusCode();
+        // Parse and return tools
+    }
+}
+```
+
+### Task 7: Testing and Validation
+
+Test your secure MCP server thoroughly:
+
+1. **Authentication Testing**: Verify that requests without API keys are rejected
+2. **Authorization Testing**: Ensure only valid API keys can access protected endpoints
+3. **Tool Functionality**: Confirm that weather tools still work correctly
+4. **Performance Testing**: Test under load to ensure security doesn't impact performance
+5. **Security Scanning**: Use tools like OWASP ZAP to scan for vulnerabilities
+
+### Task 8: Deployment Considerations
+
+Prepare for production deployment:
+
+1. **Environment Configuration**: Use different API keys for development, staging, and production
+2. **Logging**: Implement comprehensive security logging
+3. **Monitoring**: Set up alerts for failed authentication attempts
+4. **Backup Keys**: Plan for API key rotation and emergency access
 
 ## Success Criteria
 
-To successfully complete this challenge, you must demonstrate:
-
-### ✅ **Agent Implementation**
-
-- [ ] Created 5 specialized agents with distinct roles and capabilities
-- [ ] Each agent has appropriate system instructions and prompts
-- [ ] Agents are properly configured with AI models and tools
-- [ ] Agent responses are contextually appropriate for their roles
-
-### ✅ **Orchestration Patterns**
-
-- [ ] Implemented Sequential Orchestration for the main workflow
-- [ ] Implemented Concurrent Orchestration for parallel information gathering
-- [ ] Implemented Group Chat Orchestration for collaborative scenarios
-- [ ] Demonstrated proper runtime management and cleanup
-
-### ✅ **Travel Planning Functionality**
-
-- [ ] Application accepts user input for travel requirements
-- [ ] Weather agent provides relevant forecast and recommendations
-- [ ] Budget agent calculates costs and suggests alternatives
-- [ ] Activity agent recommends relevant attractions and activities
-- [ ] Restaurant agent suggests appropriate dining options
-- [ ] Coordinator agent synthesizes all information into a coherent plan
-
-### ✅ **Code Quality and Architecture**
-
-- [ ] Clean, well-structured code with proper separation of concerns
-- [ ] Appropriate error handling and logging
-- [ ] Proper async/await patterns for agent coordination
-- [ ] Configuration management for API keys and settings
-
-### ✅ **Documentation**
-
-- [ ] Clear README with setup and usage instructions
-- [ ] Code comments explaining orchestration choices
-- [ ] Example scenarios and expected outputs
+- ✅ **Web API Conversion**: MCP server successfully converted to ASP.NET Core Web API
+- ✅ **API Key Authentication**: Robust API key authentication system implemented
+- ✅ **Secure Endpoints**: All MCP endpoints require valid authentication
+- ✅ **Security Headers**: Appropriate security headers implemented
+- ✅ **Admin Functionality**: API key management endpoints working
+- ✅ **Updated Client**: MCP client successfully connects to remote secured server
+- ✅ **Weather Tools**: Original weather functionality preserved and accessible
+- ✅ **Error Handling**: Proper error responses for authentication failures
+- ✅ **Documentation**: Clear API documentation with authentication requirements
+- ✅ **Testing**: Comprehensive security and functionality testing completed
 
 ## Learning Resources
 
-### Official Microsoft Documentation
-
-- [Semantic Kernel Agent Orchestration](https://learn.microsoft.com/en-us/semantic-kernel/frameworks/agent/agent-orchestration/?pivots=programming-language-csharp)
-- [Understand Agent Orchestration](https://learn.microsoft.com/en-us/training/modules/orchestrate-semantic-kernel-multi-agent-solution/3-understand-agent-orchestration)
-- [AI Agent Orchestration Patterns](https://learn.microsoft.com/en-us/azure/architecture/ai-ml/guide/ai-agent-design-patterns)
-- [Semantic Kernel Agents Framework](https://learn.microsoft.com/en-us/semantic-kernel/frameworks/agent/)
-
-### Additional Resources
-
-- [MagenticOne Research Paper](https://www.microsoft.com/en-us/research/articles/magentic-one-a-generalist-multi-agent-system-for-solving-complex-tasks/)
-- [Semantic Kernel GitHub Repository](https://github.com/microsoft/semantic-kernel)
-- [Multi-Agent Systems Design Patterns](https://learn.microsoft.com/en-us/azure/architecture/ai-ml/guide/ai-agent-design-patterns)
+- [ASP.NET Core Web API Security](https://docs.microsoft.com/en-us/aspnet/core/security/)
+- [Custom Authentication in ASP.NET Core](https://docs.microsoft.com/en-us/aspnet/core/security/authentication/custom)
+- [API Security Best Practices](https://owasp.org/www-project-api-security/)
+- [Azure Key Vault for Secrets Management](https://docs.microsoft.com/en-us/azure/key-vault/)
+- [HTTP Security Headers](https://owasp.org/www-project-secure-headers/)
+- [CORS in ASP.NET Core](https://docs.microsoft.com/en-us/aspnet/core/security/cors)
+- [Model Context Protocol Security Guidelines](https://modelcontextprotocol.io/docs/security)
+- [HTTPS Enforcement in ASP.NET Core](https://docs.microsoft.com/en-us/aspnet/core/security/enforcing-ssl)
+- [Rate Limiting in ASP.NET Core](https://docs.microsoft.com/en-us/aspnet/core/performance/rate-limit)
+- [API Versioning Best Practices](https://docs.microsoft.com/en-us/aspnet/core/web-api/advanced/versioning)

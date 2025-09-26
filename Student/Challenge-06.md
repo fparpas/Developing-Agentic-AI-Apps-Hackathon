@@ -1,212 +1,291 @@
-# Challenge 06 - Secure your MCP remote server using an API key
+# Challenge 06 - Build your first Semantic Kernel App and integrate with MCP remote server
 
-[< Previous Challenge](./Challenge-05.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-07.md)
+ [< Previous Challenge](./Challenge-05.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-07.md)
 
 ## Introduction
 
-In previous challenges, you built MCP servers and clients that communicate over stdio (standard input/output). While this works well for local development, production scenarios often require remote MCP servers that can be accessed over HTTP/HTTPS from multiple clients. However, exposing your MCP server to the internet without proper security measures creates significant risks.
+In this challenge, you will build your first intelligent application using **Semantic Kernel**, Microsoft's lightweight SDK for developing AI agents. You'll create an interactive console application that demonstrates the core capabilities of AI orchestration and plugin integration.
 
-In this challenge, you will learn how to secure your MCP server by implementing API key authentication, enabling safe remote access while protecting your tools and resources from unauthorized use.
+Semantic Kernel serves as middleware between your application and AI models, enabling you to build enterprise-grade AI solutions. By the end of this challenge, you'll have hands-on experience with plugins, function calling, and integrating external services through the Model Context Protocol (MCP).
+
+Semantic Kernel combines prompts with existing APIs to perform actions. By describing your existing code to AI models, they’ll be called to address requests. When a request is made the model calls a function, and Semantic Kernel is the middleware translating the model's request to a function call and passes the results back to the model.
+
+![image](./Resources/Diagrams/functioncalling.png)
+
+In this challenge, you'll build a console application that can control smart devices, display current time, and fetch weather data from your remote MCP server, showcasing how Semantic Kernel orchestrates multiple AI capabilities seamlessly.
 
 ## Concepts
 
-### API Key Authentication
-API keys are a simple and effective method for authenticating clients to your MCP server. They provide:
-- **Client Identification**: Each client gets a unique key to identify requests
-- **Access Control**: Keys can be revoked or have different permission levels
-- **Usage Tracking**: Monitor which clients are making requests
-- **Rate Limiting**: Control request frequency per client
+Before diving into the implementation, let's understand the key concepts that make Semantic Kernel powerful for AI development.
 
-### MCP Security Considerations
-When securing MCP servers, consider:
-- **Transport Security**: Use HTTPS for encrypted communication
-- **Authentication**: Verify client identity before processing requests
-- **Authorization**: Control which tools/resources clients can access
-- **Input Validation**: Sanitize all inputs to prevent injection attacks
-- **Audit Logging**: Track all requests for security monitoring
-- **Rate Limiting**: Prevent abuse and DoS attacks
+### Semantic Kernel Architecture
 
-### Remote MCP Architecture
-```
-Client Application → HTTPS Request → API Gateway/Load Balancer → MCP Server
-                   (with API Key)    (SSL Termination)      (Authenticated)
-```
+Semantic Kernel provides a structured approach to AI application development:
+
+- **Kernel**: The central orchestration engine that manages AI services, plugins, and execution
+- **AI Services**: Integration points with AI models (OpenAI, Azure OpenAI, etc.)
+- **Plugins**: Reusable components that extend the kernel's capabilities
+- **Function Calling**: The mechanism that allows AI models to execute your code
+- **Planning**: Automatic orchestration of multiple function calls to complete complex tasks
+
+### Plugins and Function Calling
+
+Plugins are the building blocks of Semantic Kernel applications:
+
+- **KernelFunction**: Individual functions that can be called by the AI
+- **Function Descriptions**: Metadata that helps the AI understand when and how to use functions
+- **Parameters**: Strongly-typed inputs and outputs for reliable function execution
+- **Auto Function Calling**: AI models automatically decide which functions to call based on user intent
+
+### Integration with Model Context Protocol (MCP)
+
+Semantic Kernel can integrate with MCP servers to extend functionality:
+
+- **MCP Client Integration**: Connect to remote MCP servers as additional capability sources
+- **Tool Registration**: Convert MCP tools into Semantic Kernel functions
+- **Hybrid Architecture**: Combine local plugins with remote MCP services
+- **Scalable Design**: Leverage both local processing and cloud-based services
+
+### Agent Support and Framework
+
+Semantic Kernel provides comprehensive support for building intelligent agents:
+
+- **Agent Framework**: Built-in abstractions for creating conversational AI agents with persistent state
+- **Multi-Agent Systems**: Support for orchestrating multiple specialized agents working together
+- **Agent Memory**: Persistent conversation history and context management across sessions
+- **Agent Personas**: Define agent behavior, personality, and specialized knowledge domains
+- **Collaborative Agents**: Enable agents to delegate tasks and share information with other agents
+- **Agent Lifecycle Management**: Handle agent initialization, state management, and cleanup operations
 
 ## Description
 
-In this challenge, you will enhance your Weather MCP Server from Challenge 02 to support remote access with API key authentication. You'll deploy it as a web service and secure it properly.
+This challenge will guide you through the process of developing your first intelligent app with Semantic Kernel.
 
-### Task 1: Convert MCP Server to Web API
+In just a few steps, you can build your first AI agent with Semantic Kernel in either .NET.
 
-Transform your console-based MCP server into a web API that can handle HTTP requests:
+### Task 1: Light Bulb interaction plugin
 
-1. **Create a new ASP.NET Core Web API project**:
+As a starting point you can follow the steps below to start development with Semantic Kernel. In this .NET console application example, you will create a plugin, allowing the AI agent to interact with a light bulb.
+
+If you are not familiar enough with .NET you can use the supported programming language (Python or Java) of your preference.
+
+In a console window, use the dotnet new command to create a new console app:
+
 ```bash
-dotnet new webapi -n SecureWeatherMcpServer
-cd SecureWeatherMcpServer
+dotnet new console -n azure-semantic-kernel-sdk-hackathon
 ```
 
-2. **Add required NuGet packages**:
+#### Install the SDK and add Logging package
+
 ```bash
-dotnet add package ModelContextProtocol
-dotnet add package Microsoft.AspNetCore.Authentication
-dotnet add package Microsoft.Extensions.Logging
-dotnet add package Swashbuckle.AspNetCore
+dotnet add package Microsoft.SemanticKernel
+dotnet add package Microsoft.Extensions.Logging.Console
 ```
 
-3. **Configure the web API** to expose MCP endpoints over HTTP instead of stdio.
+#### Import packages
 
-### Task 2: Implement API Key Authentication
-
-Create a secure API key authentication system:
-
-1. **Create an API Key Authentication Handler**:
 ```csharp
-public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthenticationSchemeOptions>
+using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.SemanticKernel.Connectors.OpenAI;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using System.Text.Json.Serialization;
+```
+
+#### Add AI services
+
+```csharp
+// Create kernel
+var builder = Kernel.CreateBuilder();
+builder.AddAzureOpenAIChatCompletion(modelId, endpoint, apiKey);
+```
+
+#### Add enterprise services
+
+One of the main benefits of using Semantic Kernel is that it supports enterprise-grade services. In this sample, we added the logging service to the kernel to help debug the AI agent.
+
+```csharp
+//Disable the experimental warning
+#pragma warning disable SKEXP0001
+
+builder.Services.AddLogging(services => services.AddConsole().SetMinimumLevel(LogLevel.Trace));
+```
+
+**Build the kernel and retrieve services.** Once the services have been added, we  build the kernel and retrieve the chat completion service for later use.
+
+```csharp
+Kernel kernel = builder.Build();
+
+// Retrieve the chat completion service
+var chatCompletionService = kernel.Services.GetRequiredService<IChatCompletionService>();
+```
+
+#### Add plugins
+
+With plugins, you can give your AI agent the ability to run your code to retrieve information from external sources or to perform actions. In the example above, we'll add a plugin that allows the AI agent to interact with a light bulb. You should place your Plugins in a separate folder.
+
+In your own code, you can create a plugin that interacts with any external service or API to achieve similar results.
+
+A good practice is to structure your Plugins in the project like this:
+
+```bash
+\Plugins
+    \LightsPlugin
+        - LightsPlugin.cs
+```
+
+```csharp
+using System.ComponentModel;
+using Microsoft.SemanticKernel;
+using System.Linq;
+
+public class LightsPlugin
 {
-    private const string ApiKeyHeaderName = "X-API-Key";
-    
-    // Implementation details
+// Mock data for the lights
+private readonly List<LightModel> lights = new()
+{
+    new LightModel { Id = 1, Name = "Table Lamp", IsOn = false },
+    new LightModel { Id = 2, Name = "Porch light", IsOn = false },
+    new LightModel { Id = 3, Name = "Chandelier", IsOn = true }
+};
+
+[KernelFunction("get_lights")]
+[Description("Gets a list of lights and their current state")]
+[return: Description("An array of lights")]
+public async Task<List<LightModel>> GetLightsAsync()
+{
+    return lights;
+}
+
+[KernelFunction("change_state")]
+[Description("Changes the state of the light")]
+[return: Description("The updated state of the light; will return null if the light does not exist")]
+public async Task<LightModel?> ChangeStateAsync(int id, bool isOn)
+{
+    var light = lights.FirstOrDefault(light => light.Id == id);
+
+    if (light == null)
+    {
+        return null;
+    }
+
+    // Update the light with the new state
+    light.IsOn = isOn;
+
+    return light;
+}
+}
+
+public class LightModel
+{
+[JsonPropertyName("id")]
+public int Id { get; set; }
+
+[JsonPropertyName("name")]
+public string Name { get; set; }
+
+[JsonPropertyName("is_on")]
+public bool? IsOn { get; set; }
 }
 ```
 
-2. **API Key Storage**: Implement secure storage for API keys (in-memory for this challenge, but consider Azure Key Vault for production)
+#### Add the plugin to the kernel
 
-3. **Key Validation**: Validate incoming API keys against your stored keys
+Once you've created your plugin, you can add it to the kernel so the AI agent can access it. In the sample, we added the LightsPlugin class to the kernel.
 
-4. **Authentication Middleware**: Configure ASP.NET Core to use your API key authentication
-
-### Task 3: Secure MCP Endpoints
-
-Create secure HTTP endpoints for MCP operations:
-
-1. **Tools Endpoint**: `GET /api/mcp/tools` - List available tools (requires authentication)
-2. **Tool Execution Endpoint**: `POST /api/mcp/tools/{toolName}` - Execute a specific tool (requires authentication)
-3. **Health Endpoint**: `GET /api/health` - Health check (public, no authentication required)
-
-Example controller structure:
 ```csharp
-[ApiController]
-[Route("api/mcp")]
-[Authorize(AuthenticationSchemes = "ApiKey")]
-public class McpController : ControllerBase
+// Add the plugin to the kernel
+kernel.Plugins.AddFromType<LightsPlugin>("Lights");
+```
+
+#### Planning
+
+Semantic Kernel leverages function calling–a native feature of most LLMs–to provide planning. With function calling, LLMs can request (or call) a particular function to satisfy a user's request. Semantic Kernel then marshals the request to the appropriate function in your codebase and returns the results back to the LLM so the AI agent can generate a final response.
+
+To enable automatic function calling, we first need to create the appropriate execution settings so that Semantic Kernel knows to automatically invoke the functions in the kernel when the AI agent requests them.
+
+```csharp
+OpenAIPromptExecutionSettings openAIPromptExecutionSettings = new()
 {
-    [HttpGet("tools")]
-    public async Task<IActionResult> GetTools()
-    {
-        // Return available tools
-    }
-    
-    [HttpPost("tools/{toolName}")]
-    public async Task<IActionResult> ExecuteTool(string toolName, [FromBody] JsonElement arguments)
-    {
-        // Execute the specified tool with given arguments
-    }
+    FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
+};
+```
+
+#### Invoke the plugin
+
+Finally, we invoke the AI agent with the plugin. The sample code demonstrates how to generate a non-streaming response, but you can also generate a streaming response by using the GetStreamingChatMessageContentAsync method.
+
+```csharp
+// Create chat history
+var history = new ChatHistory();
+
+// Get the response from the AI
+var result = await chatCompletionService.GetChatMessageContentAsync(
+history,
+executionSettings: openAIPromptExecutionSettings,
+kernel: kernel
+);
+```
+
+### Task 2: Current time plugin
+
+In this task, you will create a plugin that allows the AI agent to display the current time. Since large language models (LLMs) are trained on past data and do not have real-time capabilities, they cannot provide the current time on their own.
+
+By creating this plugin, you will enable the AI agent to call a function that retrieves and displays the current time.
+
+### Task 3: Integrate with Weather Remote MCP server
+
+In this task you will integrate the Weather MCP Remote server completed in the previous challenge and add it as plugins in Semantic Kernel.
+
+Initialize the MCP client with the following code:
+
+```csharp
+var mcpServerUrl = "Your remote MCP server endpoint";
+
+_mcpClient = await McpClientFactory.CreateAsync(
+    new SseClientTransport(
+        new SseClientTransportOptions
+        {
+            Endpoint = new Uri(mcpServerUrl),
+            ConnectionTimeout = TimeSpan.FromMinutes(5) // Increase MCP connection timeout to 5 minutes
+        }
+    )
+);
+```
+
+After creating the MCP client, you will get the list of tools and add them to Semantic Kernel:
+
+```csharp
+var mcpTools = await _mcpClient.ListToolsAsync();
+
+//List available MCP tools
+Console.WriteLine("Available MCP Tools:");
+foreach (var tool in mcpTools)
+{
+    Console.WriteLine($"- {tool.Name}: {tool.Description}");
 }
+
+//Register MCP tools to kernel
+kernel.Plugins.AddFromFunctions("WeatherTools", mcpTools.Select(t => t.AsKernelFunction()));
 ```
-
-### Task 4: Add Security Headers and CORS
-
-Implement additional security measures:
-
-1. **Security Headers**: Add security headers to prevent common attacks
-```csharp
-app.Use(async (context, next) =>
-{
-    context.Response.Headers.Add("X-Content-Type-Options", "nosniff");
-    context.Response.Headers.Add("X-Frame-Options", "DENY");
-    context.Response.Headers.Add("X-XSS-Protection", "1; mode=block");
-    await next();
-});
-```
-
-2. **CORS Configuration**: Configure Cross-Origin Resource Sharing for web clients
-3. **HTTPS Enforcement**: Ensure all communication is encrypted
-4. **Request Validation**: Validate all input parameters
-
-### Task 5: Create Admin Endpoints
-
-Add administrative functionality for managing API keys:
-
-1. **Generate API Key**: `POST /api/admin/keys` - Generate new API keys
-2. **List API Keys**: `GET /api/admin/keys` - List all API keys (without showing the actual key)
-3. **Revoke API Key**: `DELETE /api/admin/keys/{keyId}` - Revoke an API key
-
-These endpoints should use a different authentication mechanism (e.g., admin token or Azure AD).
-
-### Task 6: Update MCP Client
-
-Modify your MCP client from Challenge 03 to work with the remote, secured server:
-
-1. **HTTP Transport**: Replace stdio transport with HTTP transport
-2. **API Key Configuration**: Add API key to all requests
-3. **Error Handling**: Handle authentication errors gracefully
-4. **Connection Management**: Implement proper HTTP connection management
-
-Example client code:
-```csharp
-public class HttpMcpClient
-{
-    private readonly HttpClient _httpClient;
-    private readonly string _apiKey;
-    
-    public HttpMcpClient(string baseUrl, string apiKey)
-    {
-        _httpClient = new HttpClient { BaseAddress = new Uri(baseUrl) };
-        _apiKey = apiKey;
-        _httpClient.DefaultRequestHeaders.Add("X-API-Key", apiKey);
-    }
-    
-    public async Task<IEnumerable<Tool>> GetToolsAsync()
-    {
-        var response = await _httpClient.GetAsync("api/mcp/tools");
-        response.EnsureSuccessStatusCode();
-        // Parse and return tools
-    }
-}
-```
-
-### Task 7: Testing and Validation
-
-Test your secure MCP server thoroughly:
-
-1. **Authentication Testing**: Verify that requests without API keys are rejected
-2. **Authorization Testing**: Ensure only valid API keys can access protected endpoints
-3. **Tool Functionality**: Confirm that weather tools still work correctly
-4. **Performance Testing**: Test under load to ensure security doesn't impact performance
-5. **Security Scanning**: Use tools like OWASP ZAP to scan for vulnerabilities
-
-### Task 8: Deployment Considerations
-
-Prepare for production deployment:
-
-1. **Environment Configuration**: Use different API keys for development, staging, and production
-2. **Logging**: Implement comprehensive security logging
-3. **Monitoring**: Set up alerts for failed authentication attempts
-4. **Backup Keys**: Plan for API key rotation and emergency access
 
 ## Success Criteria
 
-- ✅ **Web API Conversion**: MCP server successfully converted to ASP.NET Core Web API
-- ✅ **API Key Authentication**: Robust API key authentication system implemented
-- ✅ **Secure Endpoints**: All MCP endpoints require valid authentication
-- ✅ **Security Headers**: Appropriate security headers implemented
-- ✅ **Admin Functionality**: API key management endpoints working
-- ✅ **Updated Client**: MCP client successfully connects to remote secured server
-- ✅ **Weather Tools**: Original weather functionality preserved and accessible
-- ✅ **Error Handling**: Proper error responses for authentication failures
-- ✅ **Documentation**: Clear API documentation with authentication requirements
-- ✅ **Testing**: Comprehensive security and functionality testing completed
+- Ensure that your application is running and you are able to debug the application.
+- Ensure that you can interact with the application and switch on or off the light bulbs.
+- Ensure that you are able to request the current time and receive an accurate response.
+- Set a break point in one of the plugins and hit the break point with a user prompt
+- Debug and inspect the chat history object to see the sequence of function calls and results.
+- Integrate with MCP Remote server and get weather results.
+- Demonstrate that the user can ask questions about weather data through the integrated MCP server.
 
 ## Learning Resources
 
-- [ASP.NET Core Web API Security](https://docs.microsoft.com/en-us/aspnet/core/security/)
-- [Custom Authentication in ASP.NET Core](https://docs.microsoft.com/en-us/aspnet/core/security/authentication/custom)
-- [API Security Best Practices](https://owasp.org/www-project-api-security/)
-- [Azure Key Vault for Secrets Management](https://docs.microsoft.com/en-us/azure/key-vault/)
-- [HTTP Security Headers](https://owasp.org/www-project-secure-headers/)
-- [CORS in ASP.NET Core](https://docs.microsoft.com/en-us/aspnet/core/security/cors)
-- [Model Context Protocol Security Guidelines](https://modelcontextprotocol.io/docs/security)
-- [HTTPS Enforcement in ASP.NET Core](https://docs.microsoft.com/en-us/aspnet/core/security/enforcing-ssl)
-- [Rate Limiting in ASP.NET Core](https://docs.microsoft.com/en-us/aspnet/core/performance/rate-limit)
-- [API Versioning Best Practices](https://docs.microsoft.com/en-us/aspnet/core/web-api/advanced/versioning)
+- [Introduction to Semantic Kernel | Microsoft Learn](https://learn.microsoft.com/en-us/semantic-kernel/overview/)
+- [Plugins in Semantic Kernel | Microsoft Learn](https://learn.microsoft.com/en-us/semantic-kernel/concepts/plugins/?pivots=programming-language-csharp)
+- [What are Planners in Semantic Kernel | Microsoft Learn](https://learn.microsoft.com/en-us/semantic-kernel/concepts/planning?pivots=programming-language-csharp)
+- [In-depth Semantic Kernel Demos | Microsoft Learn](https://learn.microsoft.com/en-us/semantic-kernel/get-started/detailed-samples?pivots=programming-language-csharp)
+- [Semantic Kernel GitHub](https://github.com/microsoft/semantic-kernel)
+- [Add MCP Plugins](https://learn.microsoft.com/en-us/semantic-kernel/concepts/plugins/adding-mcp-plugins?pivots=programming-language-csharp)
+- [GitHub samples, Azure AI Search](https://github.com/microsoft/semantic-kernel/blob/main/dotnet/samples/Concepts/Search/MyAzureAISearchPlugin.cs)
