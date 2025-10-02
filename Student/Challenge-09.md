@@ -1,4 +1,4 @@
-# Challenge 06 - Secure your MCP remote server using an API key
+# Challenge 09 - Secure your MCP remote server using an API key
 
 [< Previous Challenge](./Challenge-08.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-10.md)
 

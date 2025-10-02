@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "AIDevHackathon.ConsoleApp.SemanticKernel.Lights": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "development"
+      }
+    }
+  }
+}
