@@ -57,16 +57,36 @@ MCP is a protocol that enables AI models to access external data sources and too
 Your challenge is to set up and master GitHub Copilot in VS Code, then enhance it with MCP servers to accelerate your AI application development workflow.
 
 ### Task 1: Install and Configure GitHub Copilot
-
-Install and authenticate GitHub Copilot and Copilot Chat in VS Code, then verify inline suggestions.
+Install the GitHub Copilot and Copilot Chat extensions in Visual Studio Code, sign in to authenticate your account, and confirm the installation by generating an inline code suggestion.
 
 ### Task 2: Explore Copilot Interaction Modes
 
-Demonstrate Copilot Inline, Chat, Edit, and Agent modes to complete a small coding task like create a method in a programming language of your preference to add two numbers
+Demonstrate Copilot's different modes by completing a simple coding task: create a method to add two numbers in your preferred programming language. Try the following in each mode:
+
+#### Inline Suggestions
+- Start typing a function definition (e.g., `decimal AddNumbers(string a, string b)`) and observe Copilot's inline suggestion to complete the function.
+
+#### Chat Mode (Ask)
+- Open Copilot Chat and ask:  
+  *"Can you show me how to write a function in C# that adds two numbers?"*
+
+#### Edit Mode
+- Write a basic function with a placeholder body, select it, and prompt:  
+  *"Implement this function to return the sum of the two arguments."*
+
+#### Agent Mode
+- In Copilot Chat, use an agent command such as:  
+  *"@workspace Create a function in JavaScript that adds two numbers and write a test for it."*
+
+Try these examples in your editor to see how Copilot assists you differently in each mode.
 
 ### Task 3: Configure MCP Servers
 
 Integrate an MCP server or tool with Microsoft Docs and Playwright; demonstrate it by retrieving docs content or running a Playwright action via chat.
+
+#### How to Use MCP Servers in Visual Studio Code
+
+For detailed instructions on enhancing GitHub Copilot with MCP servers in Visual Studio Code, refer to the official documentation: [Customize Copilot with MCP Servers in VS Code](https://code.visualstudio.com/docs/copilot/customization/mcp-servers).
 
 #### MS Docs
 
@@ -88,17 +108,16 @@ Using Playwright, interact in the Copilot Chat window to automate Google Maps an
 
 ## Success Criteria
 
-- [ ] GitHub Copilot and Copilot Chat extensions are installed
-- [ ] Successfully demonstrate inline code suggestions
-- [ ] Successfully use Edit mode to refactor existing code with specific instructions
-- [ ] Interact with @workspace, @vscode, and @terminal agents effectively
-- [ ] Configure at least one MCP server and demonstrate enhanced context
-- [ ] Demonstrate understanding of when to use each Copilot mode for different tasks
-- [ ] Use an MCP integration to fetch a Microsoft Docs article
-- [ ] Use Playwright to automate Google Maps driving directions
+- ✅ GitHub Copilot and Copilot Chat extensions are installed
+- ✅ Successfully demonstrate inline code suggestions
+- ✅ Successfully use Edit mode to refactor existing code with specific instructions
+- ✅ Interact with @workspace, @vscode, and @terminal agents effectively
+- ✅ Demonstrate understanding of when to use each Copilot mode for different tasks
+- ✅ Use an MCP integration to fetch a Microsoft Docs article
+- ✅ Use Playwright to automate Google Maps driving directions
 
 ## Learning Resources
-
+- [Use MCP servers in VS Code](https://code.visualstudio.com/docs/copilot/customization/mcp-servers)
 - [GitHub Copilot in VS Code Documentation](https://code.visualstudio.com/docs/editor/github-copilot)
 - [GitHub Copilot Chat Documentation](https://docs.github.com/en/copilot/using-github-copilot/asking-github-copilot-questions-in-your-ide)
 - [Model Context Protocol (MCP) Overview](https://modelcontextprotocol.io/)
