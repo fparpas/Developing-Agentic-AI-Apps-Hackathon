@@ -27,6 +27,7 @@ class Program
         _configuration = LoadConfiguration();
 
         //Register Agentic Search Tool
+        //Implement code in the method below
         SearchIndexClient indexClient = await RegisterAgenticSearch(indexDataContentUrl);
 
         // Start an interactive chat session

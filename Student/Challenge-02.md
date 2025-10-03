@@ -215,13 +215,13 @@ npx @modelcontextprotocol/inspector
 
 ## Success Criteria
 
-- A .NET MCP server runs locally over stdio.
-- The server lists two tools: get_forecast and get_alerts.
-- Invoking get_forecast returns current temperature (or basic forecast info) for given lat/lon.
-- Invoking get_alerts returns zero or more active alerts near the given lat/lon.
-- Tools are visible and callable from your chosen MCP host (VS Code Copilot Chat or Claude Desktop).
-- Validated with MCP Inspector: server connects via stdio, tools (get_forecast, get_alerts) invoke successfully, and requests/responses are visible without schema errors.
-- User gets a response to the prompt "Get the weather in Sacramento" when using the MCP tools in VS Code Copilot Chat or Claude Desktop.
+- ✅ A .NET MCP server runs locally over stdio.
+- ✅ The server lists two tools: get_forecast and get_alerts.
+- ✅ Invoking get_forecast returns current temperature (or basic forecast info) for given lat/lon.
+- ✅ Invoking get_alerts returns zero or more active alerts near the given lat/lon.
+- ✅ Tools are visible and callable from your chosen MCP host (VS Code Copilot Chat or Claude Desktop).
+- ✅ Validated with MCP Inspector: server connects via stdio, tools (get_forecast, get_alerts) invoke successfully, and requests/responses are visible without schema errors.
+- ✅ User gets a response to the prompt "Get the weather in Sacramento" when using the MCP tools in VS Code Copilot Chat or Claude Desktop.
 
 ## Learning Resources
 

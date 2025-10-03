@@ -110,16 +110,16 @@ Once your MCP server is working locally, it's time to deploy it to Azure so it c
 
 ## Success Criteria
 
-- Complete the MCP server implementation with HTTP transport
-- Application builds and runs without errors on port 8080
-- Server responds with appropriate MCP protocol messages when accessed
-- Successfully deploy to either Azure Container Apps or Azure Functions
-- Application is accessible via public Azure URL
-- Basic connectivity test confirms MCP server is running in the cloud
-- MCP Inspector successfully connects to your deployed server
-- Weather tools (`get_forecast` and `get_alerts`) are visible and functional
-- Tools work with real data from the National Weather Service
-- Complete end-to-end remote MCP server functionality demonstration
+- ✅ Complete the MCP server implementation with HTTP transport
+- ✅ Application builds and runs without errors on port 8080
+- ✅ Server responds with appropriate MCP protocol messages when accessed
+- ✅ Successfully deploy to either Azure Container Apps or Azure Functions
+- ✅ Application is accessible via public Azure URL
+- ✅ Basic connectivity test confirms MCP server is running in the cloud
+- ✅ MCP Inspector successfully connects to your deployed server
+- ✅ Weather tools (`get_forecast` and `get_alerts`) are visible and functional
+- ✅ Tools work with real data from the National Weather Service
+- ✅ Complete end-to-end remote MCP server functionality demonstration
 
 
 ## Learning Resources

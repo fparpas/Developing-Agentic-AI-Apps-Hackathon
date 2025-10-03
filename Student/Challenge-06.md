@@ -1,54 +1,51 @@
-# Challenge 06 - Build your first Semantic Kernel App and integrate with MCP remote server
+# Challenge 06 - Build your first Agent with Microsoft Agent Framework and integrate with MCP remote server
 
- [< Previous Challenge](./Challenge-05.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-07.md)
-
+ [< Previous Challenge](./Challenge-04.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-06.md)
+ 
 ## Introduction
 
-In this challenge, you will build your first intelligent application using **Semantic Kernel**, Microsoft's lightweight SDK for developing AI agents. You'll create an interactive console application that demonstrates the core capabilities of AI orchestration and plugin integration.
+In this challenge, you will build your first intelligent application using **Microsoft Agent Framework**, Microsoft's open-source engine for developing agentic AI applications. You'll create an interactive console application that demonstrates the core capabilities of AI agent orchestration and tool integration.
 
-Semantic Kernel serves as middleware between your application and AI models, enabling you to build enterprise-grade AI solutions. By the end of this challenge, you'll have hands-on experience with plugins, function calling, and integrating external services through the Model Context Protocol (MCP).
+Microsoft Agent Framework is the evolution of both Semantic Kernel and Autogen, combining the strengths of each into a unified platform. It takes the best features from Semantic Kernel—such as prompt engineering, plugin integration, and middleware orchestration—and merges them with Autogen's advanced agent collaboration and planning capabilities. This results in a powerful, flexible framework for building, deploying, and managing AI agents at scale.
 
-Semantic Kernel combines prompts with existing APIs to perform actions. By describing your existing code to AI models, they’ll be called to address requests. When a request is made the model calls a function, and Semantic Kernel is the middleware translating the model's request to a function call and passes the results back to the model.
-
-![image](./Resources/Diagrams/functioncalling.png)
-
-In this challenge, you'll build a console application that can control smart devices, display current time, and fetch weather data from your remote MCP server, showcasing how Semantic Kernel orchestrates multiple AI capabilities seamlessly.
+By the end of this challenge, you'll have hands-on experience with agent creation, tool integration, and connecting external services through the Model Context Protocol (MCP). Microsoft Agent Framework enables you to build sophisticated AI agents that can reason, plan, and execute complex tasks, with built-in support for multi-agent collaboration, persistent memory, and seamless integration with various AI models and external services.
 
 ## Concepts
 
-Before diving into the implementation, let's understand the key concepts that make Semantic Kernel powerful for AI development.
+Before diving into the implementation, let's understand the key concepts that make Microsoft Agent Framework powerful for AI development.
 
-### Semantic Kernel Architecture
+### Microsoft Agent Framework Architecture
 
-Semantic Kernel provides a structured approach to AI application development:
+Microsoft Agent Framework provides a structured approach to AI agent development:
 
-- **Kernel**: The central orchestration engine that manages AI services, plugins, and execution
+- **Agent Runtime**: The central orchestration engine that manages AI services, tools, and agent execution
 - **AI Services**: Integration points with AI models (OpenAI, Azure OpenAI, etc.)
-- **Plugins**: Reusable components that extend the kernel's capabilities
+- **Tools**: Reusable components that extend the agent's capabilities
 - **Function Calling**: The mechanism that allows AI models to execute your code
-- **Planning**: Automatic orchestration of multiple function calls to complete complex tasks
+- **Planning**: Automatic orchestration of multiple tool calls to complete complex tasks
+- **Agent State Management**: Persistent memory and context across conversations
 
-### Plugins and Function Calling
+### Tools and Function Calling
 
-Plugins are the building blocks of Semantic Kernel applications:
+Tools are the building blocks of Microsoft Agent Framework applications:
 
-- **KernelFunction**: Individual functions that can be called by the AI
-- **Function Descriptions**: Metadata that helps the AI understand when and how to use functions
-- **Parameters**: Strongly-typed inputs and outputs for reliable function execution
-- **Auto Function Calling**: AI models automatically decide which functions to call based on user intent
+- **Agent Tools**: Individual functions that can be called by the AI agent
+- **Tool Descriptions**: Metadata that helps the AI understand when and how to use tools
+- **Parameters**: Strongly-typed inputs and outputs for reliable tool execution
+- **Auto Tool Calling**: AI agents automatically decide which tools to call based on user intent
 
 ### Integration with Model Context Protocol (MCP)
 
-Semantic Kernel can integrate with MCP servers to extend functionality:
+Microsoft Agent Framework can integrate with MCP servers to extend functionality:
 
 - **MCP Client Integration**: Connect to remote MCP servers as additional capability sources
-- **Tool Registration**: Convert MCP tools into Semantic Kernel functions
-- **Hybrid Architecture**: Combine local plugins with remote MCP services
+- **Tool Registration**: Convert MCP tools into Agent Framework tools
+- **Hybrid Architecture**: Combine local tools with remote MCP services
 - **Scalable Design**: Leverage both local processing and cloud-based services
 
 ### Agent Support and Framework
 
-Semantic Kernel provides comprehensive support for building intelligent agents:
+Microsoft Agent Framework provides comprehensive support for building intelligent agents:
 
 - **Agent Framework**: Built-in abstractions for creating conversational AI agents with persistent state
 - **Multi-Agent Systems**: Support for orchestrating multiple specialized agents working together
@@ -59,184 +56,62 @@ Semantic Kernel provides comprehensive support for building intelligent agents:
 
 ## Description
 
-This challenge will guide you through the process of developing your first intelligent app with Semantic Kernel.
+This challenge will guide you through the process of developing your first intelligent app with Microsoft Agent Framework.
 
-In just a few steps, you can build your first AI agent with Semantic Kernel in either .NET.
+In just a few steps, you can build your first AI agent with Microsoft Agent Framework in either .NET.
 
-### Task 1: Light Bulb interaction plugin
+### Task 1: Current time tool
 
-As a starting point you can follow the steps below to start development with Semantic Kernel. In this .NET console application example, you will create a plugin, allowing the AI agent to interact with a light bulb.
+In this task, you will create a tool that allows the AI agent to display the current time. Since large language models (LLMs) are trained on past data and do not have real-time capabilities, they cannot provide the current time on their own.
 
-If you are not familiar enough with .NET you can use the supported programming language (Python or Java) of your preference.
+By creating this tool, you will enable the AI agent to call a function that retrieves and displays the current time.
 
-In a console window, use the dotnet new command to create a new console app:
+#### Create a Current Time Tool
 
-```bash
-dotnet new console -n azure-semantic-kernel-sdk-hackathon
-```
-
-#### Install the SDK and add Logging package
-
-```bash
-dotnet add package Microsoft.SemanticKernel
-dotnet add package Microsoft.Extensions.Logging.Console
-```
-
-#### Import packages
+Add a method to retrieve the current time and register it as a tool in your agent.
 
 ```csharp
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.ChatCompletion;
-using Microsoft.SemanticKernel.Connectors.OpenAI;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using System.Text.Json.Serialization;
-```
-
-#### Add AI services
-
-```csharp
-// Create kernel
-var builder = Kernel.CreateBuilder();
-builder.AddAzureOpenAIChatCompletion(modelId, endpoint, apiKey);
-```
-
-#### Add enterprise services
-
-One of the main benefits of using Semantic Kernel is that it supports enterprise-grade services. In this sample, we added the logging service to the kernel to help debug the AI agent.
-
-```csharp
-//Disable the experimental warning
-#pragma warning disable SKEXP0001
-
-builder.Services.AddLogging(services => services.AddConsole().SetMinimumLevel(LogLevel.Trace));
-```
-
-**Build the kernel and retrieve services.** Once the services have been added, we  build the kernel and retrieve the chat completion service for later use.
-
-```csharp
-Kernel kernel = builder.Build();
-
-// Retrieve the chat completion service
-var chatCompletionService = kernel.Services.GetRequiredService<IChatCompletionService>();
-```
-
-#### Add plugins
-
-With plugins, you can give your AI agent the ability to run your code to retrieve information from external sources or to perform actions. In the example above, we'll add a plugin that allows the AI agent to interact with a light bulb. You should place your Plugins in a separate folder.
-
-In your own code, you can create a plugin that interacts with any external service or API to achieve similar results.
-
-A good practice is to structure your Plugins in the project like this:
-
-```bash
-\Plugins
-    \LightsPlugin
-        - LightsPlugin.cs
-```
-
-```csharp
-using System.ComponentModel;
-using Microsoft.SemanticKernel;
-using System.Linq;
-
-public class LightsPlugin
+public static class TimeTools
 {
-// Mock data for the lights
-private readonly List<LightModel> lights = new()
-{
-    new LightModel { Id = 1, Name = "Table Lamp", IsOn = false },
-    new LightModel { Id = 2, Name = "Porch light", IsOn = false },
-    new LightModel { Id = 3, Name = "Chandelier", IsOn = true }
-};
-
-[KernelFunction("get_lights")]
-[Description("Gets a list of lights and their current state")]
-[return: Description("An array of lights")]
-public async Task<List<LightModel>> GetLightsAsync()
-{
-    return lights;
-}
-
-[KernelFunction("change_state")]
-[Description("Changes the state of the light")]
-[return: Description("The updated state of the light; will return null if the light does not exist")]
-public async Task<LightModel?> ChangeStateAsync(int id, bool isOn)
-{
-    var light = lights.FirstOrDefault(light => light.Id == id);
-
-    if (light == null)
+    [Description("Returns the current system time in UTC.")]
+    public static string GetCurrentTimeInUTC()
     {
-        return null;
+        return $"The current time in UTC is {DateTime.UtcNow}";
     }
-
-    // Update the light with the new state
-    light.IsOn = isOn;
-
-    return light;
-}
 }
 
-public class LightModel
-{
-[JsonPropertyName("id")]
-public int Id { get; set; }
+#### Create an agent and register the Current Time Tool
 
-[JsonPropertyName("name")]
-public string Name { get; set; }
-
-[JsonPropertyName("is_on")]
-public bool? IsOn { get; set; }
-}
+// Register the tool with your agent (e.g., during agent initialization)
+AIAgent agent = new AzureOpenAIClient(
+    new Uri(endpoint),
+    new ApiKeyCredential(apiKey))
+    .GetChatClient(deploymentName)
+    .CreateAIAgent(
+        instructions: instructions,
+        name: agentName,
+        tools: [AIFunctionFactory.Create(TimeTools.GetCurrentTimeInUTC)]
+    );
 ```
 
-#### Add the plugin to the kernel
+Now, when you interact with your agent, you can ask for the current time and the agent will call this tool to provide an accurate response.
 
-Once you've created your plugin, you can add it to the kernel so the AI agent can access it. In the sample, we added the LightsPlugin class to the kernel.
+### Task 2: Integrate with Agent Service 
+
+In this task, you will integrate the Agent Service into your Microsoft Agent Framework application created in previous challenge. This will allow your agent to leverage the capabilities of the Agent Service and check for travel policy compliance.
+
+To integrate with the Agent Service, you will need to set up the `PersistentAgentsClient` and retrieve the agent using its ID.
 
 ```csharp
-// Add the plugin to the kernel
-kernel.Plugins.AddFromType<LightsPlugin>("Lights");
+ var persistentAgentsClient = new PersistentAgentsClient(agentServiceEndpoint, new DefaultAzureCredential());
+
+        // Retrieve the agent that was just created as an AIAgent using its ID
+        AIAgent agent = await persistentAgentsClient.GetAIAgentAsync(agentServiceId);
 ```
-
-#### Planning
-
-Semantic Kernel leverages function calling–a native feature of most LLMs–to provide planning. With function calling, LLMs can request (or call) a particular function to satisfy a user's request. Semantic Kernel then marshals the request to the appropriate function in your codebase and returns the results back to the LLM so the AI agent can generate a final response.
-
-To enable automatic function calling, we first need to create the appropriate execution settings so that Semantic Kernel knows to automatically invoke the functions in the kernel when the AI agent requests them.
-
-```csharp
-OpenAIPromptExecutionSettings openAIPromptExecutionSettings = new()
-{
-    FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
-};
-```
-
-#### Invoke the plugin
-
-Finally, we invoke the AI agent with the plugin. The sample code demonstrates how to generate a non-streaming response, but you can also generate a streaming response by using the GetStreamingChatMessageContentAsync method.
-
-```csharp
-// Create chat history
-var history = new ChatHistory();
-
-// Get the response from the AI
-var result = await chatCompletionService.GetChatMessageContentAsync(
-history,
-executionSettings: openAIPromptExecutionSettings,
-kernel: kernel
-);
-```
-
-### Task 2: Current time plugin
-
-In this task, you will create a plugin that allows the AI agent to display the current time. Since large language models (LLMs) are trained on past data and do not have real-time capabilities, they cannot provide the current time on their own.
-
-By creating this plugin, you will enable the AI agent to call a function that retrieves and displays the current time.
 
 ### Task 3: Integrate with Weather Remote MCP server
 
-In this task you will integrate the Weather MCP Remote server completed in the previous challenge and add it as plugins in Semantic Kernel.
+In this task you will integrate the Weather MCP Remote server completed in the previous challenge and add it as tools in Microsoft Agent Framework.
 
 Initialize the MCP client with the following code:
 
@@ -254,7 +129,7 @@ _mcpClient = await McpClientFactory.CreateAsync(
 );
 ```
 
-After creating the MCP client, you will get the list of tools and add them to Semantic Kernel:
+After creating the MCP client, you will get the list of tools and add them to Microsoft Agent Framework:
 
 ```csharp
 var mcpTools = await _mcpClient.ListToolsAsync();
@@ -266,26 +141,33 @@ foreach (var tool in mcpTools)
     Console.WriteLine($"- {tool.Name}: {tool.Description}");
 }
 
-//Register MCP tools to kernel
-kernel.Plugins.AddFromFunctions("WeatherTools", mcpTools.Select(t => t.AsKernelFunction()));
+//Register MCP tools to agent
+AIAgent agent = new AzureOpenAIClient(
+    new Uri(endpoint),
+    new ApiKeyCredential(apiKey))
+    .GetChatClient(deploymentName)
+    .CreateAIAgent(
+        instructions: instructions,
+        name: agentName,
+        tools: [.. mcpTools.Cast<AITool>().ToList()]
+    );
 ```
 
 ## Success Criteria
 
-- Ensure that your application is running and you are able to debug the application.
-- Ensure that you can interact with the application and switch on or off the light bulbs.
-- Ensure that you are able to request the current time and receive an accurate response.
-- Set a break point in one of the plugins and hit the break point with a user prompt
-- Debug and inspect the chat history object to see the sequence of function calls and results.
-- Integrate with MCP Remote server and get weather results.
-- Demonstrate that the user can ask questions about weather data through the integrated MCP server.
+- ✅ Ensure that your application is running and you are able to debug the application.
+- ✅ Ensure that you are able to request the current time and receive an accurate response.
+- ✅ Ensure that you are able to validate policy compliance functionality by ensuring the agent accurately answers travel policy questions
+- ✅ Set a break point in one of the tools and hit the break point with a user prompt
+- ✅ Debug and inspect the AgentThread object to see the sequence of tool calls and results.
+- ✅ Integrate with MCP Remote server and get weather results.
+- ✅ Demonstrate that the user can ask questions about weather data through the integrated MCP server.
 
 ## Learning Resources
-
-- [Introduction to Semantic Kernel | Microsoft Learn](https://learn.microsoft.com/en-us/semantic-kernel/overview/)
-- [Plugins in Semantic Kernel | Microsoft Learn](https://learn.microsoft.com/en-us/semantic-kernel/concepts/plugins/?pivots=programming-language-csharp)
-- [What are Planners in Semantic Kernel | Microsoft Learn](https://learn.microsoft.com/en-us/semantic-kernel/concepts/planning?pivots=programming-language-csharp)
-- [In-depth Semantic Kernel Demos | Microsoft Learn](https://learn.microsoft.com/en-us/semantic-kernel/get-started/detailed-samples?pivots=programming-language-csharp)
-- [Semantic Kernel GitHub](https://github.com/microsoft/semantic-kernel)
-- [Add MCP Plugins](https://learn.microsoft.com/en-us/semantic-kernel/concepts/plugins/adding-mcp-plugins?pivots=programming-language-csharp)
-- [GitHub samples, Azure AI Search](https://github.com/microsoft/semantic-kernel/blob/main/dotnet/samples/Concepts/Search/MyAzureAISearchPlugin.cs)
+- [Learn Microsoft Agent Framework in 3 minutes!](https://www.youtube.com/watch?v=Q881t44hWng)
+- [Introducing Microsoft Agent Framework: The Open-Source Engine for Agentic AI Apps](https://devblogs.microsoft.com/foundry/introducing-microsoft-agent-framework-the-open-source-engine-for-agentic-ai-apps/)
+- [Microsoft Agent Framework | MS Learn](https://learn.microsoft.com/en-us/agent-framework/overview/agent-framework-overview)
+- [Microsoft Agent Framework | GitHub Repository](https://github.com/microsoft/agent-framework)
+- [Microsoft Agent Framework .NET Samples | GitHub Repository](https://github.com/microsoft/agent-framework/tree/main/dotnet/samples)
+- [Microsoft Agent Framework Python Samples | GitHub Repository](https://github.com/microsoft/agent-framework/tree/main/python/samples)
+- [Microsoft Agent Framework MCP Integration Guide](https://learn.microsoft.com/en-us/agent-framework/concepts/tools/adding-mcp-tools?pivots=programming-language-csharp)

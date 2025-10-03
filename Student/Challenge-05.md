@@ -248,11 +248,11 @@ Agent: "The travel policy requires you to book accommodations at approved corpor
 
 ## Success Criteria
 
-- [ ] Successfully created and configured an AI agent in Azure AI Foundry with file search capabilities and travel policy knowledge
-- [ ] Validated that you uploaded and indexed the travel policy document in a vector store for searchable content
-- [ ] Demonstrated agent functionality by testing it in the Azure AI Foundry playground to validate policy-based responses
-- [ ] Successfully built a working console application that connects to your agent and provides an interactive interface
-- [ ] Validated policy compliance functionality by ensuring the agent accurately answers travel policy questions
+- ✅ Successfully created and configured an AI agent in Azure AI Foundry with file search capabilities and travel policy knowledge
+- ✅ Validated that you uploaded and indexed the travel policy document in a vector store for searchable content
+- ✅ Demonstrated agent functionality by testing it in the Azure AI Foundry playground to validate policy-based responses
+- ✅ Successfully built a working console application that connects to your agent and provides an interactive interface
+- ✅ Validated policy compliance functionality by ensuring the agent accurately answers travel policy questions
 
 ## Learning Resources
 
