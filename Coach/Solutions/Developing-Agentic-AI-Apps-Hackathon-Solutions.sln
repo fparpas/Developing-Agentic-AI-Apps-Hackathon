@@ -61,6 +61,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AgentFrameworkWithMCP-Solut
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AgentFrameworkWithMCP", "..\..\Student\Resources\Challenge-06\AgentFrameworkWithMCP\AgentFrameworkWithMCP.csproj", "{52E24C93-364F-4CF5-ABD9-541B5BC2283F}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Challenge-07", "Challenge-07", "{850B27BD-5D80-FFA4-6F6C-C7102A58122B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AgentFrameworkWithMCP-Observability-Solution", "Challenge-07\AgentFrameworkWithMCP-Observability-Solution\AgentFrameworkWithMCP-Observability-Solution.csproj", "{FAFF8344-4429-47AA-9A1A-1C5E8731A6E4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -263,6 +267,18 @@ Global
 		{52E24C93-364F-4CF5-ABD9-541B5BC2283F}.Release|x64.Build.0 = Release|Any CPU
 		{52E24C93-364F-4CF5-ABD9-541B5BC2283F}.Release|x86.ActiveCfg = Release|Any CPU
 		{52E24C93-364F-4CF5-ABD9-541B5BC2283F}.Release|x86.Build.0 = Release|Any CPU
+		{FAFF8344-4429-47AA-9A1A-1C5E8731A6E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FAFF8344-4429-47AA-9A1A-1C5E8731A6E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FAFF8344-4429-47AA-9A1A-1C5E8731A6E4}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{FAFF8344-4429-47AA-9A1A-1C5E8731A6E4}.Debug|x64.Build.0 = Debug|Any CPU
+		{FAFF8344-4429-47AA-9A1A-1C5E8731A6E4}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{FAFF8344-4429-47AA-9A1A-1C5E8731A6E4}.Debug|x86.Build.0 = Debug|Any CPU
+		{FAFF8344-4429-47AA-9A1A-1C5E8731A6E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FAFF8344-4429-47AA-9A1A-1C5E8731A6E4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FAFF8344-4429-47AA-9A1A-1C5E8731A6E4}.Release|x64.ActiveCfg = Release|Any CPU
+		{FAFF8344-4429-47AA-9A1A-1C5E8731A6E4}.Release|x64.Build.0 = Release|Any CPU
+		{FAFF8344-4429-47AA-9A1A-1C5E8731A6E4}.Release|x86.ActiveCfg = Release|Any CPU
+		{FAFF8344-4429-47AA-9A1A-1C5E8731A6E4}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -295,6 +311,8 @@ Global
 		{D0B8CDE9-75BF-2F49-E85E-D0D94C0B82D6} = {BFC11E1C-20B1-D11C-26CE-963F140147E5}
 		{45151189-A67C-4546-9C13-406701C95C6A} = {B7003042-CD9D-ED0C-D439-5E38897ABDF9}
 		{52E24C93-364F-4CF5-ABD9-541B5BC2283F} = {D0B8CDE9-75BF-2F49-E85E-D0D94C0B82D6}
+		{850B27BD-5D80-FFA4-6F6C-C7102A58122B} = {D9630D4F-34FE-18EB-9EA6-10233B8F9402}
+		{FAFF8344-4429-47AA-9A1A-1C5E8731A6E4} = {850B27BD-5D80-FFA4-6F6C-C7102A58122B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3C3BF20A-D497-4AEA-8600-5B2B4F6069FC}
