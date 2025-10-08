@@ -32,11 +32,19 @@ public class McpClientService
         ).GetAwaiter().GetResult();
     }
 
-    public async Task<IList<McpClientTool>> GetMcpToolsAsync()
-    {
+    public IList<McpClientTool> McpTools {
+        get { return GetMcpTools(); }
+    }
 
+    public IList<McpClientTool> GetMcpTools()
+    {
+        var tools = _mcpClient.ListToolsAsync().GetAwaiter().GetResult();
+        return tools;
+    }
+
+        public async Task<IList<McpClientTool>> GetMcpToolsAsync()
+    {
         var tools = await _mcpClient.ListToolsAsync();
         return tools;
-
     }
 }

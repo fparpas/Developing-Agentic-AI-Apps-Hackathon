@@ -1,3 +1,5 @@
+using Microsoft.Agents.AI;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;
@@ -12,18 +14,26 @@ public class ActivityAgent
 {
     private readonly McpClientService _mcpClient;
     private readonly ILogger<ActivityAgent> _logger;
-    public ChatCompletionAgent Agent { get; }
-
-    public ActivityAgent(Kernel kernel, IList<McpClientTool> tools, ILogger<ActivityAgent> logger)
+    private readonly AIAgent _agent;
+    
+    public AIAgent Agent
     {
-        _mcpClient = null!; // Injected via constructor
+        get { return _agent; }
+    }
+
+    public ActivityAgent(IChatClient chatClient, McpClientService mcpClient, ILogger<ActivityAgent> logger)
+    {
+        _mcpClient = mcpClient;
         _logger = logger;
 
-        Agent = new ChatCompletionAgent()
-        {
-            Name = "ActivityAgent",
-            Kernel = kernel,
-            Instructions = """
+        //Get only activity tools from MCP server
+        var mcpActivityTools = mcpClient.McpTools.Where(t => t.Description.StartsWith("[ACTIVITIES]")).ToList();
+
+        _agent = chatClient.CreateAIAgent(
+            name: "ActivityAgent",
+            description: "A specialized agent for handling activities and experiences queries.",
+            tools: mcpActivityTools.Cast<AITool>().ToArray(),
+            instructions: """
             You are a specialized Activities and Experiences Agent for a travel agency. Your expertise includes:
             
             RESPONSIBILITIES:
@@ -40,6 +50,8 @@ public class ActivityAgent
             - Discover safe places and security information
             - Provide comprehensive travel recommendations
             - Search within specific geographic boundaries
+            - Analyze location sentiment and insights
+            - Find nearest relevant points of interest
             
             ACTIVITY CATEGORIES:
             - Tourist attractions and sightseeing
@@ -58,6 +70,16 @@ public class ActivityAgent
             - Safety ratings and considerations
             - Local customs and cultural tips
             - Seasonal activity availability
+            - Geographic boundary searches
+            - Location scoring and analysis
+            
+            SPECIALIZED SERVICES:
+            - Location score analysis for tourism, safety, and business
+            - Safe place identification and security information
+            - Point of interest categorization and filtering
+            - Activity sentiment analysis and reviews
+            - Geographic area-based activity searches
+            - Travel recommendation engine
             
             COMMUNICATION STYLE:
             - Enthusiastic about local experiences
@@ -66,14 +88,11 @@ public class ActivityAgent
             - Budget-aware suggestions
             - Time-efficient itinerary planning
             - Cultural sensitivity and respect
+            - Proactive about suggesting alternatives
             
             Always use the available activity tools to provide current, accurate information about destinations.
             Focus on creating memorable experiences that match traveler interests and preferences.
             """
-        };
-        
-        // Add activity-specific tools
-        Agent.Kernel.Plugins.AddFromFunctions("ActivityTools", 
-            tools.Where(t => t.Description.Contains("[ACTIVITIES]")).Select(t => t.AsKernelFunction()));
+        );
     }
 }

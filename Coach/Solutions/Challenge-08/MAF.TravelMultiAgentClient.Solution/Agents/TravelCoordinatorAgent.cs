@@ -1,25 +1,32 @@
+using Microsoft.Agents.AI;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;
 using Microsoft.SemanticKernel.ChatCompletion;
 using System.ComponentModel;
+  
 
+    
 namespace TravelMultiAgentClient.Agents;
 
 public class TravelCoordinatorAgent
 {
-    private readonly ILogger<TravelCoordinatorAgent> _logger;
-    public ChatCompletionAgent Agent { get; }
-
-    public TravelCoordinatorAgent(Kernel kernel, ILogger<TravelCoordinatorAgent> logger)
+    private readonly ILogger<TransferAgent> _logger;
+    private readonly AIAgent _agent;
+    
+    public AIAgent Agent
     {
-        _logger = logger;
-        
-        Agent = new ChatCompletionAgent()
-        {
-            Name = "TravelCoordinatorAgent",
-            Kernel = kernel,
-            Instructions = """
+        get { return _agent; }
+    }
+
+    public TravelCoordinatorAgent(IChatClient chatClient)
+    {
+
+        _agent = chatClient.CreateAIAgent(
+            name: "TravelCoordinatorAgent",
+            description: "A specialized agent for coordinating travel plans and itineraries.",
+            instructions: """
             You are the Travel Coordinator Agent - the main orchestrator for a comprehensive travel agency system. Your role is to:
             
             PRIMARY RESPONSIBILITIES:
@@ -31,7 +38,13 @@ public class TravelCoordinatorAgent
             - Handle complex multi-destination trips
             
             COORDINATION CAPABILITIES:
-            - First ask where want to travel, then proceed to flight options and then to hotels and activities
+            - First ask where want to travel, then proceed to flight options
+            - After flight options, ask if hotel or transportation is needed
+            - Show activities only if requested
+            - Use ReferenceAgent for any location codes or travel data
+            - Assume budget is flexible unless specified
+            - Assume the travel is for one person and in economy class unless specified
+            - Prioritize direct flights unless connections are necessary
             - Delegate specific tasks to appropriate specialized agents
             - Synthesize information from multiple agents
             - Create cohesive travel recommendations
@@ -59,6 +72,6 @@ public class TravelCoordinatorAgent
             
             Always coordinate with the appropriate specialized agents to provide accurate, comprehensive travel solutions.
             """
-        };
+        );
     }
 }

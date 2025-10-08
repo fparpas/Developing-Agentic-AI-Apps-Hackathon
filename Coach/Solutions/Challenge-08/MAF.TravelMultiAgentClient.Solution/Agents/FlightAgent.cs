@@ -1,3 +1,5 @@
+using Microsoft.Agents.AI;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;
@@ -12,18 +14,26 @@ public class FlightAgent
 {
     private readonly McpClientService _mcpClient;
     private readonly ILogger<FlightAgent> _logger;
-    public ChatCompletionAgent Agent { get; }
-
-    public FlightAgent(Kernel kernel, IList<McpClientTool> tools, ILogger<FlightAgent> logger)
+    private readonly AIAgent _agent;
+    
+    public AIAgent Agent
     {
-        _mcpClient = null!; // Injected via constructor
+        get { return _agent; }
+    }
+
+    public FlightAgent(IChatClient chatClient, McpClientService mcpClient, ILogger<FlightAgent> logger)
+    {
+        _mcpClient = mcpClient;
         _logger = logger;
 
-        Agent = new ChatCompletionAgent()
-        {
-            Name = "FlightAgent",
-            Kernel = kernel,
-            Instructions = """
+        //Get only flight tools from MCP server
+        var mcpFlightTools = mcpClient.McpTools.Where(t => t.Description.StartsWith("[FLIGHT]")).ToList();
+
+        _agent = chatClient.CreateAIAgent(
+            name: "FlightAgent",
+            description: "A specialized agent for handling flight-related queries and bookings.",
+            tools: mcpFlightTools.Cast<AITool>().ToArray(),
+            instructions: """
             You are a specialized Flight Booking Agent for a travel agency. Your expertise includes:
             
             RESPONSIBILITIES:
@@ -66,10 +76,6 @@ public class FlightAgent
             Always use the available flight tools to provide accurate, real-time flight information and pricing.
             Focus on delivering comprehensive flight solutions that meet customer needs and budget.
             """
-        };
-        
-        // Add flight-specific tools
-        Agent.Kernel.Plugins.AddFromFunctions("FlightTools", 
-            tools.Where(t => t.Description.Contains("[FLIGHT]")).Select(t => t.AsKernelFunction()));
+        );
     }
 }

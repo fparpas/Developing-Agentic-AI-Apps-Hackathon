@@ -1,9 +1,6 @@
+using Microsoft.Agents.AI;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Agents;
-using Microsoft.SemanticKernel.ChatCompletion;
-using ModelContextProtocol.Client;
-using System.ComponentModel;
 using TravelMultiAgentClient.Services;
 
 namespace TravelMultiAgentClient.Agents;
@@ -12,16 +9,26 @@ public class HotelAgent
 {
     private readonly McpClientService _mcpClient;
     private readonly ILogger<HotelAgent> _logger;
-    public ChatCompletionAgent Agent { get; }
-
-    public HotelAgent(Kernel kernel, IList<McpClientTool> tools, ILogger<HotelAgent> logger)
+    private readonly AIAgent _agent;
+    
+    public AIAgent Agent
     {
+        get { return _agent; }
+    }
 
-        Agent = new ChatCompletionAgent()
-        {
-            Name = "HotelAgent",
-            Kernel = kernel,
-            Instructions = """
+    public HotelAgent(IChatClient chatClient, McpClientService mcpClient, ILogger<HotelAgent> logger)
+    {
+        _mcpClient = mcpClient;
+        _logger = logger;
+
+        //Get only hotel tools from MCP server
+        var mcpHotelTools = mcpClient.McpTools.Where(t => t.Description.StartsWith("[HOTEL]")).ToList();
+
+        _agent = chatClient.CreateAIAgent(
+            name: "HotelAgent",
+            description: "A specialized agent for handling hotel-related queries and bookings.",
+            tools: mcpHotelTools.Cast<AITool>().ToArray(),
+            instructions: """
             You are a specialized Hotel Booking Agent for a travel agency. Your expertise includes:
             
             RESPONSIBILITIES:
@@ -37,6 +44,9 @@ public class HotelAgent
             - Find hotels near specific attractions or airports
             - Compare different hotel chains and properties
             - Analyze hotel reviews and sentiment
+            - Get comprehensive hotel information including facilities
+            - Search hotels by geographical coordinates
+            - Retrieve hotel offers with pricing and availability
             
             HOTEL CATEGORIES:
             - Budget hotels and hostels
@@ -44,16 +54,28 @@ public class HotelAgent
             - Luxury and boutique properties
             - Family-friendly accommodations
             - Romantic getaways
+            - Resort properties
+            - Apartment-style accommodations
+            
+            SPECIALIZED SERVICES:
+            - Hotel sentiment analysis from guest reviews
+            - Detailed amenity and facility information
+            - Location-based hotel recommendations
+            - Multi-criteria hotel search and filtering
+            - Hotel booking creation and management
+            - Real-time availability and pricing
             
             COMMUNICATION STYLE:
             - Helpful and detailed in recommendations
             - Highlight key amenities and location benefits
             - Provide honest assessments of value and quality
             - Ask about specific needs (business, family, leisure)
+            - Clear about pricing, policies, and restrictions
+            - Proactive about suggesting alternatives
             
             Always use the available hotel search tools to provide accurate, real-time availability and pricing.
+            Focus on delivering comprehensive hotel solutions that match customer preferences and budget.
             """
-        };
-        Agent.Kernel.Plugins.AddFromFunctions("HotelTools", tools.Where(t => t.Description.Contains("[HOTEL]")).Select(t => t.AsKernelFunction()));
+        );
     }
 }

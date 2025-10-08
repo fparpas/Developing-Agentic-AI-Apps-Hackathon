@@ -1,12 +1,13 @@
+using System.ClientModel;
+using Azure.AI.OpenAI;
+using Microsoft.Agents.AI;
+using Microsoft.Agents.AI.Workflows;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Agents;
-using Microsoft.SemanticKernel.Agents.Chat;
-using Microsoft.SemanticKernel.ChatCompletion;
-using Microsoft.SemanticKernel.Connectors.OpenAI;
+using ModelContextProtocol.Protocol;
 using TravelMultiAgentClient.Agents;
 using TravelMultiAgentClient.Services;
 
@@ -25,77 +26,92 @@ class Program
             .AddEnvironmentVariables()
             .Build();
 
-        // Build host
-        var host = Host.CreateDefaultBuilder(args)
-            .ConfigureServices((context, services) =>
-            {
-                services.AddSingleton<IConfiguration>(configuration);
-                services.AddSingleton<McpClientService>();
-                services.AddLogging(builder =>
-                {
-                    builder.AddConsole();
-                    builder.SetMinimumLevel(LogLevel.Information);
-                });
-            })
-            .Build();
+        // Extract configuration values first
+        var endpoint = configuration["AzureOpenAI:Endpoint"]
+            ?? throw new InvalidOperationException("AzureOpenAI:Endpoint is required");
+        var deploymentName = configuration["AzureOpenAI:ModelId"] ?? "gpt-4o";
+        var apiKey = configuration["AzureOpenAI:ApiKey"];
 
-        var serviceProvider = host.Services;
-        var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
-        var mcpClient = serviceProvider.GetRequiredService<McpClientService>();
+        // Build host
+        var builder = Host.CreateApplicationBuilder(args);
+
+        builder.Services.AddSingleton<IConfiguration>(configuration);
+        builder.Services.AddSingleton<McpClientService>();
+        builder.Services.AddLogging(loggingBuilder =>
+        {
+            loggingBuilder.AddConsole();
+            loggingBuilder.SetMinimumLevel(LogLevel.Information);
+        });
+
+        // Add a chat client to the service collection.
+        builder.Services.AddSingleton<IChatClient>(new AzureOpenAIClient(
+            new Uri(endpoint),
+            new ApiKeyCredential(apiKey))
+                .GetChatClient(deploymentName)
+                .AsIChatClient());
+
+        builder.Services.AddSingleton<FlightAgent>();
+        builder.Services.AddSingleton<HotelAgent>();
+        builder.Services.AddSingleton<ActivityAgent>();
+        builder.Services.AddSingleton<TransferAgent>();
+        builder.Services.AddSingleton<ReferenceAgent>();
+        builder.Services.AddSingleton<TravelCoordinatorAgent>();
+
+        var serviceProvider = builder.Build();
+
+        var logger = serviceProvider.Services.GetRequiredService<ILogger<Program>>();
 
         try
         {
             logger.LogInformation("🌟 Welcome to Travel Multi-Agent Assistant! 🌟");
 
-            // Create Semantic Kernel
-            var builder = Kernel.CreateBuilder();
-
-            // Configure Azure OpenAI
-            var azureOpenAiApiKey = configuration["AzureOpenAI:ApiKey"];
-            var azureOpenAiEndpoint = configuration["AzureOpenAI:Endpoint"];
-
-            if (!string.IsNullOrEmpty(azureOpenAiApiKey) && !string.IsNullOrEmpty(azureOpenAiEndpoint))
-            {
-                builder.AddAzureOpenAIChatCompletion(
-                    configuration["AzureOpenAI:ModelId"] ?? "gpt-4o",
-                    azureOpenAiEndpoint,
-                    azureOpenAiApiKey);
-                logger.LogInformation("Using Azure OpenAI");
-            }            // 
-            else
-            {
-                logger.LogError("❌ No valid AI service configuration found. Please configure OpenAI or Azure OpenAI in appsettings.json or user secrets.");
-                return;
-            }
-
-            var kernel = builder.Build();
-
-            var mcpTools = await mcpClient.GetMcpToolsAsync();
             // Create specialized agents
-            var flightAgent = new FlightAgent(kernel, mcpTools, serviceProvider.GetRequiredService<ILogger<FlightAgent>>());
-            var hotelAgent = new HotelAgent(kernel, mcpTools, serviceProvider.GetRequiredService<ILogger<HotelAgent>>());
-            var activityAgent = new ActivityAgent(kernel, mcpTools, serviceProvider.GetRequiredService<ILogger<ActivityAgent>>());
-            var transferAgent = new TransferAgent(kernel, mcpTools, serviceProvider.GetRequiredService<ILogger<TransferAgent>>());
-            var referenceAgent = new ReferenceAgent(kernel, mcpTools, serviceProvider.GetRequiredService<ILogger<ReferenceAgent>>());
-            var coordinatorAgent = new TravelCoordinatorAgent(kernel, serviceProvider.GetRequiredService<ILogger<TravelCoordinatorAgent>>());
+            var flightAgent = serviceProvider.Services.GetRequiredService<FlightAgent>();
+            var hotelAgent = serviceProvider.Services.GetRequiredService<HotelAgent>();
+            var activityAgent = serviceProvider.Services.GetRequiredService<ActivityAgent>();
+            var transferAgent = serviceProvider.Services.GetRequiredService<TransferAgent>();
+            var referenceAgent = serviceProvider.Services.GetRequiredService<ReferenceAgent>();
+            var coordinatorAgent = serviceProvider.Services.GetRequiredService<TravelCoordinatorAgent>();
 
             logger.LogInformation("✅ All agents initialized successfully");
 
-            // Create orchestrated agent group chat with coordinator leading
-            var chat = new AgentGroupChat(coordinatorAgent.Agent, flightAgent.Agent, hotelAgent.Agent, activityAgent.Agent, transferAgent.Agent, referenceAgent.Agent)
-            {
-                ExecutionSettings = new()
-                {
-                    TerminationStrategy = new TravelTerminationStrategy()
-                    {
-                        MaximumIterations = 50,
-                        CoordinatorAgentName = coordinatorAgent.Agent.Name ?? "TravelCoordinatorAgent"
-                    }
-                }
-            };
+            // // Create a sequential workflow with the TravelCoordinatorAgent as the lead agent
+            // var workflow = AgentWorkflowBuilder.BuildSequential(new[]   
+            // {
+            //     coordinatorAgent.Agent,
+            //     flightAgent.Agent,
+            //     hotelAgent.Agent,
+            //     activityAgent.Agent,
+            //     transferAgent.Agent,
+            //     referenceAgent.Agent
+            //  });
 
-            logger.LogInformation("🤖 Travel Agent Assistant created with coordinator and 5 specialized agents");            // Start interactive session
-            await RunInteractiveSession(chat, logger);
+            // // Create a concurrent workflow with all agents
+            // var workflow = AgentWorkflowBuilder.BuildConcurrent(new[]   
+            // {
+            //     coordinatorAgent.Agent,
+            //     flightAgent.Agent,
+            //     hotelAgent.Agent,
+            //     activityAgent.Agent,
+            //     transferAgent.Agent,
+            //     referenceAgent.Agent
+            //  });
+
+            var workflow = AgentWorkflowBuilder.CreateHandoffBuilderWith(coordinatorAgent.Agent) // Start with the coordinator agent
+            .WithHandoffs(coordinatorAgent.Agent, [flightAgent.Agent, hotelAgent.Agent, activityAgent.Agent, transferAgent.Agent, referenceAgent.Agent])      // Coordinator can hand off to all agents
+            .WithHandoff(flightAgent.Agent, coordinatorAgent.Agent)
+            .WithHandoff(hotelAgent.Agent, coordinatorAgent.Agent)
+            .WithHandoff(activityAgent.Agent, coordinatorAgent.Agent)
+            .WithHandoff(transferAgent.Agent, coordinatorAgent.Agent)
+            .WithHandoff(referenceAgent.Agent, coordinatorAgent.Agent)
+            .Build();
+
+
+            var agent = await workflow.AsAgentAsync("travel-workflow-agent", "Travel Agent Assistant");
+
+            logger.LogInformation("🤖 Travel Agent Assistant created");
+            // Start interactive session
+            await StartInteractiveChat(agent, logger);
         }
         catch (Exception ex)
         {
@@ -103,82 +119,50 @@ class Program
         }
     }
 
-    private static async Task RunInteractiveSession(AgentGroupChat chat, ILogger logger)
+    private static async Task StartInteractiveChat(AIAgent aIAgent, ILogger logger)
     {
-        logger.LogInformation("\n🎯 Travel Assistant Ready! Type your travel request or 'exit' to quit.\n");
+        Console.WriteLine("\n=== Agent Framework with MCP Tools ===");
+        Console.WriteLine("You can ask questions and I'll use the available MCP tools to help you.");
+        Console.WriteLine("Type 'exit' to quit.\n");
 
-        string? userInput;
-        while ((userInput = GetUserInput()) != null && userInput.ToLower() != "exit")
+        AgentThread agentThread = aIAgent.GetNewThread();
+
+        while (true)
         {
-            if (string.IsNullOrWhiteSpace(userInput))
-                continue;
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.Write("User: ");
+            Console.ResetColor();
+
+            var userInput = Console.ReadLine();
+
+            if (string.IsNullOrWhiteSpace(userInput) || userInput.Equals("exit", StringComparison.OrdinalIgnoreCase))
+            {
+                break;
+            }
 
             try
             {
-                logger.LogInformation($"\n🔄 Processing your request: {userInput}");
-                
-                // Add user message to chat
-                chat.AddChatMessage(new ChatMessageContent(AuthorRole.User, userInput));
 
-                Console.WriteLine("\n" + new string('=', 60));
-                Console.WriteLine("🤖 TRAVEL AGENTS WORKING ON YOUR REQUEST...");
-                Console.WriteLine(new string('=', 60));
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.Write("Assistant: ");
+                Console.ResetColor();
 
-                // Process the conversation
-                await foreach (var content in chat.InvokeAsync())
-                {
-                    Console.WriteLine($"\n🗣️  {content.AuthorName ?? "System"}:");
-                    Console.WriteLine($"💬 {content.Content}");
-                    Console.WriteLine(new string('-', 40));
-                }
 
-                Console.WriteLine("\n✅ Request processed! Ask another question or type 'exit' to quit.\n");
+                // Run agent with user input and agent thread
+                var response = await aIAgent.RunAsync(userInput, agentThread);
+
+                Console.WriteLine(response);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "❌ Error processing request");
-                Console.WriteLine($"❌ Sorry, I encountered an error: {ex.Message}");
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"Error: {ex.Message}");
+                Console.ResetColor();
+                Console.WriteLine();
             }
         }
 
-        logger.LogInformation("👋 Thank you for using Travel Multi-Agent Assistant!");
+        Console.WriteLine("Goodbye!");
     }
-
-    private static string? GetUserInput()
-    {
-        Console.Write("✈️  You: ");
-        return Console.ReadLine();
-    }
-}
-
-// Custom termination strategy for travel agent conversations
-public class TravelTerminationStrategy : TerminationStrategy
-{
-    public new int MaximumIterations { get; set; } = 50;
-    public string CoordinatorAgentName { get; set; } = "TravelCoordinatorAgent";
-
-    protected override Task<bool> ShouldAgentTerminateAsync(Agent agent, IReadOnlyList<ChatMessageContent> history, CancellationToken cancellationToken = default)
-    {
-        // Terminate when max iterations reached
-        if (history.Count >= MaximumIterations)
-            return Task.FromResult(true);
-
-        var lastMessage = history.LastOrDefault();
-        
-        // Terminate when coordinator provides final response with specific keywords
-        if (lastMessage?.AuthorName == CoordinatorAgentName && lastMessage.Content != null)
-        {
-            var content = lastMessage.Content.ToLowerInvariant();
-            if (content.Contains("final recommendations") || 
-                content.Contains("complete travel plan") ||
-                content.Contains("booking summary") ||
-                content.Contains("is there anything else") ||
-                content.Contains("hope this helps"))
-            {
-                return Task.FromResult(true);
-            }
-        }
-
-        return Task.FromResult(false);
-    }
+    
 }
