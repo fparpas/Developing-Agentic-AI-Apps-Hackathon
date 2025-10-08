@@ -19,20 +19,45 @@ Before diving into the implementation, let's understand the key concepts that ma
 Microsoft Agent Framework provides a structured approach to AI agent development:
 
 - **Agent Runtime**: The central orchestration engine that manages AI services, tools, and agent execution
+
 - **AI Services**: Integration points with AI models (OpenAI, Azure OpenAI, etc.)
+
 - **Tools**: Reusable components that extend the agent's capabilities
-- **Function Calling**: The mechanism that allows AI models to execute your code
+
+- **Function Calling**: The mechanism that allows AI models to decide and enable the execution of your code
+
 - **Planning**: Automatic orchestration of multiple tool calls to complete complex tasks
+
 - **Agent State Management**: Persistent memory and context across conversations
 
-### Tools and Function Calling
+### Microsoft Agent Framework core components
 
-Tools are the building blocks of Microsoft Agent Framework applications:
+The Microsoft Agent Framework offers different components that can be used individually or combined.
 
-- **Agent Tools**: Individual functions that can be called by the AI agent
-- **Tool Descriptions**: Metadata that helps the AI understand when and how to use tools
-- **Parameters**: Strongly-typed inputs and outputs for reliable tool execution
-- **Auto Tool Calling**: AI agents automatically decide which tools to call based on user intent
+- **Chat clients** - provide abstractions for connecting to AI services from different providers under a common interface. Supported providers include Azure OpenAI, OpenAI, Anthropic, and more through the BaseChatClient abstraction.
+
+- **Function tools** - containers for custom functions that extend agent capabilities. Agents can automatically invoke functions with your own logic and integrate also with MCP servers and services.
+
+- **Built-in tools** - prebuilt capabilities including Code Interpreter for Python execution, File Search for document analysis, and Web Search for internet access.
+
+- **Conversation management** - structured message system with roles (USER, ASSISTANT, SYSTEM, TOOL) and AgentThread for persistent conversation context across interactions.
+
+- **Workflow orchestration** - supports sequential workflows, concurrent execution, handoff and Magentic patterns for complex multi-agent collaboration.
+
+### Microsoft Agent Framework Agent Types
+The Microsoft Agent Framework provides support for several types of agents to accommodate different use cases and requirements.
+
+All agents are derived from a common base class, AIAgent, which provides a consistent interface for all agent types. This allows for building common, agent agnostic, higher level functionality such as multi-agent orchestrations.
+
+| Agent Type                  | Description                                                        | Service Chat History storage supported | Custom Chat History storage supported |
+|-----------------------------|--------------------------------------------------------------------|----------------------------------------|---------------------------------------|
+| Azure AI Foundry Agent      | An agent that uses the Azure AI Foundry Agents Service as its backend. | Yes                                    | No                                    |
+| Azure OpenAI ChatCompletion | An agent that uses the Azure OpenAI ChatCompletion service.         | No                                     | Yes                                   |
+| Azure OpenAI Responses      | An agent that uses the Azure OpenAI Responses service.              | Yes                                    | Yes                                   |
+| OpenAI ChatCompletion       | An agent that uses the OpenAI ChatCompletion service.               | No                                     | Yes                                   |
+| OpenAI Responses            | An agent that uses the OpenAI Responses service.                    | Yes                                    | Yes                                   |
+| OpenAI Assistants           | An agent that uses the OpenAI Assistants service.                   | Yes                                    | No                                    |
+| Any other ChatClient        | You can also use any other Microsoft.Extensions.AI.IChatClient implementation to create an agent. | Varies                                 | Varies                                |
 
 ### Integration with Model Context Protocol (MCP)
 
@@ -42,17 +67,6 @@ Microsoft Agent Framework can integrate with MCP servers to extend functionality
 - **Tool Registration**: Convert MCP tools into Agent Framework tools
 - **Hybrid Architecture**: Combine local tools with remote MCP services
 - **Scalable Design**: Leverage both local processing and cloud-based services
-
-### Agent Support and Framework
-
-Microsoft Agent Framework provides comprehensive support for building intelligent agents:
-
-- **Agent Framework**: Built-in abstractions for creating conversational AI agents with persistent state
-- **Multi-Agent Systems**: Support for orchestrating multiple specialized agents working together
-- **Agent Memory**: Persistent conversation history and context management across sessions
-- **Agent Personas**: Define agent behavior, personality, and specialized knowledge domains
-- **Collaborative Agents**: Enable agents to delegate tasks and share information with other agents
-- **Agent Lifecycle Management**: Handle agent initialization, state management, and cleanup operations
 
 ## Description
 
