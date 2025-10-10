@@ -107,7 +107,7 @@ Your first task is to set up the AI agent using the Azure AI Foundry portal:
 2. **Set Up File Search Knowledge Base**
    - Add file search as a knowledge source for your agent
    - Create a new vector store to hold the travel policy documents
-   - Upload the company travel policy document located at `Student\Resources\Challenge-05\company_travel_policy.docx`
+   - Upload the company travel policy document located [here](../Student/Resources/Challenge-05/company_travel_policy.docx)
    - Ensure the document is properly indexed and searchable
 
 3. **Test in the Playground**
@@ -129,7 +129,7 @@ Your first task is to set up the AI agent using the Azure AI Foundry portal:
 Your second task is to create a C# console application that integrates with your configured agent:
 
 **Project Starter Available:**
-A starter project is provided at `Student\Resources\Challenge-05\csharp` to help you get started. However, you'll need to complete the code implementation to establish the conversation flow with your Agent created in previous task
+A starter project is provided [here](../Student/Resources/Challenge-05/csharp/) to help you get started. However, you'll need to complete the code implementation to establish the conversation flow with your Agent created in previous task
 
 1. **Console Application Development**
    - Use the provided starter project or build a C# console application from scratch using the Azure AI Projects SDK
