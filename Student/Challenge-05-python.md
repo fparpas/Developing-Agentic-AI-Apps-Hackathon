@@ -1,7 +1,12 @@
-# Challenge 05 - Build your first AI Agent with AI Agents Service
+# Challenge 05 - Python - Build your first AI Agent with AI Agents Service
 
- [< Previous Challenge](./Challenge-04.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-06.md)
- 
+ [< Previous Challenge](./Challenge-04-python.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-06-python.md)
+
+[![](https://img.shields.io/badge/C%20Sharp-lightgray)](Challenge-05-csharp.md)
+[![](https://img.shields.io/badge/Python-blue)](Challenge-05-python.md)
+
+![](https://img.shields.io/badge/Challenge%20Under%20Development-red)
+
 ## Introduction
 
 In this challenge, you'll build your first AI Agent using Azure AI Agents Service with file search capabilities. You'll create a **Travel Policy Compliance Agent** that can analyze and answer questions about your company's travel policy using intelligent document retrieval.

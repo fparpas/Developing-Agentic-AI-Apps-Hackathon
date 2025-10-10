@@ -1,6 +1,11 @@
-# Challenge 08 - Develop Agentic AI Applications using Microsoft Agent Framework and Multi-Agent Architectures
+# Challenge 08 - Python - Develop Agentic AI Applications using Microsoft Agent Framework and Multi-Agent Architectures
 
-[< Previous Challenge](./Challenge-07.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-09.md)
+[< Previous Challenge](./Challenge-07-python.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-09-python.md)
+
+[![](https://img.shields.io/badge/C%20Sharp-lightgray)](Challenge-08-csharp.md)
+[![](https://img.shields.io/badge/Python-blue)](Challenge-08-python.md)
+
+![](https://img.shields.io/badge/Challenge%20Under%20Development-red)
 
 ## Introduction
 

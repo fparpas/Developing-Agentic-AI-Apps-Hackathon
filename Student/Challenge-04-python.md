@@ -1,7 +1,12 @@
-# Challenge 04 - Host your MCP remote servers on ACA or Azure Functions
+# Challenge 04 - Python - Host your MCP remote servers on ACA or Azure Functions
 
- [< Previous Challenge](./Challenge-03.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-05.md)
+ [< Previous Challenge](./Challenge-03-python.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-05-python.md)
  
+[![](https://img.shields.io/badge/C%20Sharp-lightgray)](Challenge-04-csharp.md)
+[![](https://img.shields.io/badge/Python-blue)](Challenge-04-python.md)
+
+![](https://img.shields.io/badge/Challenge%20Under%20Development-red)
+
 ## Introduction
 
 In this challenge, you'll build and deploy a remote Model Context Protocol (MCP) server that can be accessed over HTTP. Unlike the previous challenges where the MCP server ran locally with stdio transport, this challenge focuses on creating a web-accessible MCP server that can be consumed by remote clients.

@@ -1,6 +1,9 @@
-# Challenge 09 - Secure your MCP remote server using an API key
+# Challenge 09 - C# - Secure your MCP remote server using an API key
 
-[< Previous Challenge](./Challenge-08.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-10.md)
+[< Previous Challenge](./Challenge-08-csharp.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-10-csharp.md)
+
+[![](https://img.shields.io/badge/C%20Sharp-blue)](Challenge-09-csharp.md)
+[![](https://img.shields.io/badge/Python-lightgray)](Challenge-09-python.md)
 
 ## Introduction
 

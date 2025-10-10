@@ -1,7 +1,7 @@
 # Challenge 01 - Accelerate your productivity with MCP servers in Visual Studio Code
 
- [< Previous Challenge](./Challenge-00.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-02.md)
-
+ [< Previous Challenge](./Challenge-00.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-02-csharp.md)
+ 
 ## Introduction
 
 In this challenge, you'll set up GitHub Copilot in Visual Studio Code and explore its powerful features including Ask, Edit, and Agent modes. You'll also learn how to leverage Model Context Protocol (MCP) servers to enhance your development workflow with AI-powered assistance for building intelligent applications.

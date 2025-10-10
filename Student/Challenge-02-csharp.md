@@ -1,7 +1,10 @@
-# Challenge 02 - Build your first MCP server
+# Challenge 02 - C# - Build your first MCP server
 
- [< Previous Challenge](./Challenge-01.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-03.md)
+ [< Previous Challenge](./Challenge-01.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-03-csharp.md)
  
+[![](https://img.shields.io/badge/C%20Sharp-blue)](Challenge-02-csharp.md)
+[![](https://img.shields.io/badge/Python-lightgray)](Challenge-02-python.md)
+
 ## Introduction
 
 In this challenge, you will build and run a minimal Model Context Protocol (MCP) server locally, wire it into GitHub Copilot Chat in Visual Studio Code, and invoke your new tools and resources from the chat. You can implement the server in either TypeScript/Node.js or Python—pick one path and complete the tasks.

@@ -1,7 +1,10 @@
-# Challenge 07 - Tracing Intelligence: Observability in Agentic AI with Microsoft Agent Framework
+# Challenge 07 - C# - Tracing Intelligence: Observability in Agentic AI with Microsoft Agent Framework
 
- [< Previous Challenge](./Challenge-06.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-08.md)
+ [< Previous Challenge](./Challenge-06-csharp.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-08-csharp.md)
  
+[![](https://img.shields.io/badge/C%20Sharp-blue)](Challenge-07-csharp.md)
+[![](https://img.shields.io/badge/Python-lightgray)](Challenge-07-python.md)
+
 ## Introduction
 
 When you build AI solutions, you want to be able to observe the behavior of your services. Observability is the ability to monitor and analyze the internal state of components within a distributed system. It is a key requirement for building enterprise-ready AI solutions.

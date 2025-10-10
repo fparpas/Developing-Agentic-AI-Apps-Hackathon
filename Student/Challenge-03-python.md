@@ -1,6 +1,11 @@
-# Challenge 03 - Build your first MCP client
+# Challenge 03 - Python - Build your first MCP client
 
- [< Previous Challenge](./Challenge-02.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-04.md)
+ [< Previous Challenge](./Challenge-02-python.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-04-python.md)
+
+[![](https://img.shields.io/badge/C%20Sharp-lightgray)](Challenge-03-csharp.md)
+[![](https://img.shields.io/badge/Python-blue)](Challenge-03-python.md)
+
+![](https://img.shields.io/badge/Challenge%20Under%20Development-red)
 
 ## Introduction
 
