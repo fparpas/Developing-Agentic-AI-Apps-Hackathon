@@ -5,6 +5,8 @@
 [![](https://img.shields.io/badge/C%20Sharp-blue)](Challenge-09-csharp.md)
 [![](https://img.shields.io/badge/Python-lightgray)](Challenge-09-python.md)
 
+![](https://img.shields.io/badge/Challenge%20Under%20Development-red)
+
 ## Introduction
 
 In previous challenges, you built MCP servers and clients that communicate over stdio (standard input/output). While this works well for local development, production scenarios often require remote MCP servers that can be accessed over HTTP/HTTPS from multiple clients. However, exposing your MCP server to the internet without proper security measures creates significant risks.

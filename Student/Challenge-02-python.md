@@ -9,11 +9,11 @@
 
 ## Introduction
 
-In this challenge, you will build and run a minimal Model Context Protocol (MCP) server locally, wire it into GitHub Copilot Chat in Visual Studio Code, and invoke your new tools and resources from the chat. You can implement the server in either TypeScript/Node.js or Python—pick one path and complete the tasks.
+In this challenge, you will build and run a minimal Model Context Protocol (MCP) server locally, wire it into GitHub Copilot Chat in Visual Studio Code, and invoke the new tools and resources from chat.
 
 ## Concepts
 
-MCP servers provide tools, resources, and prompts over a standard transport (typically stdio). An IDE agent (like Copilot Chat) connects to your server, lists capabilities, and calls your tools with JSON inputs, receiving structured outputs.
+MCP servers provide tools, resources, and prompts over a standard transport. An IDE agent (like Copilot Chat) connects to your server, lists capabilities, and calls your tools with JSON inputs, receiving structured outputs.
 
 - **Transport:** Most commonly, MCP servers run as local processes launched by VS Code or Copilot, communicating via stdio. Alternatively, MCP servers can be hosted remotely and accessed over a network, allowing multiple users or agents to connect.
 - **Local vs Remote Servers:** 
@@ -31,11 +31,11 @@ This architecture lets you choose between local development convenience and remo
 
 ## Description
 
-In this challenge you will build a simple MCP weather server and connect it to a host, Visual Studio Code or Claude for Desktop. 
+In this challenge, you will build a simple MCP weather server and connect it to a host (Visual Studio Code or Claude for Desktop).
 
-Many LLMs do not currently have the ability to fetch the forecast and severe weather alerts. Let’s use MCP to solve that!
+Many LLMs do not currently have the ability to fetch real-time forecasts and severe weather alerts. Let’s use MCP to solve that.
 
-You will build a server that exposes two tools: get_alerts and get_forecast. Then we’ll connect the server to an MCP host (Visual Studio Code or Claude for Desktop)
+You will build a server that exposes two tools: `get_alerts` and `get_forecast`, then connect the server to an MCP host (Visual Studio Code or Claude for Desktop).
 
 > ℹ️ Servers can connect to any client. We’ve chosen Visual Studio Code or Claude for Desktop here for simplicity, but you could also connect to other clients like Copilot Chat in JetBrains IDEs or even build your own client.
 
@@ -43,13 +43,14 @@ You will build a server that exposes two tools: get_alerts and get_forecast. The
 
 Use the official MCP C# quickstart as your base: https://modelcontextprotocol.io/quickstart/server#c%23
 
-1) Create a console app
+1. Create a console app
 ```bash
 dotnet new console -n WeatherMcpServer
 cd WeatherMcpServer
 ```
 
-2) Add NuGet package for the Model Context Protocol SDK and hosting
+2. Add the required NuGet packages for the Model Context Protocol SDK and hosting
+
 ```bash
 # Add the Model Context Protocol SDK NuGet package
 dotnet add package ModelContextProtocol --prerelease
@@ -58,8 +59,8 @@ dotnet add package Microsoft.Extensions.Hosting
 ```
 
 ### Task 2: Scaffold your MCP server (C# / .NET)
-Open the Program.cs file in your project and replace its contents with the following code:
-This code sets up a basic console application that uses the Model Context Protocol SDK to create an MCP server with standard I/O transport.
+
+Open the `Program.cs` file in your project and replace its contents with the following code. This sets up a basic console application that uses the Model Context Protocol SDK to create an MCP server with standard input/output (stdio) transport.
 ```csharp
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -86,9 +87,12 @@ await app.RunAsync();
 
 ### Task 3: Add weather tools to your MCP server
 
-Add two tools to your server:
-- get_forecast: Returns a short forecast by lat/lon using Open-Meteo.
-- get_alerts: Returns active severe weather alerts by lat/lon using api.weather.gov.
+Add the following tools to your server:
+
+- `get_forecast`: Returns a short forecast by latitude/longitude using api.weather.gov (NWS).
+- `get_alerts`: Returns active severe weather alerts for a US state using api.weather.gov (NWS).
+
+> ℹ️ These weather tools integrate with the National Weather Service API. It provides real-time weather updates and alerts for US locations only.
 
 Create an extension class for HttpClient which helps simplify JSON request handling:
 ```csharp
@@ -169,64 +173,64 @@ public static class WeatherTools
 ```
 ### Task 4: Run and validate locally
 
-- From the WeatherMcpServer folder:
+From the `WeatherMcpServer` folder:
 ```bash
 dotnet run
 ```
-- This will start the server and listen for incoming requests on standard input/output.
+This starts the server and listens for incoming requests on standard input/output.
 
-### Task 4: Connect to an MCP host
+### Task 5: Connect to an MCP host
 
 Option A: Visual Studio Code (GitHub Copilot Chat)
 - Follow the VS Code MCP [guide:](https://code.visualstudio.com/docs/copilot/customization/mcp-servers#_use-mcp-tools-in-agent-mode)
 - Add a server entry that invokes:
-  - command: dotnet
-  - args: ["run", "--project", "<absolute-path-to>/WeatherMcpServer/WeatherMcpServer.csproj"]
-  - transport: stdio
-- Reload VS Code. In Copilot Chat, use /tools to see your server and try:
-  - get_forecast with latitude/longitude
-  - get_alerts with latitude/longitude
+    - command: `dotnet`
+    - args: `["run", "--project", "PATH_TO_YOUR_PROJECT"]`
+    - transport: `stdio`
+- Reload VS Code. In Copilot Chat, use `/tools` to see your server and try:
+    - `get_forecast` with latitude/longitude
+    - `get_alerts` with a two-letter state (e.g., WA)
 
 Option B: Claude Desktop
 - Follow the Claude MCP config [guide:](https://modelcontextprotocol.io/quickstart/server#testing-your-server-with-claude-for-desktop-5)
 
-### Task 5: Use MCP Inspector for testing and debugging Model Context Protocol servers
+### Task 6: Use MCP Inspector for testing and debugging Model Context Protocol servers
 
 The [MCP Inspector](https://modelcontextprotocol.io/legacy/tools/inspector) is an interactive developer tool for testing and debugging MCP servers. It lets you start/attach servers, call tools with JSON inputs, inspect requests/responses, and view logs.
 
-1) Prerequisites
-- Node.js 18+ installed
-- Your WeatherMcpServer builds and runs locally
+1. Prerequisites
+    - Node.js 18+ installed
+    - Your `WeatherMcpServer` builds and runs locally
 
-2) Start the Inspector
+2. Start the Inspector
 ```bash
 npx @modelcontextprotocol/inspector
 ```
-- The Inspector opens in your browser (or prints a local URL). Keep the terminal open.
+The Inspector opens in your browser (or prints a local URL). Keep the terminal open.
 
-3) Configure a server via the UI
-- In the Inspector, add the MCP server
-- Choose “Stdio”
-- Command: dotnet
-- Args:
-  - run
-  - --project
-  - <absolute-path-to>\WeatherMcpServer\WeatherMcpServer.csproj
-- Use the UI to:
-  - List tools (get_forecast, get_alerts)
-  - Invoke a tool and provide JSON input, for example:
-    - get_alerts: { "state": "WA" }
-    - get_forecast: { "latitude": 47.6062, "longitude": -122.3321 }
+3. Configure a server via the UI
+     - In the Inspector, add the MCP server
+     - Choose `Stdio`
+     - Command: `dotnet`
+     - Args:
+         - `run`
+         - `--project`
+         - `ABSOLUTE_PATH\\WeatherMcpServer\\WeatherMcpServer.csproj`
+     - Use the UI to:
+         - List tools (`get_forecast`, `get_alerts`)
+         - Invoke a tool and provide JSON input, for example:
+             - `get_alerts`: `{ "state": "WA" }`
+             - `get_forecast`: `{ "latitude": 47.6062, "longitude": -122.3321 }`
 
 ## Success Criteria
 
 - ✅ A .NET MCP server runs locally over stdio.
-- ✅ The server lists two tools: get_forecast and get_alerts.
-- ✅ Invoking get_forecast returns current temperature (or basic forecast info) for given lat/lon.
-- ✅ Invoking get_alerts returns zero or more active alerts near the given lat/lon.
+- ✅ The server lists two tools: `get_forecast` and `get_alerts`.
+- ✅ Invoking `get_forecast` returns current temperature (or basic forecast info) for the given latitude/longitude.
+- ✅ Invoking `get_alerts` returns zero or more active alerts for the specified US state.
 - ✅ Tools are visible and callable from your chosen MCP host (VS Code Copilot Chat or Claude Desktop).
-- ✅ Validated with MCP Inspector: server connects via stdio, tools (get_forecast, get_alerts) invoke successfully, and requests/responses are visible without schema errors.
-- ✅ User gets a response to the prompt "Get the weather in Sacramento" when using the MCP tools in VS Code Copilot Chat or Claude Desktop.
+- ✅ Validated with MCP Inspector: server connects via stdio, tools (`get_forecast`, `get_alerts`) invoke successfully, and requests/responses are visible without schema errors.
+- ✅ The user gets a response to the prompt "Get the weather in Sacramento" when using the MCP tools in VS Code Copilot Chat or Claude Desktop.
 
 ## Learning Resources
 
@@ -234,8 +238,7 @@ npx @modelcontextprotocol/inspector
 - [VS Code MCP Tools](https://code.visualstudio.com/docs/copilot/customization/mcp-servers#_use-mcp-tools-in-agent-mode)
 - [MCP SDK Documentation](https://modelcontextprotocol.io/docs/sdk)
 - [C# Quickstart (server)](https://modelcontextprotocol.io/quickstart/server#c%23)
-- [VS Code MCP Integration](https://code.visualstudio.com/mcp)
+- [VS Code MCP Servers](https://code.visualstudio.com/mcp)
 - [GitHub Copilot in VS Code](https://code.visualstudio.com/docs/editor/github-copilot)
-- [Copilot Chat](https://docs.github.com/en/copilot/using-github-copilot/asking-github-copilot-questions-in-your-ide)
 - [Weather.gov API](https://www.weather.gov/documentation/services-web-api)
 - [MCP Inspector](https://modelcontextprotocol.io/legacy/tools/inspector)

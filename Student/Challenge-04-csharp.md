@@ -25,7 +25,7 @@ Understanding these core concepts will help you succeed in this challenge.
 
 **This Challenge (HTTP):**
 - MCP server runs in the cloud, accessible from anywhere
-- Clients connect over the internet using standard web protocols
+- Clients connect over the internet using Http web protocols
 - Enables multiple clients to use the same server simultaneously
 
 ### Azure Deployment: Two Simple Options

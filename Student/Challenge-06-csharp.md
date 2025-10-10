@@ -5,6 +5,8 @@
 [![](https://img.shields.io/badge/C%20Sharp-blue)](Challenge-06-csharp.md)
 [![](https://img.shields.io/badge/Python-lightgray)](Challenge-06-python.md)
 
+![](https://img.shields.io/badge/Challenge%20Under%20Development-red)
+
 ## Introduction
 
 In this challenge, you will build your first intelligent application using **Microsoft Agent Framework**, Microsoft's open-source engine for developing agentic AI applications. You'll create an interactive console application that demonstrates the core capabilities of AI agent orchestration and tool integration.

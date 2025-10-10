@@ -47,7 +47,7 @@
 
 param(
     [Parameter(HelpMessage = "Path to the WeatherRemoteMcpServer project directory")]
-    [string]$ProjectPath = ".\src\WeatherRemoteMcpServer",
+    [string]$ProjectPath = ".\csharp\MCP.Server.Remote.Weather",
     
     [Parameter(HelpMessage = "Name of the Azure resource group")]
     [string]$ResourceGroup = "rg-weathermcp-functions",

@@ -31,25 +31,6 @@ The `deploy-functions-script.ps1` script automates the complete deployment of a 
 - Ability to create resource groups and resources
 - Access to create Azure Container Registry
 
-### Project Structure
-The script expects the following project structure:
-```
-Developing-Agentic-AI-Apps-Hackathon/
-├── Resources/
-│   └── Challenge-04/
-│       ├── deploy-functions-script.ps1     # This script
-│       └── README-Functions.md             # This file
-└── Coach/
-    └── Solutions/
-        └── Challenge-05/
-            └── WeatherRemoteMcpServer/     # Source code
-                ├── Program.cs
-                ├── WeatherRemoteMcpServer.csproj
-                ├── Dockerfile.functions
-                └── Tools/
-                    └── WeatherTools.cs
-```
-
 ## 🚀 Quick Start
 
 ### 1. Authentication
@@ -64,7 +45,7 @@ az account show
 ### 2. Basic Deployment
 ```powershell
 # Navigate to script directory
-cd "C:\path\to\Developing-Agentic-AI-Apps-Hackathon\Resources\Challenge-04"
+cd "<add your-script-path-here>"
 
 # Run with defaults (Sweden Central region)
 .\deploy-functions-script.ps1
@@ -83,7 +64,7 @@ cd "C:\path\to\Developing-Agentic-AI-Apps-Hackathon\Resources\Challenge-04"
 
 | Parameter | Description | Default | Required |
 |-----------|-------------|---------|----------|
-| `ProjectPath` | Path to WeatherRemoteMcpServer directory | `..\..\Coach\Solutions\Challenge-05\WeatherRemoteMcpServer` | No |
+| `ProjectPath` | Path to WeatherRemoteMcpServer directory | `<add your-project-path-here>` | No |
 | `ResourceGroup` | Azure resource group name | `rg-weathermcp-functions` | No |
 | `Location` | Azure region | `swedencentral` | No |
 | `FunctionAppName` | Function App name (+ random suffix) | `weathermcp-functions-{random}` | No |
@@ -166,7 +147,7 @@ az account set --subscription "your-subscription-id"
 **Solution:** Check project path and ensure all files exist
 ```powershell
 # Verify project structure
-Get-ChildItem "..\..\Coach\Solutions\Challenge-05\WeatherRemoteMcpServer"
+Get-ChildItem "<add your-project-path-here>"
 ```
 
 ### Azure Portal Issues
@@ -237,47 +218,6 @@ az functionapp delete --name weathermcp-functions-XXXX --resource-group rg-weath
 az appservice plan delete --name plan-weathermcp-functions --resource-group rg-weathermcp-functions-se
 ```
 
-## 💰 Cost Estimation
-
-### Basic (B1) Plan Costs (approximate)
-- **App Service Plan B1:** ~$13.14/month
-- **Storage Account:** ~$1-5/month  
-- **Container Registry Basic:** ~$5/month
-- **Data Transfer:** Variable based on usage
-
-**Total Estimated:** ~$20-25/month for development/testing
-
-### Cost Optimization Tips
-- Use **Free tier** App Service Plan for development (limitations apply)
-- Delete resources when not in use
-- Monitor usage in Azure Cost Management
-
-## 🔒 Security Considerations
-
-### Managed Identity
-The deployment enables system-assigned managed identity for:
-- Secure access to Azure services
-- Elimination of stored credentials
-- Future integration capabilities
-
-### Network Security
-- HTTPS-only communication
-- Azure-managed SSL certificates
-- Private container registry access
-
-### Best Practices
-- Regularly update container images
-- Monitor access logs
-- Use Azure Key Vault for sensitive configuration
-- Enable Application Insights for monitoring
-
-## 🤝 Support
-
-### Getting Help
-1. **Script Issues:** Check this README and troubleshooting section
-2. **Azure Issues:** Use `az --help` or Azure documentation
-3. **MCP Protocol:** Refer to Model Context Protocol documentation
-
 ### Useful Resources
 - [Azure Functions Documentation](https://docs.microsoft.com/en-us/azure/azure-functions/)
 - [Azure Container Registry](https://docs.microsoft.com/en-us/azure/container-registry/)
@@ -285,13 +225,3 @@ The deployment enables system-assigned managed identity for:
 - [Azure CLI Reference](https://docs.microsoft.com/en-us/cli/azure/)
 
 ---
-
-## 📄 License
-
-This project is part of the Developing Agentic AI Apps Hackathon materials.
-
-## 🏷️ Version
-
-Script Version: 1.0
-Last Updated: September 9, 2025
-Compatible with: Azure CLI 2.0+, PowerShell 5.1+, .NET 9.0

@@ -110,7 +110,7 @@ Using Playwright, interact in the Copilot Chat window to automate Google Maps an
 
 ## Success Criteria
 
-- ✅ GitHub Copilot and Copilot Chat extensions are installed
+- ✅ GitHub Copilot is configured on VS Code
 - ✅ Successfully demonstrate inline code suggestions
 - ✅ Successfully use Edit mode to refactor existing code with specific instructions
 - ✅ Interact with @workspace, @vscode, and @terminal agents effectively

@@ -46,6 +46,9 @@ Add the required NuGet packages:
 dotnet add package ModelContextProtocol.Client --prerelease
 # Add Azure OpenAI client
 dotnet add package Azure.AI.OpenAI --prerelease
+# Add Microsoft Extensions AI for OpenAI
+dotnet add package Microsoft.Extensions.AI
+dotnet add package Microsoft.Extensions.AI.OpenAI --prerelease
 ```
 
 ### Task 2: Configure Azure OpenAI and get environment variables
@@ -60,7 +63,7 @@ dotnet add package Azure.AI.OpenAI --prerelease
 - **API Key**: Also in the "Keys and Endpoint" section
 - **Deployment Name**: The name you gave when deploying your GPT model in Azure OpenAI Studio
 
-Add environment variable setup for Azure OpenAI. Create a `.env` file in your project:
+Add environment variable to retrieve configuration values for your project:
 
 ```env
 AZURE_OPENAI_ENDPOINT=https://your-resource-name.openai.azure.com/
@@ -68,23 +71,15 @@ AZURE_OPENAI_API_KEY=your_azure_openai_api_key_here
 AZURE_OPENAI_DEPLOYMENT_NAME=your_gpt4_deployment_name
 ```
 
-Replace the contents of `Program.cs` to get environment variables
+> ℹ️ Storing configuration values like API endpoints in environment variables keeps them separate from your source code, making your application more flexible. For sensitive information such as API keys, it's best to use a secure storage solution.
 
 ```csharp
-using ModelContextProtocol.Client;
-using Azure.AI.OpenAI;
-using Azure;
 
 // Initialize Azure OpenAI client
 var endpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT") ?? "<Add your endpoint>";
 var apiKey = Environment.GetEnvironmentVariable("AZURE_OPENAI_API_KEY") ?? "<Add your API key>";
 var deploymentName = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT_NAME") ?? "gpt-4";
 
-if (string.IsNullOrEmpty(endpoint) || string.IsNullOrEmpty(apiKey))
-{
-    Console.WriteLine("Please set AZURE_OPENAI_ENDPOINT and AZURE_OPENAI_API_KEY environment variables.");
-    return;
-}
 ```
 
 ### Task 3: Setup MCP client
@@ -96,7 +91,7 @@ var clientTransport = new StdioClientTransport(new()
 {
     Name = "Weather MCP Server",
     Command = "dotnet",
-    Arguments = ["run", "--project", "../WeatherMcpServer/WeatherMcpServer.csproj"]
+    Arguments = ["run", "--project", "<add the weather MCP server project path>"]
 });
 
 await using var mcpClient = await McpClientFactory.CreateAsync(clientTransport);
@@ -113,68 +108,32 @@ foreach (var tool in tools)
 Implement the Azure OpenAI integration by adding the following code
 
 ```csharp
-
-var openAIClient = new OpenAIClient(new Uri(endpoint), new AzureKeyCredential(apiKey));
-
-var chatCompletionsOptions = new ChatCompletionsOptions(deploymentName, new[]
-    {
-        new ChatRequestUserMessage(query)
-    })
-    {
-        MaxTokens = 1000,
-        Temperature = 0.7f,
-        Tools = ConvertToAzureOpenAITool(tools)
-    };
-```
-
-This method will convert MCP tools to Azure OpenAI tools.
-
-```csharp
-ChatCompletionsFunctionToolDefinition ConvertToAzureOpenAITool(Tool mcpTool)
-{
-    return new ChatCompletionsFunctionToolDefinition()
-    {
-        Name = mcpTool.Name,
-        Description = mcpTool.Description,
-        Parameters = BinaryData.FromString(JsonSerializer.Serialize(mcpTool.InputSchema))
-    };
-}
+IChatClient client = new ChatClientBuilder(
+    new AzureOpenAIClient(new Uri(endpoint),
+    new ApiKeyCredential(apiKey))
+    .GetChatClient(deploymentName).AsIChatClient())
+    .UseFunctionInvocation()
+    .Build();
 ```
 
 ### Task 4: Query processing logic
 
-Add the core functionality for processing queries and handling tool calls:
+Add the core functionality for processing queries
 
 ```csharp
-
-Console.ForegroundColor = ConsoleColor.Green;
-Console.WriteLine("MCP Client Started!");
-Console.ResetColor();
-
-PromptForInput();
-while(Console.ReadLine() is string query && !"exit".Equals(query, StringComparison.OrdinalIgnoreCase))
+ List<ChatMessage> messages = new();
+messages.Add(new(ChatRole.Assistant, "You are an AI weather assistant."));
+while (true)
 {
-    if (string.IsNullOrWhiteSpace(query))
-    {
-        PromptForInput();
-        continue;
-    }
+    Console.Write("Prompt: ");
+    messages.Add(new(ChatRole.User, Console.ReadLine()));
 
-    var response = await openAIClient.GetChatCompletionsAsync(chatCompletionsOptions);
+    List<ChatResponseUpdate> updates = [];
+    var response = await client.GetResponseAsync(messages, new() { Tools = [.. tools] });
 
-    Console.Write(response.Value.Choices[0].Message.Content);
-    
+    Console.WriteLine(response.Text);
     Console.WriteLine();
-
-    PromptForInput();
-}
-
-static void PromptForInput()
-{
-    Console.WriteLine("Enter a command (or 'exit' to quit):");
-    Console.ForegroundColor = ConsoleColor.Cyan;
-    Console.Write("> ");
-    Console.ResetColor();
+    messages.AddMessages(updates);
 }
 ```
 
@@ -201,8 +160,6 @@ Try queries like:
 
 - ✅ A .NET MCP client application that can connect to MCP servers over stdio
 - ✅ Client can discover and list tools from connected servers
-- ✅ Interactive console interface for user queries
-- ✅ Integration with Azure OpenAI for natural language processing
 - ✅ AI assistant can decide which tools to use based on user queries
 - ✅ Client can execute tool calls on MCP servers and return results to the AI application
 - ✅ User can ask "What's the weather in Sacramento?" and get a natural language response

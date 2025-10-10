@@ -6,13 +6,13 @@ EXPOSE 8080
 # Use the official .NET 9.0 SDK image to build the app
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
-COPY ["WeatherRemoteMcpServer.csproj", "./"]
-RUN dotnet restore "WeatherRemoteMcpServer.csproj"
+COPY ["MCP.Server.Remote.Weather.Solution.csproj", "./"]
+RUN dotnet restore "MCP.Server.Remote.Weather.Solution.csproj"
 COPY . .
-RUN dotnet build "WeatherRemoteMcpServer.csproj" -c Release -o /app/build
+RUN dotnet build "MCP.Server.Remote.Weather.Solution.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "WeatherRemoteMcpServer.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "MCP.Server.Remote.Weather.Solution.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 # Final stage
 FROM base AS final
@@ -23,4 +23,4 @@ COPY --from=publish /app/publish .
 RUN adduser --disabled-password --gecos '' appuser && chown -R appuser /app
 USER appuser
 
-ENTRYPOINT ["dotnet", "WeatherRemoteMcpServer.dll"]
+ENTRYPOINT ["dotnet", "MCP.Server.Remote.Weather.Solution.dll"]

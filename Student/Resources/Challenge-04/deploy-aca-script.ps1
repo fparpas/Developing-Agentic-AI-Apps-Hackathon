@@ -48,7 +48,7 @@ catch {
 }
 
 # Variables
-$ProjectPath = ".\src\WeatherRemoteMcpServer"
+$ProjectPath = ".\csharp\MCP.Server.Remote.Weather"
 
 try {
     # Deploy using source-to-cloud (creates everything automatically)

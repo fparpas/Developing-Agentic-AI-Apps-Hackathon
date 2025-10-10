@@ -5,6 +5,8 @@
 [![](https://img.shields.io/badge/C%20Sharp-blue)](Challenge-07-csharp.md)
 [![](https://img.shields.io/badge/Python-lightgray)](Challenge-07-python.md)
 
+![](https://img.shields.io/badge/Challenge%20Under%20Development-red)
+
 ## Introduction
 
 When you build AI solutions, you want to be able to observe the behavior of your services. Observability is the ability to monitor and analyze the internal state of components within a distributed system. It is a key requirement for building enterprise-ready AI solutions.

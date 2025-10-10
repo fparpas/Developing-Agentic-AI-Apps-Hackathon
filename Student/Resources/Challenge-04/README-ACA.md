@@ -158,7 +158,7 @@ To update the deployed application with new code:
 
 ```powershell
 # Navigate to the project directory
-cd "..\..\Coach\Solutions\Challenge-02\WeatherMcpServer"
+cd "<add your-project-path-here>"
 
 # Deploy updates
 az containerapp up --name weathermcp-server --resource-group rg-weathermcp-demo --source .
