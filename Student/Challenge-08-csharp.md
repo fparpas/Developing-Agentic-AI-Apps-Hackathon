@@ -141,3 +141,5 @@ To successfully complete this challenge, you must demonstrate:
 - [Understand Agent Orchestration](https://learn.microsoft.com/en-us/training/modules/orchestrate-semantic-kernel-multi-agent-solution/3-understand-agent-orchestration)
 - [AI Agent Orchestration Patterns](https://learn.microsoft.com/en-us/azure/architecture/ai-ml/guide/ai-agent-design-patterns)
 - [Agents in Workflows](https://learn.microsoft.com/en-us/agent-framework/tutorials/workflows/agents-in-workflows?pivots=programming-language-csharp)
+- [Amadeus for Developers](https://developers.amadeus.com/)
+- [Amadeus Open AI Specification](https://github.com/amadeus4dev/amadeus-open-api-specification/tree/main/spec/json)
