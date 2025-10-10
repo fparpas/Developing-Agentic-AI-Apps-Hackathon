@@ -1,4 +1,4 @@
-# Challenge 01 - Accelerate your productivity with MCP servers in Visual Studio Code
+# Challenge 01 - Accelerate your developer productivity with MCP servers in Visual Studio Code
 
  [< Previous Challenge](./Challenge-00.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-02-csharp.md)
  
@@ -21,26 +21,28 @@ GitHub Copilot is an AI-powered code completion tool that acts as your programmi
 
 #### GitHub Copilot Modes
 
-**1. Inline Suggestions**
-- Real-time code completions as you type
-- Suggests functions, classes, and code blocks
-- Context-aware based on your current file and project
+**1. Code completions**
+Copilot provides inline code suggestions as you type, ranging from single line completions to entire function implementations. With next edit suggestions, it predicts the next logical code change based on your current context.
 
 **2. Chat Mode (Ask)**
-- Interactive chat interface for questions and explanations
-- Ask about code, concepts, or best practices
-- Get help with debugging and problem-solving
+Chat in Visual Studio Code lets you use natural language to interact with large language models (LLMs) to get help with your code. Ask mode for chat is optimized for asking questions about your codebase, coding, and general technology concepts. Ask mode is particularly useful for getting a better understanding of your codebase, brainstorming ideas, and getting help with coding tasks.
 
 **3. Edit Mode**
-- Select code and request specific modifications
-- Refactor, optimize, or add features to existing code
-- Natural language instructions for code changes
+Use edit mode when you want more granular control over the edits that Copilot proposes. In edit mode, you choose which files Copilot can make changes to, provide context to Copilot with each iteration, and decide whether or not to accept the suggested edits after each turn.
+
+Edit mode is best suited to use cases where:
+
+- You want to make a quick, specific update to a defined set of files.
+- You want full control over the number of LLM requests Copilot uses.
 
 **4. Agent Mode**
-- Specialized AI agents for different contexts:
-  - `@workspace` - Project-wide assistance
-  - `@vscode` - VS Code features and settings
-  - `@terminal` - Command line operations
+Use agent mode when you have a specific task in mind and want to enable Copilot to autonomously edit your code. In agent mode, Copilot determines which files to make changes to, offers code changes and terminal commands to complete the task, and iterates to remediate issues until the original task is complete.
+
+Agent mode is best suited to use cases where:
+
+- Your task is complex, and involves multiple steps, iterations, and error handling.
+- You want Copilot to determine the necessary steps to take to complete the task.
+- The task requires Copilot to integrate with external applications, such as an MCP server.
 
 #### Model Context Protocol (MCP)
 
@@ -54,10 +56,10 @@ MCP is a protocol that enables AI models to access external data sources and too
 
 ## Description
 
-Your challenge is to set up and master GitHub Copilot in VS Code, then enhance it with MCP servers to accelerate your AI application development workflow.
+Your challenge is to set up and get familiar with GitHub Copilot in VS Code, then enhance it with MCP servers to accelerate your AI application development workflow.
 
-### Task 1: Install and Configure GitHub Copilot
-Install the GitHub Copilot and Copilot Chat extensions in Visual Studio Code, sign in to authenticate your account, and confirm the installation by generating an inline code suggestion.
+### Task 1: Setup and Configure GitHub Copilot
+Setup GitHub Copilot in Visual Studio Code, and confirm the installation by generating an inline code suggestion.
 
 ### Task 2: Explore Copilot Interaction Modes
 
@@ -117,12 +119,11 @@ Using Playwright, interact in the Copilot Chat window to automate Google Maps an
 - ✅ Use Playwright to automate Google Maps driving directions
 
 ## Learning Resources
+- [Set up GitHub Copilot in VS Code](https://code.visualstudio.com/docs/copilot/setup)
+- [GitHub Copilot in VS Code](https://code.visualstudio.com/docs/editor/artificial-intelligence)
 - [Use MCP servers in VS Code](https://code.visualstudio.com/docs/copilot/customization/mcp-servers)
-- [GitHub Copilot in VS Code Documentation](https://code.visualstudio.com/docs/editor/github-copilot)
 - [GitHub Copilot Chat Documentation](https://docs.github.com/en/copilot/using-github-copilot/asking-github-copilot-questions-in-your-ide)
 - [Model Context Protocol (MCP) Overview](https://modelcontextprotocol.io/)
 - [VS Code MCP (Model Context Protocol)](https://code.visualstudio.com/mcp)
-- [VS Code Copilot Tips and Tricks](https://code.visualstudio.com/docs/editor/artificial-intelligence)
 - [GitHub Copilot Best Practices](https://docs.github.com/en/copilot/using-github-copilot/best-practices-for-using-github-copilot)
-- [Azure OpenAI with .NET Documentation](https://learn.microsoft.com/en-us/azure/ai-services/openai/quickstart?tabs=command-line%2Cpython-new&pivots=programming-language-csharp)
 - [Playwright Docs](https://playwright.dev/docs/intro)

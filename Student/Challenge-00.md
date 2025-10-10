@@ -9,7 +9,7 @@
 - Access to Azure OpenAI in the desired Azure subscription.
 - Latest version of Azure CLI
 - Latest version of Visual Studio or Visual Studio Code
-- .NET 9.0 SDK or later version
+- .NET 8.0 SDK or later version
 - GitHub Copilot (free tier with limitations available, or start a Copilot Pro trial for enhanced features)
 
 ## Introduction
@@ -33,4 +33,6 @@ Setup and configure the following tools
 - ✅ You have a bash shell or PowerShell at your disposal (you can also use Azure Cloud Shell)
 - ✅ Running az --version shows the version of your Azure CLI
 - ✅ Visual Studio or Visual Studio Code is installed.
+- ✅ Ensure that .NET 8.0 SDK or later version is installed by running `dotnet --version` in your terminal.
+- ✅ Ensure that you have access to GitHub Copilot.
 - ✅ Ensure that you clone the GitHub repository onto your workstation.

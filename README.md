@@ -40,7 +40,7 @@ The intended audience are individuals with coding skills.
 
 - Install the required development tools. This initial session is crucial to ensure that all participants are well-prepared and can fully engage with the workshop's content.
 
-### Challenge 1: **[Accelerate your productivity with MCP servers in Visual Studio Code](Student/Challenge-01.md)**
+### Challenge 1: **[Accelerate your developer productivity with MCP servers in Visual Studio Code](Student/Challenge-01.md)**
 
 - Learn how to boost your development productivity by integrating Model Context Protocol (MCP) servers directly into Visual Studio Code, enabling enhanced AI-powered development workflows.
 
