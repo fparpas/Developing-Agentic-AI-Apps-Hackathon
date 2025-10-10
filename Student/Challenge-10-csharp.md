@@ -5,6 +5,8 @@
 [![](https://img.shields.io/badge/C%20Sharp-blue)](Challenge-10-csharp.md)
 [![](https://img.shields.io/badge/Python-lightgray)](Challenge-10-python.md)
 
+![](https://img.shields.io/badge/Challenge%20Under%20Development-red)
+
 ## Introduction
 
 In this challenge, you'll build an advanced **Agentic Retrieval-Augmented Generation (RAG)** system using Azure AI Search. Unlike traditional RAG approaches that simply retrieve and present information, agentic retrieval allows AI agents to intelligently decide what information to retrieve, when to retrieve it, and how to use it to answer complex questions.
