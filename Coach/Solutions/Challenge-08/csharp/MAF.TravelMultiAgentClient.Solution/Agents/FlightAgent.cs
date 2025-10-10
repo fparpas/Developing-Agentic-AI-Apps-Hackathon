@@ -15,7 +15,8 @@ public class FlightAgent
     private readonly McpClientService _mcpClient;
     private readonly ILogger<FlightAgent> _logger;
     private readonly AIAgent _agent;
-    
+
+    const string SourceName = "WorkflowSample";
     public AIAgent Agent
     {
         get { return _agent; }
@@ -76,6 +77,7 @@ public class FlightAgent
             Always use the available flight tools to provide accurate, real-time flight information and pricing.
             Focus on delivering comprehensive flight solutions that meet customer needs and budget.
             """
-        );
+        ).AsBuilder().UseOpenTelemetry(sourceName: SourceName, configure: (cfg) => cfg.EnableSensitiveData = true).Build();
+        
     }
 }

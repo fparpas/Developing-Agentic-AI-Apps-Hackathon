@@ -106,6 +106,7 @@ foreach (var tool in tools)
 {
     Console.WriteLine($"Connected to server with tools: {tool.Name}");
 }
+```
 
 ### Task 3: Add Azure OpenAI Integration
 
