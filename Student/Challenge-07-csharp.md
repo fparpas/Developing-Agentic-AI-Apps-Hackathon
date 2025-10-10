@@ -5,8 +5,6 @@
 [![](https://img.shields.io/badge/C%20Sharp-blue)](Challenge-07-csharp.md)
 [![](https://img.shields.io/badge/Python-lightgray)](Challenge-07-python.md)
 
-![](https://img.shields.io/badge/Challenge%20Under%20Development-red)
-
 ## Introduction
 
 When you build AI solutions, you want to be able to observe the behavior of your services. Observability is the ability to monitor and analyze the internal state of components within a distributed system. It is a key requirement for building enterprise-ready AI solutions.
@@ -27,19 +25,26 @@ Microsoft Agent Framework is designed to be observable from the ground up. It em
 
 Microsoft Agent Framework enables observability at multiple levels of your agentic AI applications:
 
+**Chat Client Observability:**
+- **User Interaction Tracing**: Capture and analyze user messages, commands, and feedback within the chat client.
+- **Conversation Flow Monitoring**: Observe the sequence of messages exchanged between users and agents, including context switches and interruptions.
+- **Latency and Response Metrics**: Measure the time taken for agents to respond to user inputs and overall chat responsiveness.
+- **Error and Exception Logging**: Track errors, failed responses, and unexpected behaviors in the chat interface.
+- **User Experience Insights**: Collect telemetry on user engagement, satisfaction, and common issues to improve the chat client experience.
+
 **Agent-Level Observability:**
-- **Individual Agent Monitoring**: Track the behavior, performance, and resource consumption of each agent in your system
-- **Agent Lifecycle Events**: Monitor agent creation, initialization, activation, and termination
-- **Agent-to-Agent Communication**: Observe interactions between multiple agents in collaborative scenarios
-- **Agent State Changes**: Track state transitions and context preservation across conversations
-- **Tool Usage Patterns**: Monitor which tools agents use most frequently and their success rates
+- **Individual Agent Monitoring**: Track the behavior, performance, and resource consumption of each agent in your system.
+- **Agent Lifecycle Events**: Monitor agent creation, initialization, activation, and termination.
+- **Agent-to-Agent Communication**: Observe interactions between multiple agents in collaborative scenarios.
+- **Agent State Changes**: Track state transitions and context preservation across conversations.
+- **Tool Usage Patterns**: Monitor which tools agents use most frequently and their success rates.
 
 **Workflow-Level Observability:**
-- **Workflow Orchestration**: Track the execution flow across multiple agents and services in complex workflows
-- **Step-by-Step Execution**: Monitor each step in multi-step workflows, including decision points and branching logic
-- **Cross-Workflow Dependencies**: Observe how different workflows interact and depend on each other
-- **Workflow Performance Metrics**: Measure end-to-end workflow execution times, success rates, and bottlenecks
-- **Resource Utilization**: Monitor compute, memory, and token consumption across entire workflows
+- **Workflow Orchestration**: Track the execution flow across multiple agents and services in complex workflows.
+- **Step-by-Step Execution**: Monitor each step in multi-step workflows, including decision points and branching logic.
+- **Cross-Workflow Dependencies**: Observe how different workflows interact and depend on each other.
+- **Workflow Performance Metrics**: Measure end-to-end workflow execution times, success rates, and bottlenecks.
+- **Resource Utilization**: Monitor compute, memory, and token consumption across entire workflows.
 
 This comprehensive observability approach allows you to understand not just individual component performance, but also the emergent behavior of your entire agentic AI system.
 
@@ -74,8 +79,8 @@ Use the Agent Framework application created in the previous challenge and add co
 
 ### Agents Observability
 - [Agent Observability Overview](https://learn.microsoft.com/en-us/agent-framework/user-guide/agents/agent-observability?pivots=programming-language-csharp)
+- [Microsoft Agent Framework Workflows - Observability](https://learn.microsoft.com/en-us/agent-framework/user-guide/workflows/observability)
 - [Tutorial - Enabling observability for Agents](https://learn.microsoft.com/en-us/agent-framework/tutorials/agents/enable-observability?pivots=programming-language-csharp)
 - [Sample - Agent Observability with Console Exporter](https://github.com/microsoft/agent-framework/blob/main/dotnet/samples/GettingStarted/Agents/Agent_Step08_Observability)
 - [Sample - OpenTelemetry with the Microsoft Agent Framework](https://github.com/microsoft/agent-framework/blob/main/dotnet/samples/GettingStarted/AgentOpenTelemetry)
-- [Microsoft Agent Framework Workflows - Observability](https://learn.microsoft.com/en-us/agent-framework/user-guide/workflows/observability)
 - [View trace results for AI applications using OpenAI SDK](https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/develop/trace-application)

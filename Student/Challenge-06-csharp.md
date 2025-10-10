@@ -5,8 +5,6 @@
 [![](https://img.shields.io/badge/C%20Sharp-blue)](Challenge-06-csharp.md)
 [![](https://img.shields.io/badge/Python-lightgray)](Challenge-06-python.md)
 
-![](https://img.shields.io/badge/Challenge%20Under%20Development-red)
-
 ## Introduction
 
 In this challenge, you will build your first intelligent application using **Microsoft Agent Framework**, Microsoft's open-source engine for developing agentic AI applications. You'll create an interactive console application that demonstrates the core capabilities of AI agent orchestration and tool integration.
@@ -77,7 +75,7 @@ Microsoft Agent Framework can integrate with MCP servers to extend functionality
 
 This challenge will guide you through the process of developing your first intelligent app with Microsoft Agent Framework.
 
-In just a few steps, you can build your first AI agent with Microsoft Agent Framework in either .NET.
+To help you get started, a starter project is available at `Student/resources/challenge-06/csharp`. Use this as your foundation and implement the tasks outlined below by completing the relevant sections of the starter project.
 
 ### Task 1: Current time tool
 
@@ -98,9 +96,11 @@ public static class TimeTools
         return $"The current time in UTC is {DateTime.UtcNow}";
     }
 }
+```
 
 #### Create an agent and register the Current Time Tool
 
+```csharp
 // Register the tool with your agent (e.g., during agent initialization)
 AIAgent agent = new AzureOpenAIClient(
     new Uri(endpoint),
@@ -115,7 +115,7 @@ AIAgent agent = new AzureOpenAIClient(
 
 Now, when you interact with your agent, you can ask for the current time and the agent will call this tool to provide an accurate response.
 
-### Task 2: Integrate with Agent Service 
+### Task 2: Integrate with Azure AI Foundry Agents Service
 
 In this task, you will integrate the Agent Service into your Microsoft Agent Framework application created in previous challenge. This will allow your agent to leverage the capabilities of the Agent Service and check for travel policy compliance.
 
@@ -124,8 +124,8 @@ To integrate with the Agent Service, you will need to set up the `PersistentAgen
 ```csharp
  var persistentAgentsClient = new PersistentAgentsClient(agentServiceEndpoint, new DefaultAzureCredential());
 
-        // Retrieve the agent that was just created as an AIAgent using its ID
-        AIAgent agent = await persistentAgentsClient.GetAIAgentAsync(agentServiceId);
+// Retrieve the agent that was just created as an AIAgent using its ID
+AIAgent agent = await persistentAgentsClient.GetAIAgentAsync(agentServiceId);
 ```
 
 ### Task 3: Integrate with Weather Remote MCP server

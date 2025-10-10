@@ -36,19 +36,19 @@ class Program
             // //TASK 1: Implement current time agent
             // // Create AI Time Agent and register Function tools.
             // // Complete the method to create the Time agent and register the TimeTools.GetCurrentTimeInUTC function as a tool.
-            // var timeAgent = await CreateTimeAIAgentAndRegisterTools("TimeAgent", "You are a helpful assistant that can provide time information using the available tools.");
+            var timeAgent = await CreateTimeAIAgentAndRegisterTools("TimeAgent", "You are a helpful assistant that can provide time information using the available tools.");
 
             // //TASK 2: Implement MCP client and Weather agent
             // Initialize MCP client
-            // _mcpClient = await InitializeMcpClient();
+             _mcpClient = await InitializeMcpClient();
             // // Create AI Weather Agent and register MCP Weather tools. 
             // // Complete the method to create the Weather agent and register the MCP Weather tools.
-            // var weatherAgent = await CreateWeatherAIAgentAndRegisterMCPTools("WeatherAgent", "You are a helpful assistant that can provide weather information using the available tools.");
+            var weatherAgent = await CreateWeatherAIAgentAndRegisterMCPTools("WeatherAgent", "You are a helpful assistant that can provide weather information using the available tools.");
 
             // //TASK 3: Implement Agent Service agent
             // // Get the AI Agent Service Agent
             // //Complete the method to create the Agent Service agent.
-            // var agentServiceAgent = await CreateAIAgentServiceAgent("AgentServiceAgent", "You are a helpful assistant that can provide agent service information using the available tools.");
+            var agentServiceAgent = await CreateAIAgentServiceAgent("AgentServiceAgent", "You are a helpful assistant that can provide agent service information using the available tools.");
 
             // Start interactive chat
             await StartInteractiveChat(jokeAgent);
@@ -83,6 +83,8 @@ class Program
 
         //Implement your code here to initialize the MCP client.
 
+        throw new NotImplementedException("Method not implemented");
+
         return null; //return the mcpClient
     }
 
@@ -110,6 +112,8 @@ class Program
 
         //Implement your code here to create an AI agent and register the MCP Weather tools.
 
+        throw new NotImplementedException("Method not implemented");
+
         return null; //return agent
     }  
 
@@ -118,8 +122,10 @@ class Program
         var endpoint = _configuration["AzureOpenAI:Endpoint"] ?? throw new InvalidOperationException("Azure OpenAI endpoint is required");
         var apiKey = _configuration["AzureOpenAI:ApiKey"] ?? throw new InvalidOperationException("Azure OpenAI API key is required");
         var deploymentName = _configuration["AzureOpenAI:DeploymentName"] ?? throw new InvalidOperationException("Azure OpenAI deployment name is required");
-        
+
         //Implement your code here to create an AI agent and register the TimeTools.GetCurrentTimeInUTC function as a tool.
+
+        throw new NotImplementedException("Method not implemented");
 
         return null; //return agent
     }  
@@ -134,6 +140,8 @@ class Program
         var agentServiceId = _configuration["AgentService:AgentId"] ?? throw new InvalidOperationException("Azure OpenAI agent service identity is required");
 
         // Create PersistentAgentsClient to connect to the Agent Service
+
+        throw new NotImplementedException("Method not implemented");
 
         return null; //return agent
     } 
