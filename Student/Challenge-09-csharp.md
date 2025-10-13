@@ -1,22 +1,25 @@
-# Challenge 09 - C# - Secure your MCP remote server using an API key
+# Challenge 09 - C# - Secure your remote MCP server with an API Key
 
 [< Previous Challenge](./Challenge-08-csharp.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-10-csharp.md)
 
 [![](https://img.shields.io/badge/C%20Sharp-blue)](Challenge-09-csharp.md)
 [![](https://img.shields.io/badge/Python-lightgray)](Challenge-09-python.md)
 
-![](https://img.shields.io/badge/Challenge%20Under%20Development-red)
+<!-- Status badge can be removed when finalized -->
+![Challenge Status: Under Development](https://img.shields.io/badge/Challenge%20Under%20Development-red)
 
 ## Introduction
 
-In previous challenges, you built MCP servers and clients that communicate over stdio (standard input/output). While this works well for local development, production scenarios often require remote MCP servers that can be accessed over HTTP/HTTPS from multiple clients. However, exposing your MCP server to the internet without proper security measures creates significant risks.
+Previously, you worked with MCP servers and clients in both local and remote environments, but these setups lacked authentication and authorization. While this approach might suffice for development or trusted local scenarios, it is not suitable for production. When deploying remote MCP servers accessible over HTTP/HTTPS, it is essential to implement robust authentication for all clients. Exposing an unsecured MCP server to the internet can result in significant security risks (abuse of tools, data exfiltration, quota exhaustion, malicious chaining, etc.).
 
-In this challenge, you will learn how to secure your MCP server by implementing API key authentication, enabling safe remote access while protecting your tools and resources from unauthorized use.
+In this challenge, you will secure your MCP Weather Server by introducing API key authentication. This gives you a simple, explicit credential mechanism while preparing the code structure so you can later upgrade to standards‑based authorization (OAuth 2.1 / OIDC, signed tokens, per‑principal policies) with minimal refactoring.
 
 ## Concepts
 
 ### API Key Authentication
+
 API keys are a simple and effective method for authenticating clients to your MCP server. They provide:
+
 - **Client Identification**: Each client gets a unique key to identify requests
 - **Access Control**: Keys can be revoked or have different permission levels
 - **Usage Tracking**: Monitor which clients are making requests
@@ -31,177 +34,223 @@ When securing MCP servers, consider:
 - **Audit Logging**: Track all requests for security monitoring
 - **Rate Limiting**: Prevent abuse and DoS attacks
 
-### Remote MCP Architecture
-```
-Client Application → HTTPS Request → API Gateway/Load Balancer → MCP Server
-                   (with API Key)    (SSL Termination)      (Authenticated)
-```
+
+#### MCP Server Authorization (High Level)
+
+The Model Context Protocol includes an authorization model aligned with OAuth concepts for HTTP transports. This challenge deliberately starts simpler (static API key) so you can focus on the mechanics of securing endpoints. Your handler, routing, and middleware ordering should make it trivial to swap in a standards‑compliant token validator later. See the specs: [MCP Authorization Standards Compliance](https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization#standards-compliance).
 
 ## Description
+In this challenge, you will upgrade your existing Weather MCP Server to enable secure remote access using API key authentication. You will deploy the server to a remote cloud environment and implement proper security measures to protect it.
 
-In this challenge, you will enhance your Weather MCP Server from Challenge 02 to support remote access with API key authentication. You'll deploy it as a web service and secure it properly.
+You will upgrade your existing (previous challenge) Weather MCP Server to require an API key for every MCP request. The work includes:
 
-### Task 1: Convert MCP Server to Web API
+1. Converting (or confirming) the server is exposed via HTTP (remote capable) and not only local process transport.
+2. Adding a custom authentication handler that validates an API key from a header.
+3. Registering the authentication + authorization middleware in the correct ASP.NET Core order.
+4. Requiring authorization for the MCP endpoint route.
+5. Updating your MCP client to send the header.
 
-Transform your console-based MCP server into a web API that can handle HTTP requests:
 
-1. **Create a new ASP.NET Core Web API project**:
-```bash
-dotnet new webapi -n SecureWeatherMcpServer
-cd SecureWeatherMcpServer
-```
+> ℹ️ While API keys are a simple way to secure your server, it is generally more secure to authenticate clients using an identity provider such as Microsoft Entra ID (formerly Azure AD) with OAuth 2.0 or OpenID Connect flows. These modern authentication methods provide stronger security, support for user and application identities, token expiration, and advanced access controls. For production scenarios, consider integrating with an identity provider instead of relying solely on API keys. Refer to the solution in the coaches directory for an example of implementing OAuth 2.0 authentication with Entra ID.
 
-2. **Add required NuGet packages**:
-```bash
-dotnet add package ModelContextProtocol
-dotnet add package Microsoft.AspNetCore.Authentication
-dotnet add package Microsoft.Extensions.Logging
-dotnet add package Swashbuckle.AspNetCore
-```
+### Task 1: Convert MCP Server to remote MCP Server
 
-3. **Configure the web API** to expose MCP endpoints over HTTP instead of stdio.
+Ensure that your MCP server is converted into remote MCP server that can handle HTTP requests:
 
-### Task 2: Implement API Key Authentication
+### Task 2: Implement API Key Authentication Handler
 
-Create a secure API key authentication system:
+Add a new folder `Authentication` (if not already present) and create `ApiKeyAuthenticationHandler.cs` with the following (simplified) implementation:
 
-1. **Create an API Key Authentication Handler**:
 ```csharp
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.Extensions.Options;
+using System.Security.Claims;
+using System.Text.Encodings.Web;
+
+/// <summary>
+/// Options for the API Key authentication scheme.
+/// </summary>
+/// <remarks>
+/// This simple scheme extracts an API key from a configurable HTTP header (default: <c>X-API-Key</c>).
+/// For production scenarios consider:
+/// 1. Storing keys securely (Azure Key Vault, database with hashing, etc.).
+/// 2. Supporting key rotation (multiple active keys with expirations).
+/// 3. Adding rate limiting and anomaly detection per key.
+/// 4. Moving to a stronger, token-based (OAuth 2.1 / OIDC) authorization model when user / app identity is required.
+/// </remarks>
+public class ApiKeyAuthenticationSchemeOptions : AuthenticationSchemeOptions
+{
+    /// <summary>The canonical scheme name.</summary>
+    public const string DefaultScheme = "ApiKey";
+
+    /// <summary>The scheme name exposed to ASP.NET Core.</summary>
+    public string Scheme => DefaultScheme;
+
+    /// <summary>The name of the HTTP header from which to read the API key.</summary>
+    public string ApiKeyHeaderName { get; set; } = "X-API-Key";
+}
+
+/// <summary>
+/// Authentication handler that validates a static API key supplied via a header.
+/// </summary>
+/// <remarks>
+/// This implementation is intentionally minimal for challenge purposes:
+/// - Uses a hard-coded key for demonstration.
+/// - Treats the raw key value as the authenticated principal's name.
+/// - Does not differentiate scopes/roles or persist usage metrics.
+///
+/// Hard-coded secrets MUST NOT be used in production. Replace <see cref="ValidateApiKey"/> with
+/// a call to a secure key store or validation service. Consider hashing stored keys and comparing
+/// constant-time to prevent timing attacks. Avoid logging full keys; if logging is necessary, log only a prefix.
+/// </remarks>
 public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthenticationSchemeOptions>
 {
     private const string ApiKeyHeaderName = "X-API-Key";
-    
-    // Implementation details
+
+    public ApiKeyAuthenticationHandler(
+        IOptionsMonitor<ApiKeyAuthenticationSchemeOptions> options,
+        ILoggerFactory logger,
+        UrlEncoder encoder)
+        : base(options, logger, encoder)
+    {
+    }
+
+    /// <summary>
+    /// Attempts to authenticate the request by extracting and validating the API key.
+    /// </summary>
+    /// <returns>An <see cref="AuthenticateResult"/> indicating success or failure.</returns>
+    protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
+    {
+        if (!Request.Headers.TryGetValue(ApiKeyHeaderName, out var extractedApiKey))
+        {
+            return AuthenticateResult.Fail("API Key was not provided");
+        }
+
+        var apiKey = extractedApiKey.FirstOrDefault();
+        if (string.IsNullOrWhiteSpace(apiKey))
+        {
+            return AuthenticateResult.Fail("API Key was not provided");
+        }
+
+        var isValidKey = ValidateApiKey(apiKey);
+        if (!isValidKey)
+        {
+            return AuthenticateResult.Fail("Invalid API Key");
+        }
+
+        var claims = new[]
+        {
+            new Claim(ClaimTypes.Name, apiKey),
+        };
+
+        var identity = new ClaimsIdentity(claims, Options.Scheme);
+        var principal = new ClaimsPrincipal(identity);
+        var ticket = new AuthenticationTicket(principal, Options.Scheme);
+
+        return AuthenticateResult.Success(ticket);
+    }
+
+    /// <summary>
+    /// Validates the provided API key.
+    /// </summary>
+    /// <param name="key">The raw API key string supplied by the client.</param>
+    /// <returns><c>true</c> if the key is valid; otherwise <c>false</c>.</returns>
+    /// <remarks>
+    /// Replace this hard-coded comparison with a secure lookup (e.g., hashed comparison from a store).
+    /// Use constant-time comparison to minimize timing attack vectors when keys are user-generated.
+    /// </remarks>
+    private bool ValidateApiKey(string key)
+    {
+        return string.Compare(key, "<Add your API Key>", StringComparison.Ordinal) == 0;
+    }
+
+    /// <summary>
+    /// Handles the authentication challenge (401) by returning a WWW-Authenticate header and message.
+    /// </summary>
+    /// <param name="properties">Authentication properties.</param>
+    protected override async Task HandleChallengeAsync(AuthenticationProperties properties)
+    {
+        Response.StatusCode = 401;
+        Response.Headers["WWW-Authenticate"] = $"{Options.Scheme} realm=\"API\"";
+        await Response.WriteAsync("Unauthorized: Valid API key required");
+    }
+
+    /// <summary>
+    /// Handles forbidden (403) responses when authentication succeeded but authorization failed.
+    /// </summary>
+    /// <param name="properties">Authentication properties.</param>
+    protected override async Task HandleForbiddenAsync(AuthenticationProperties properties)
+    {
+        Response.StatusCode = 403;
+        await Response.WriteAsync("Forbidden: Insufficient permissions");
+    }
 }
+
 ```
 
-2. **API Key Storage**: Implement secure storage for API keys (in-memory for this challenge, but consider Azure Key Vault for production)
+### Task 3: Register Authentication & Protect MCP Endpoints
 
-3. **Key Validation**: Validate incoming API keys against your stored keys
+In your `Program.cs` configure the authentication scheme and protect your MCP endpoints.
 
-4. **Authentication Middleware**: Configure ASP.NET Core to use your API key authentication
-
-### Task 3: Secure MCP Endpoints
-
-Create secure HTTP endpoints for MCP operations:
-
-1. **Tools Endpoint**: `GET /api/mcp/tools` - List available tools (requires authentication)
-2. **Tool Execution Endpoint**: `POST /api/mcp/tools/{toolName}` - Execute a specific tool (requires authentication)
-3. **Health Endpoint**: `GET /api/health` - Health check (public, no authentication required)
-
-Example controller structure:
 ```csharp
-[ApiController]
-[Route("api/mcp")]
-[Authorize(AuthenticationSchemes = "ApiKey")]
-public class McpController : ControllerBase
+builder.Services.AddAuthentication(options =>
 {
-    [HttpGet("tools")]
-    public async Task<IActionResult> GetTools()
-    {
-        // Return available tools
-    }
-    
-    [HttpPost("tools/{toolName}")]
-    public async Task<IActionResult> ExecuteTool(string toolName, [FromBody] JsonElement arguments)
-    {
-        // Execute the specified tool with given arguments
-    }
-}
-```
-
-### Task 4: Add Security Headers and CORS
-
-Implement additional security measures:
-
-1. **Security Headers**: Add security headers to prevent common attacks
-```csharp
-app.Use(async (context, next) =>
+    options.DefaultAuthenticateScheme = "ApiKey";
+    options.DefaultChallengeScheme = McpAuthenticationDefaults.AuthenticationScheme;
+})
+.AddScheme<ApiKeyAuthenticationSchemeOptions, ApiKeyAuthenticationHandler>("ApiKey", options =>
 {
-    context.Response.Headers.Add("X-Content-Type-Options", "nosniff");
-    context.Response.Headers.Add("X-Frame-Options", "DENY");
-    context.Response.Headers.Add("X-XSS-Protection", "1; mode=block");
-    await next();
+    options.ApiKeyHeaderName = "X-API-KEY";
 });
+
+builder.Services.AddAuthorization();
+builder.Services.AddHttpContextAccessor();
+
+var app = builder.Build();
+
+app.UseRouting();
+
+app.MapGet("/", () => "MCP server is running!");
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapMcp().RequireAuthorization();
+
+app.Run();
 ```
 
-2. **CORS Configuration**: Configure Cross-Origin Resource Sharing for web clients
-3. **HTTPS Enforcement**: Ensure all communication is encrypted
-4. **Request Validation**: Validate all input parameters
+### Task 4: Update the MCP Client to send the API Key
 
-### Task 5: Create Admin Endpoints
+Modify your MCP client created in a previous challenge to work with the MCP remote secured server
 
-Add administrative functionality for managing API keys:
 
-1. **Generate API Key**: `POST /api/admin/keys` - Generate new API keys
-2. **List API Keys**: `GET /api/admin/keys` - List all API keys (without showing the actual key)
-3. **Revoke API Key**: `DELETE /api/admin/keys/{keyId}` - Revoke an API key
-
-These endpoints should use a different authentication mechanism (e.g., admin token or Azure AD).
-
-### Task 6: Update MCP Client
-
-Modify your MCP client from Challenge 03 to work with the remote, secured server:
-
-1. **HTTP Transport**: Replace stdio transport with HTTP transport
-2. **API Key Configuration**: Add API key to all requests
-3. **Error Handling**: Handle authentication errors gracefully
-4. **Connection Management**: Implement proper HTTP connection management
-
-Example client code:
 ```csharp
-public class HttpMcpClient
-{
-    private readonly HttpClient _httpClient;
-    private readonly string _apiKey;
-    
-    public HttpMcpClient(string baseUrl, string apiKey)
-    {
-        _httpClient = new HttpClient { BaseAddress = new Uri(baseUrl) };
-        _apiKey = apiKey;
-        _httpClient.DefaultRequestHeaders.Add("X-API-Key", apiKey);
-    }
-    
-    public async Task<IEnumerable<Tool>> GetToolsAsync()
-    {
-        var response = await _httpClient.GetAsync("api/mcp/tools");
-        response.EnsureSuccessStatusCode();
-        // Parse and return tools
-    }
-}
+  var clientTransport = new SseClientTransport(new SseClientTransportOptions()
+                {
+                    Endpoint = new Uri(remoteMCP),
+                    AdditionalHeaders = new Dictionary<string, string>
+                    {
+                        { "X-API-Key", "<Your API Key>" }
+                    }
+                });
 ```
+### Task 5: Verify secure communication between MCP Client and Server
 
-### Task 7: Testing and Validation
+To complete this challenge, make sure your MCP client is configured to include the API key in the request headers when communicating with the remote, secured MCP server. After updating your client, test the connection by sending requests to the server:
 
-Test your secure MCP server thoroughly:
+- If the API key is missing or incorrect, the server should respond with an authentication error (HTTP 401 Unauthorized).
+- If the API key is valid, your client should receive successful responses from the protected MCP endpoints.
 
-1. **Authentication Testing**: Verify that requests without API keys are rejected
-2. **Authorization Testing**: Ensure only valid API keys can access protected endpoints
-3. **Tool Functionality**: Confirm that weather tools still work correctly
-4. **Performance Testing**: Test under load to ensure security doesn't impact performance
-5. **Security Scanning**: Use tools like OWASP ZAP to scan for vulnerabilities
-
-### Task 8: Deployment Considerations
-
-Prepare for production deployment:
-
-1. **Environment Configuration**: Use different API keys for development, staging, and production
-2. **Logging**: Implement comprehensive security logging
-3. **Monitoring**: Set up alerts for failed authentication attempts
-4. **Backup Keys**: Plan for API key rotation and emergency access
+Verify that only requests with the correct API key are processed, confirming that your authentication mechanism is working as intended. This demonstrates secure communication between your MCP client and the remote server.
 
 ## Success Criteria
-
-- ✅ **Web API Conversion**: MCP server successfully converted to ASP.NET Core Web API
-- ✅ **API Key Authentication**: Robust API key authentication system implemented
-- ✅ **Secure Endpoints**: All MCP endpoints require valid authentication
-- ✅ **Security Headers**: Appropriate security headers implemented
-- ✅ **Admin Functionality**: API key management endpoints working
-- ✅ **Updated Client**: MCP client successfully connects to remote secured server
-- ✅ **Weather Tools**: Original weather functionality preserved and accessible
-- ✅ **Error Handling**: Proper error responses for authentication failures
-- ✅ **Documentation**: Clear API documentation with authentication requirements
-- ✅ **Testing**: Comprehensive security and functionality testing completed
+- ✅ Requests without API keys are rejected (authentication enforced)
+- ✅ Only valid API keys can access protected endpoints (authorization verified)
+- ✅ API key authentication system is implemented and functional
+- ✅ All MCP endpoints require valid authentication
+- ✅ Security headers are applied to HTTP responses
+- ✅ MCP client successfully connects to the remote secured server
 
 ## Learning Resources
 
@@ -215,3 +264,4 @@ Prepare for production deployment:
 - [HTTPS Enforcement in ASP.NET Core](https://docs.microsoft.com/en-us/aspnet/core/security/enforcing-ssl)
 - [Rate Limiting in ASP.NET Core](https://docs.microsoft.com/en-us/aspnet/core/performance/rate-limit)
 - [API Versioning Best Practices](https://docs.microsoft.com/en-us/aspnet/core/web-api/advanced/versioning)
+ 
