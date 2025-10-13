@@ -5,9 +5,6 @@
 [![](https://img.shields.io/badge/C%20Sharp-blue)](Challenge-09-csharp.md)
 [![](https://img.shields.io/badge/Python-lightgray)](Challenge-09-python.md)
 
-<!-- Status badge can be removed when finalized -->
-![Challenge Status: Under Development](https://img.shields.io/badge/Challenge%20Under%20Development-red)
-
 ## Introduction
 
 Previously, you worked with MCP servers and clients in both local and remote environments, but these setups lacked authentication and authorization. While this approach might suffice for development or trusted local scenarios, it is not suitable for production. When deploying remote MCP servers accessible over HTTP/HTTPS, it is essential to implement robust authentication for all clients. Exposing an unsecured MCP server to the internet can result in significant security risks (abuse of tools, data exfiltration, quota exhaustion, malicious chaining, etc.).
