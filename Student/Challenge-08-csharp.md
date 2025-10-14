@@ -1,3 +1,6 @@
+![](https://img.shields.io/badge/For%20Final%20Review-orange)
+![](https://img.shields.io/badge/Collect%20Feedback-orange)
+
 # Challenge 08 - C# - Develop Agentic AI Applications using Microsoft Agent Framework and Multi-Agent Architectures
 
 [< Previous Challenge](./Challenge-07-csharp.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-09-csharp.md)

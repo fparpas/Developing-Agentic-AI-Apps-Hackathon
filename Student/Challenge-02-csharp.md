@@ -1,3 +1,6 @@
+![](https://img.shields.io/badge/For%20Final%20Review-orange)
+![](https://img.shields.io/badge/Collect%20Feedback-orange)
+
 # Challenge 02 - C# - Build your first MCP server
 
  [< Previous Challenge](./Challenge-01.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-03-csharp.md)

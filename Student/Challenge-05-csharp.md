@@ -1,3 +1,6 @@
+![](https://img.shields.io/badge/For%20Final%20Review-orange)
+![](https://img.shields.io/badge/Collect%20Feedback-orange)
+
 # Challenge 05 - C# - Build your first AI Agent with AI Agents Service
 
  [< Previous Challenge](./Challenge-04-csharp.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-06-csharp.md)

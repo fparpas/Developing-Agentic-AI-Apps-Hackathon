@@ -1,3 +1,6 @@
+![](https://img.shields.io/badge/For%20Final%20Review-orange)
+![](https://img.shields.io/badge/Collect%20Feedback-orange)
+
 # Challenge 01 - Accelerate your developer productivity with MCP servers in Visual Studio Code
 
  [< Previous Challenge](./Challenge-00.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-02-csharp.md)

@@ -1,3 +1,6 @@
+![](https://img.shields.io/badge/For%20Final%20Review-orange)
+![](https://img.shields.io/badge/Collect%20Feedback-orange)
+
 # Challenge 07 - C# - Tracing Intelligence: Observability in Agentic AI with Microsoft Agent Framework
 
  [< Previous Challenge](./Challenge-06-csharp.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-08-csharp.md)

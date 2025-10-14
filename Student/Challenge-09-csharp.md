@@ -1,3 +1,6 @@
+![](https://img.shields.io/badge/For%20Final%20Review-orange)
+![](https://img.shields.io/badge/Collect%20Feedback-orange)
+
 # Challenge 09 - C# - Secure your remote MCP server with an API Key
 
 [< Previous Challenge](./Challenge-08-csharp.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-10-csharp.md)

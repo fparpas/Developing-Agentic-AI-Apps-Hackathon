@@ -1,3 +1,6 @@
+![](https://img.shields.io/badge/For%20Final%20Review-orange)
+![](https://img.shields.io/badge/Collect%20Feedback-orange)
+
 # Challenge 04 - C# - Host your MCP remote servers on ACA or Azure Functions
 
  [< Previous Challenge](./Challenge-03-csharp.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-05-csharp.md)
