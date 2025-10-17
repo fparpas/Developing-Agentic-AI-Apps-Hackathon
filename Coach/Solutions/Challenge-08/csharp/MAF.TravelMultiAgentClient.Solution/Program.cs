@@ -1,4 +1,5 @@
 using System.ClientModel;
+using System.Security.Principal;
 using Azure.AI.OpenAI;
 using Microsoft.Agents.AI;
 using Microsoft.Agents.AI.Workflows;
@@ -64,26 +65,11 @@ class Program
         .AddOtlpExporter(options => options.Endpoint = new Uri(otlpEndpoint));
         // Setup metrics with resource and instrument name filtering
         using var tracerProvider = tracerProviderBuilder.Build();
-    // Setup metrics with resource and instrument name filtering
-    // using var meterProvider = Sdk.CreateMeterProviderBuilder()
-    //     .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(ServiceName, serviceVersion: "1.0.0"))
-    //     .AddMeter(SourceName) // Our custom meter
-    //     .AddMeter("*Microsoft.Agents.AI") // Agent Framework metrics
-    //     .AddMeter("Microsoft.Agents.AI*") // Agent Framework telemetry
-    //     .AddHttpClientInstrumentation() // HTTP client metrics
-    //     .AddRuntimeInstrumentation() // .NET runtime metrics
-    //     .AddOtlpExporter(options => options.Endpoint = new Uri(otlpEndpoint))
-    //     .Build();
-        // Build host
+
         builder = Host.CreateApplicationBuilder(args);
 
         builder.Services.AddSingleton<IConfiguration>(configuration);
         builder.Services.AddSingleton<McpClientService>();
-        // builder.Services.AddLogging(loggingBuilder =>
-        // {
-        //     loggingBuilder.AddConsole();
-        //     loggingBuilder.SetMinimumLevel(LogLevel.Information);
-        // });
 
         // Setup structured logging with OpenTelemetry
         // var serviceCollection = new ServiceCollection();
@@ -152,21 +138,20 @@ class Program
             //     referenceAgent.Agent
             //  });
 
-            // var workflow = AgentWorkflowBuilder.CreateHandoffBuilderWith(coordinatorAgent.Agent) // Start with the coordinator agent
-            // .WithHandoffs(coordinatorAgent.Agent, [flightAgent.Agent, hotelAgent.Agent, activityAgent.Agent, transferAgent.Agent, referenceAgent.Agent])      // Coordinator can hand off to all agents
-            // .WithHandoff(flightAgent.Agent, coordinatorAgent.Agent)
-            // .WithHandoff(hotelAgent.Agent, coordinatorAgent.Agent)
-            // .WithHandoff(activityAgent.Agent, coordinatorAgent.Agent)
-            // .WithHandoff(transferAgent.Agent, coordinatorAgent.Agent)
-            // .WithHandoff(referenceAgent.Agent, coordinatorAgent.Agent)
-            // .Build();
+            var workflow = AgentWorkflowBuilder.CreateHandoffBuilderWith(coordinatorAgent.Agent) // Start with the coordinator agent
+            .WithHandoffs(coordinatorAgent.Agent, [flightAgent.Agent, hotelAgent.Agent, activityAgent.Agent, transferAgent.Agent, referenceAgent.Agent])      // Coordinator can hand off to all agents
+            .WithHandoff(flightAgent.Agent, coordinatorAgent.Agent)
+            .WithHandoff(hotelAgent.Agent, coordinatorAgent.Agent)
+            .WithHandoff(activityAgent.Agent, coordinatorAgent.Agent)
+            .WithHandoff(transferAgent.Agent, coordinatorAgent.Agent)
+            .WithHandoff(referenceAgent.Agent, coordinatorAgent.Agent)
+            .Build();
 
-
-            // var agent = await workflow.AsAgentAsync("travel-workflow-agent", "Travel Agent Assistant");
 
             logger.LogInformation("🤖 Travel Agent Assistant created");
+
             // Start interactive session
-            await StartInteractiveChat(serviceProvider.Services, logger);
+            await StartInteractiveChat(workflow);
         }
         catch (Exception ex)
         {
@@ -174,48 +159,22 @@ class Program
         }
     }
 
-    private static async Task StartInteractiveChat(IServiceProvider services, ILogger logger)
+    private static async Task StartInteractiveChat(Workflow workflow)
     {
         Console.WriteLine("\n=== Agent Framework with MCP Tools ===");
         Console.WriteLine("You can ask questions and I'll use the available MCP tools to help you.");
         Console.WriteLine("Type 'exit' to quit.\n");
 
+        //Enable to run workflow as agent
         // var aIAgent = await workflow.AsAgentAsync("travel-workflow-agent", "Travel Agent Assistant");
         // AgentThread agentThread = aIAgent.GetNewThread();
+
         List<ChatMessage> messages = new();
         StreamingRun run = null;
         string userInput = String.Empty;
 
-        var flightAgent = services.GetRequiredService<FlightAgent>();
-        // var hotelAgent = services.GetRequiredService<HotelAgent>();
-        // var activityAgent = services.GetRequiredService<ActivityAgent>();
-        // var transferAgent = services.GetRequiredService<TransferAgent>();
-        // var referenceAgent = services.GetRequiredService<ReferenceAgent>();
-        var coordinatorAgent = services.GetRequiredService<TravelCoordinatorAgent>();
-
-
-        //         var workflowBuilder = AgentWorkflowBuilder.CreateHandoffBuilderWith(coordinatorAgent.Agent) // Start with the coordinator agent
-        // .WithHandoffs(coordinatorAgent.Agent, new[] { flightAgent.Agent, hotelAgent.Agent, activityAgent.Agent, transferAgent.Agent, referenceAgent.Agent })      // Coordinator can hand off to all agents
-        // .WithHandoff(flightAgent.Agent, coordinatorAgent.Agent)
-        // .WithHandoff(hotelAgent.Agent, coordinatorAgent.Agent)
-        // .WithHandoff(activityAgent.Agent, coordinatorAgent.Agent)
-        // .WithHandoff(transferAgent.Agent, coordinatorAgent.Agent)
-        // .WithHandoff(referenceAgent.Agent, coordinatorAgent.Agent);
-
-
-//         var workflowBuilder = AgentWorkflowBuilder.CreateHandoffBuilderWith(coordinatorAgent.Agent) // Start with the coordinator agent
-// .WithHandoffs(coordinatorAgent.Agent, new[] { flightAgent.Agent })      // Coordinator can hand off to all agents
-// .WithHandoff(flightAgent.Agent, coordinatorAgent.Agent);
-
-        var workflowBuilder = AgentWorkflowBuilder.CreateHandoffBuilderWith(coordinatorAgent.Agent) // Start with the coordinator agent
-        .WithHandoffs(coordinatorAgent.Agent, new[] { flightAgent.Agent })      // Coordinator can hand off to all agents
-        .WithHandoff(flightAgent.Agent, coordinatorAgent.Agent);
-        var workflowAgent = await workflowBuilder.Build().AsAgentAsync("TravelAgent", "TravelAgent");
-var workflowAgentThread = workflowAgent.GetNewThread();
         while (true)
-        {
-            // var workflow = workflowBuilder.Build();
-            
+        {          
 
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.Write("User: ");
@@ -240,45 +199,36 @@ var workflowAgentThread = workflowAgent.GetNewThread();
 
                 var result = string.Empty;
 
-                workflowAgent = await workflowBuilder.Build().AsAgentAsync("TravelAgent", "TravelAgent");
-                workflowAgentThread = workflowAgent.GetNewThread();
+                // Execute workflow and process events
+                run = await InProcessExecution.StreamAsync(workflow, messages);
+                await run.TrySendMessageAsync(new TurnToken(emitEvents: true));
                 
-                // await foreach (var update in workflowAgent.RunStreamingAsync(messages, workflowAgentThread).ConfigureAwait(true))
-                // {
-                //     result += update;
-                //     Console.Write(update);
-                // }
-                var response = await workflowAgent.RunAsync(messages, workflowAgentThread);
-                Console.WriteLine(response);
-                messages.AddRange(response.Messages);
-                // run = await InProcessExecution.StreamAsync(workflow, messages);
-                // await run.TrySendMessageAsync(new TurnToken(emitEvents: true));
+                List<ChatMessage> newMessages = new();
+                await foreach (WorkflowEvent evt in run.WatchStreamAsync().ConfigureAwait(false))
+                {
+                    if (evt is AgentRunUpdateEvent e)
+                    {
+                        Console.WriteLine($"{e.ExecutorId}: {e.Data}");
+                    }
+                    else if (evt is WorkflowOutputEvent completed)
+                    {
+                        newMessages = (List<ChatMessage>)completed.Data!;
+                        break;
+                    }
+                    else if (evt is ExecutorFailedEvent failed)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine($"Error: {failed.Data}");
+                        Console.ResetColor();
+                        Console.WriteLine();
+                    }
 
-                // List<ChatMessage> newMessages = new();
-                // await foreach (WorkflowEvent evt in run.WatchStreamAsync().ConfigureAwait(true))
-                // {
-                //     Console.WriteLine($"{evt.GetType().Name}: {evt.Data}");
-                //     if (evt is AgentRunUpdateEvent e)
-                //     {
-                //         // Console.WriteLine($"{e.ExecutorId}: {e.Data}");
-                //     }
-                //     else if (evt is WorkflowOutputEvent completed)
-                //     {
-                //         newMessages = (List<ChatMessage>)completed.Data!;
-                //         break;
-                //     }
-                //     else if (evt is ExecutorFailedEvent failed)
-                //     {
-                //         Console.ForegroundColor = ConsoleColor.Red;
-                //         Console.WriteLine($"Error: {failed.Data}");
-                //         Console.ResetColor();
-                //         Console.WriteLine();
-                //     }
-                // }
-                // await run.RunToCompletionAsync();
+                    // Console.WriteLine($"{evt.GetType().Name}: {evt.Data}");
+                }
 
                 // Add new messages to conversation history
-                // messages.AddRange(newMessages.Skip(messages.Count));
+                messages.AddRange(newMessages.Skip(messages.Count));
+               
 
             }
             catch (Exception ex)
@@ -299,7 +249,7 @@ var workflowAgentThread = workflowAgent.GetNewThread();
         Console.WriteLine("Type 'exit' to quit.\n");
 
         AgentThread agentThread = aIAgent.GetNewThread();
-
+        var messages = new List<ChatMessage>();
         while (true)
         {
             Console.ForegroundColor = ConsoleColor.Cyan;
@@ -307,6 +257,7 @@ var workflowAgentThread = workflowAgent.GetNewThread();
             Console.ResetColor();
 
             var userInput = Console.ReadLine();
+            messages.Add(new(ChatRole.User, userInput));
 
             if (string.IsNullOrWhiteSpace(userInput) || userInput.Equals("exit", StringComparison.OrdinalIgnoreCase))
             {
@@ -320,9 +271,12 @@ var workflowAgentThread = workflowAgent.GetNewThread();
                 Console.Write("Assistant: ");
                 Console.ResetColor();
 
+                agentThread = aIAgent.GetNewThread();
+                
                 // Run agent with user input and agent thread
-                var response = await aIAgent.RunAsync(userInput, agentThread);
-
+                var response = await aIAgent.RunAsync(messages, agentThread);
+                messages.AddRange(response.Messages);
+                
                 Console.WriteLine(response);
             }
             catch (Exception ex)

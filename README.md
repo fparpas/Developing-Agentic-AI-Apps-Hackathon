@@ -7,10 +7,16 @@
 
 Welcome to the hands‑on hackathon for building Agentic AI applications, where you’ll design, build, secure, observe, orchestrate, and scale intelligent, agentic AI applications on Azure.
 
-Over a progressive series of challenges, you will deepen your understanding of agentic architectures and Azure services. Each challenge introduces new concepts and capabilities, building on previous outcomes to reinforce architectural patterns while expanding your knowledge of Azure and agentic technologies. All technical tracks are offered in both C# and Python, allowing you to choose your preferred language for each challenge. The repository includes fully guided student instructions and coach solutions for reference.
+This hackathon will provide a deep dive experience targeted for developers for building Agentic AI Applications. 
+
+Hackathon is a collaborative learning experience, designed as a set of challenges to practice your technical skills. By participating in this hackathon, you will be able to understand the capabilities of Agentic AI Apps.
+
+Over a progressive series of challenges, you will deepen your understanding of agentic architectures and Azure services. Each challenge introduces new concepts and capabilities, building on previous outcomes to reinforce architectural patterns while expanding your knowledge of Azure and agentic technologies. 
 
 This workshop requires two full days to finish depending on the attendees' skill level. It is a collaborative activity where attendees form teams of 3-5 people to go through every workshop.
-  
+
+All technical tracks are offered in both C# and Python, allowing you to choose your preferred language for each challenge. The repository includes fully guided student instructions and coach solutions for reference.
+
 ## Learning Objectives
 Upon completing the workshop, participants will be able to:
 - Understand and implement Model Context Protocol (MCP) servers and clients for enhanced AI tool integration
@@ -26,10 +32,10 @@ Upon completing the workshop, participants will be able to:
 ## Prerequisites
 - Familiarity with Azure services and the Azure portal
 - Good understanding of AI and generative models
-- Experience in programming with C# and .NET
+- Experience in programming with .NET C# or Python
 - Basic knowledge of REST APIs and web development concepts
 - Your laptop (development machine): Windows, macOS or Linux with **administrator rights**
-- Active Azure Subscription with **Contributor access** to create or modify resources
+- Active Azure Subscription with **Owner access** to create, modify resources and manage role assignments
 - Access to Azure OpenAI in the desired Azure subscription
 - Latest version of Azure CLI
 - For C#/.NET track:
@@ -52,7 +58,7 @@ The intended audience are individuals with coding skills.
 ---
  
 
-All hands-on challenges (from Challenge 2 onward) are available in both C# and Python. The default links below point to the consolidated instructions; language‑specific variants are linked inline so you can choose your preferred stack.
+All hands-on challenges (from Challenge 2 onward) are available in both C# and Python.
 
 ### Challenge 0: **[Setup and prepare Environment](Student/Challenge-00.md)**
 
@@ -65,7 +71,7 @@ All hands-on challenges (from Challenge 2 onward) are available in both C# and P
  
 ### Challenge 2: **Build your first MCP server**  ([C#](Student/Challenge-02-csharp.md) | [Python](Student/Challenge-02-python.md))
 
-- Create your first Model Context Protocol server from scratch. Learn the fundamentals of MCP architecture and build a weather server that exposes tools and resources over standard transport protocols.kathon will provide a deep dive experience targeted for developers for building Agentic AI Applications. Hackathon is a collaborative learning experience, designed as a set of challenges to practice your technical skills. By participating in this hackathon, you will be able to understand the capabilities of Agentic AI Apps.
+- Create your first Model Context Protocol server from scratch. Learn the fundamentals of MCP architecture and build a weather server that exposes tools and resources over standard transport protocols.
 
 ### Challenge 3: **Build your first MCP client**  ([C#](Student/Challenge-03-csharp.md) | [Python](Student/Challenge-03-python.md))
 
