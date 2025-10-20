@@ -6,15 +6,13 @@ using Microsoft.SemanticKernel.Agents;
 using Microsoft.SemanticKernel.ChatCompletion;
 using ModelContextProtocol.Protocol;
 using OpenAI.Chat;
-using System.ComponentModel;
-  
+using System.ComponentModel; 
 
-    
 namespace TravelMultiAgentClient.Agents;
 
-public class TravelCoordinatorAgent
+public class MainOrchestratorAgent
 {
-    private readonly ILogger<TransferAgent> _logger;
+    private readonly ILogger<MainOrchestratorAgent> _logger;
     private readonly AIAgent _agent;
     const string SourceName = "WorkflowSample";
     public AIAgent Agent
@@ -22,16 +20,16 @@ public class TravelCoordinatorAgent
         get { return _agent; }
     }
 
-    public TravelCoordinatorAgent(IChatClient chatClient, AIAgent[] agentsAsTools)
+    public MainOrchestratorAgent(IChatClient chatClient, AIAgent[] agentsAsTools)
     {
 
         _agent = chatClient.CreateAIAgent(
-            name: "TravelCoordinatorAgent",
+            name: "MainOrchestratorAgent",
             description: "A specialized agent for coordinating travel plans and itineraries.",
             tools: LoadAgentsAsTools(agentsAsTools).ToArray(),
             instructions: """
-            You are the Travel Coordinator Agent - the main orchestrator for a comprehensive travel agency system. Your role is to:
-            
+            You are the Main Orchestrator Agent - the main orchestrator for a comprehensive travel agency system. Your role is to:
+
             PRIMARY RESPONSIBILITIES:
             - Act as the primary interface with customers
             - Understand and analyze travel requests

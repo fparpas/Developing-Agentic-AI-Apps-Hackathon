@@ -26,7 +26,7 @@ By orchestrating agents together, you can take on tasks that would be too comple
 
 Traditional single-agent systems are limited in their ability to handle complex, multi-faceted tasks. By orchestrating multiple agents, each with specialized skills or roles, we can create systems that are more robust, adaptive, and capable of solving real-world problems collaboratively. Multi-agent orchestration in Microsoft Agent Framework provides a flexible foundation for building such systems, supporting a variety of coordination patterns.
 
-### Supported orchestration patterns
+### Supported AI Agent orchestration patterns
 
 Like well-known cloud design patterns, agent orchestration patterns are technology agnostic approaches to coordinating multiple agents to work together towards a common goal. To learn more about the patterns themselves, refer to the [AI agent orchestration patterns documentation](https://learn.microsoft.com/en-us/azure/architecture/ai-ml/guide/ai-agent-design-patterns).
 
@@ -39,11 +39,21 @@ To learn more about the supported patterns, refer to the [Microsoft Agent Framew
 | **Handoff** | Dynamically passes control between agents based on context or rules | Dynamic workflows, escalation, fallback, or expert handoff scenarios |
    | **Magentic** | Group chat-like orchestration inspired by MagenticOne research | Complex, generalist multi-agent collaboration |
 
+### Agents as tools
+"Agents as Tools" is an architectural pattern in AI systems where specialized AI agents are wrapped as callable functions (tools) that can be used by other agents. This creates a hierarchical structure where:
+
+ 1. A primary "orchestrator" agent handles user interaction and determines which specialized agent to call
+ 2. Specialized "tool agents" perform domain-specific tasks when called by the orchestrator
+
+This approach mimics human team dynamics, where a manager coordinates specialists, each bringing unique expertise to solve complex problems. Rather than a single agent trying to handle everything, tasks are delegated to the most appropriate specialized agent.
+
+In some workflows, you may want a central agent to orchestrate a network of specialized agents, instead of handing off control. You can do this by modeling agents as tools.
+
 ### A unified orchestration workflow
 
 Regardless of which orchestration pattern you choose, the Microsoft Agent Framework  provides a consistent, developer-friendly interface for building and running them. The typical flow looks like this:
 
-1. Define your agents and describe their capabilities
+1. Define your agents and describe their capabilities and tools
 2. Select and create an orchestration pattern, optionally adding a manager agent if needed
 3. Optionally configure callbacks or transforms for custom input and output handling
 4. Start a runtime to manage execution
