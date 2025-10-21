@@ -50,18 +50,6 @@ class Program
         builder.Services.AddSingleton(configurationService.Configuration);
         builder.Services.AddSingleton<McpClientService>();
   
-        // Setup structured logging with OpenTelemetry
-        // var serviceCollection = new ServiceCollection();
-        builder.Services.AddLogging(loggingBuilder => loggingBuilder
-            .SetMinimumLevel(LogLevel.Debug)
-            .AddOpenTelemetry(options =>
-            {
-                options.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(TelemetryService.GetServiceName(), serviceVersion: "1.0.0"));
-                options.AddOtlpExporter(otlpOptions => otlpOptions.Endpoint = new Uri(otlpEndpoint));                
-                options.IncludeScopes = true;
-                options.IncludeFormattedMessage = true;
-            }));
-
         // Add a chat client to the service collection.
         builder.Services.AddSingleton<IChatClient>(new AzureOpenAIClient(
             new Uri(endpoint),

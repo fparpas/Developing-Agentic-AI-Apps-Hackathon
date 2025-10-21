@@ -13,11 +13,10 @@ public class McpClientService
     private ILogger<McpClientService> _logger;
     private string _baseUrl;
 
-    public McpClientService(IConfiguration configuration, ILogger<McpClientService> logger)
+    public McpClientService(IConfiguration configuration)
     {
         var baseUrl = configuration["TravelMcpServer:BaseUrl"] ?? "http://localhost:3000";
         _baseUrl = baseUrl;
-        _logger = logger;
 
         // Note: Constructors cannot be async, so initialize _mcpClient synchronously or move async initialization elsewhere.
         // If async initialization is required, consider using a separate async Init method or a factory pattern.

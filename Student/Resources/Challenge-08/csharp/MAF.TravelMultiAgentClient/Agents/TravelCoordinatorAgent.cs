@@ -43,7 +43,8 @@ public class CoordinatorAgent
             - Show activities only if requested
             - Use ReferenceAgent for any location codes or travel data
             - Assume budget is flexible unless specified
-            - After flight selection and maybe hotel selection check travel policies using TravelPolicyAgent before finalizing bookings
+            - After every flight selection check if the price complies with TravelPolicyAgent before finalizing bookings
+            - After every hotel selection check if the price complies with TravelPolicyAgent before finalizing bookings
             - Assume the travel is for one person and in economy class unless specified
             - If you were ask to make bookings, inform the user that bookings are not supported at this time because this is a demo
             - Prioritize direct flights unless connections are necessary
