@@ -8,8 +8,6 @@
 [![](https://img.shields.io/badge/C%20Sharp-blue)](Challenge-08-csharp.md)
 [![](https://img.shields.io/badge/Python-lightgray)](Challenge-08-python.md)
 
-![](https://img.shields.io/badge/Challenge%20Under%20Development-red)
-
 ## Introduction
 
 In this challenge you'll practice how to use the powerful capabilities of Microsoft Agent Framework to design and orchestrate intelligent agents that work collaboratively to solve complex problems. You'll build a multi-agent application that leverages the strengths of different agents to achieve a common goal.
@@ -37,7 +35,6 @@ To learn more about the supported patterns, refer to the [Microsoft Agent Framew
 | **Concurrent** | Broadcasts a task to all agents, collects results independently | Parallel analysis, independent subtasks, ensemble decision making |
 | **Sequential** | Passes the result from one agent to the next in a defined order | Step-by-step workflows, pipelines, multi-stage processing |
 | **Handoff** | Dynamically passes control between agents based on context or rules | Dynamic workflows, escalation, fallback, or expert handoff scenarios |
-   | **Magentic** | Group chat-like orchestration inspired by MagenticOne research | Complex, generalist multi-agent collaboration |
 
 ### Agents as tools
 "Agents as Tools" is an architectural pattern in AI systems where specialized AI agents are wrapped as callable functions (tools) that can be used by other agents. This creates a hierarchical structure where:
@@ -62,89 +59,102 @@ Regardless of which orchestration pattern you choose, the Microsoft Agent Framew
 
 Because all patterns share the same core interface, you can easily experiment with different orchestration strategies without rewriting agent logic or learning new APIs. The SDK abstracts the complexity of agent communication, coordination, and result aggregation so you can focus on designing workflows that deliver results.
 
-Multi-agent orchestration in Microsoft Agent Framework provides a flexible, scalable way to build intelligent systems that combine the strengths of multiple specialized agents. With built-in orchestration patterns, a unified development model, and runtime features for managing execution, you can quickly prototype, refine, and deploy collaborative AI workflows. Whether you’re running agents in parallel, coordinating sequential steps, or enabling dynamic conversations, the framework gives you the tools to turn multiple agents into a cohesive problem-solving team.
+Multi-agent orchestration in Microsoft Agent Framework provides a flexible, scalable way to build intelligent systems that combine the strengths of multiple specialized agents. With built-in orchestration patterns, a unified development model, and runtime features for managing execution, you can quickly prototype, refine, and deploy collaborative AI workflows. Whether you're running agents in parallel, coordinating sequential steps, or enabling dynamic conversations, the framework gives you the tools to turn multiple agents into a cohesive problem-solving team.
+
+## Prerequisites
+
+### Starting the Travel MCP Server
+
+The Travel MCP Server provides the travel booking APIs (Amadeus) that the agents will use. Make sure it's running before starting this challenge:
+
+```powershell
+# Navigate to the Travel MCP Server directory
+cd Student\Resources\Challenge-08\csharp\MCP.Server.Travel.Solution
+
+# Run the server
+dotnet run
+```
+
+The server should start on `http://localhost:8080` (or the port specified in your configuration).
 
 ## Description
 
-In this challenge, you will build a sophisticated multi-agent application using Microsoft Agent Framework. You'll create specialized agents that work together to solve a complex business scenario requiring multiple areas of expertise.
+In this challenge, you will build a sophisticated multi-agent application using Microsoft Agent Framework. A starter project with pre-built specialized travel agents has been provided [here](./Resources/Challenge-08/csharp/MAF.TravelMultiAgentClient). Your task is to implement orchestration workflows that enable these agents to work together in a multi-turn conversational experience.
 
-Your task is to develop a **Travel Planning Assistant** that uses multiple agents to collaboratively plan a comprehensive trip. This scenario requires:
+### Provided Agents
 
-1. **Search Flights Agent** - Provides flight options and recommendations
-2. **Search Hotels Agent** - Provides hotel options and recommendations
-3. **Activity Agent** - Recommends activities and attractions based on interests
-4. **Travel Policy Compliance Agent** - Check if travelling complies with the company policies
-4. **Coordinator Agent** - Orchestrates the collaboration and provides final recommendations
+The starter project includes the following specialized agents, each with specific capabilities powered by Model Context Protocol (MCP) tools:
 
-You'll implement different orchestration patterns to demonstrate how agents can work together in various ways:
+1. **FlightAgent** - Searches for flights, checks availability, retrieves flight status, and handles flight bookings using Amadeus flight APIs
+2. **HotelAgent** - Searches for hotels, checks availability, compares rates, and manages hotel reservations using Amadeus hotel APIs
+3. **ActivityAgent** - Recommends activities, attractions, and points of interest based on location and preferences using Amadeus activities APIs
+4. **TransferAgent** - Handles ground transportation, airport transfers, and rental car bookings using Amadeus transfer APIs
+5. **ReferenceAgent** - Provides reference data such as airport codes, airline information, city details, and travel insights using Amadeus reference APIs
+6. **TravelPolicyAgent** - Validates travel plans against company policies using Azure AI Foundry Agent Service (persistent agent with file search)
+7. **TravelCoordinatorAgent** - Acts as the main interface with customers and orchestrates the overall travel planning workflow
 
-- Use **Sequential Orchestration** for the main planning pipeline
-- Use **Concurrent Orchestration** for gathering parallel information
+### Your Task
 
-### Requirements
+Your goal is to create **multi-agent orchestration workflows** that enable these agents to collaborate in a natural, multi-turn conversation. You'll implement different orchestration patterns to demonstrate how agents can work together in various ways:
 
-1. **Set up the Microsoft Agent Framework**:
-   - Install the required NuGet packages for agent orchestration
-   - Configure the agent runtime environment
+- **Sequential Orchestration** - Process travel requests in a step-by-step pipeline
+- **Concurrent Orchestration** - Gather information from multiple agents in parallel
+- **Handoff Orchestration** - Enable dynamic handoffs between agents based on context
+- **Agents as Tools** - Use specialized agents as callable tools from a main orchestrator
 
-2. **Create Specialized Agents**:
-   - Implement each agent with specific instructions and capabilities
-   - Configure appropriate AI models for each agent's role
-   - Define clear interfaces and responsibilities
+#### Task 1: **Review the Provided Agents**:
+   - Examine the pre-built agents in the `MAF.TravelMultiAgentClient/Agents` folder
+   - Understand each agent's capabilities and MCP tool integration
+   - Review the agent instructions and system prompts
 
-3. **Implement Orchestration Patterns**:
-   - **Sequential Pattern**: Chain agents for step-by-step planning
-   - **Concurrent Pattern**: Run multiple agents in parallel for information gathering
+#### Task 2: **Implement Orchestration Patterns**:
+Examine and decide which orchestration pattern is more suitable for the given scenario
+   - **Sequential Workflow**: Create a pipeline where agents execute one after another in a defined order
+   - **Concurrent Workflow**: Implement parallel execution where multiple agents run simultaneously
+   - **Handoff Workflow**: Build a dynamic workflow where agents can transfer control to each other based on context
+   - **Agents as Tools Pattern**: Create a main orchestrator that uses specialized agents as callable tools
 
-4. **Build the Travel Planning Workflow**:
-   - Accept user input for destination, dates, budget, and preferences
-   - Coordinate agents to gather and process relevant information
-   - Generate a comprehensive travel plan with recommendations
-
-5. **Add Error Handling and Fallbacks**:
-   - Implement proper error handling for agent failures
-   - Add fallback mechanisms for when agents cannot complete tasks
-   - Ensure graceful degradation of functionality
+#### Task 3: **Enable Multi-Turn Conversations**:
+   - Implement conversation state management to maintain context across turns
+   - Allow users to refine their requests based on agent responses
+   - Support follow-up questions and iterative planning
+   - Maintain conversation history throughout the session
 
 ## Success Criteria
 
 To successfully complete this challenge, you must demonstrate:
 
-### ✅ **Agent Implementation**
+### ✅ **Understanding of Provided Agents**
 
-- [ ] Created 5 specialized agents with distinct roles and capabilities
-- [ ] Each agent has appropriate system instructions and prompts
-- [ ] Agents are properly configured with AI models and tools
-- [ ] Agent responses are contextually appropriate for their roles
+- [ ] Reviewed all the pre-built agents and understood their capabilities
+- [ ] Understood how each agent integrates with MCP tools from the Travel MCP Server
+- [ ] Understood how the TravelPolicyAgent leverages the AI Foundry persistent agent to validate and comply with travel policies
+- [ ] Can explain the role and purpose of each specialized agent
+- [ ] Explain the difference between chat client agents and persistent agents (TravelPolicyAgent)
 
-### ✅ **Orchestration Patterns**
+### ✅ **Orchestration Patterns Implementation**
 
-- [ ] Implemented Sequential Orchestration for the main workflow
-- [ ] Implemented Concurrent Orchestration for parallel information gathering
-- [ ] Implemented Group Chat Orchestration for collaborative scenarios
-- [ ] Demonstrated proper runtime management and cleanup
+- [ ] Examine the Sequential Workflow with proper agent chaining
+- [ ] Examine the Concurrent Workflow for parallel agent execution
+- [ ] Examine the Handoff Workflow with dynamic agent transitions
+- [ ] Examine the Agents as Tools pattern with a main orchestrator
+- [ ] Demonstrated understanding of when to use each orchestration pattern
+- [ ] Explain to your coach which orchestration pattern is best suited for the given Travel agents scenario
 
-### ✅ **Travel Planning Functionality**
+### ✅ **Multi-Turn Conversation Capability**
 
-- [ ] Application accepts user input for travel requirements
-- [ ] Weather agent provides relevant forecast and recommendations
-- [ ] Budget agent calculates costs and suggests alternatives
-- [ ] Activity agent recommends relevant attractions and activities
-- [ ] Restaurant agent suggests appropriate dining options
-- [ ] Coordinator agent synthesizes all information into a coherent plan
+- [ ] Application maintains conversation context across multiple turns
+- [ ] Users can ask follow-up questions and refine their requests
+- [ ] Conversation history is properly managed and passed between agents
+- [ ] Agents build upon previous responses in the conversation
+- [ ] Session state is maintained throughout the interaction
 
-### ✅ **Code Quality and Architecture**
+### ✅ **Testing and Demonstration**
 
-- [ ] Clean, well-structured code with proper separation of concerns
-- [ ] Appropriate error handling and logging
-- [ ] Proper async/await patterns for agent coordination
-- [ ] Configuration management for API keys and settings
-
-### ✅ **Documentation**
-
-- [ ] Clear README with setup and usage instructions
-- [ ] Code comments explaining orchestration choices
-- [ ] Example scenarios and expected outputs
+- [ ] Successfully demonstrated the selected orchestration pattern to your coach as a multi-turn conversation
+- [ ] Provides meaningful example scenarios for travel planning
+- [ ] Shows how conversation context is maintained across turns
+- [ ] Demonstrates error handling and graceful failure scenarios
 
 ## Learning Resources
 

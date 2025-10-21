@@ -12,7 +12,7 @@ using System.ComponentModel;
     
 namespace TravelMultiAgentClient.Agents;
 
-public class MainOrchestratorAgent
+public class OrchestratorAgent
 {
     private readonly ILogger<TransferAgent> _logger;
     private readonly AIAgent _agent;
@@ -22,12 +22,12 @@ public class MainOrchestratorAgent
         get { return _agent; }
     }
 
-    public MainOrchestratorAgent(IChatClient chatClient, AIAgent[] agentsAsTools)
+    public OrchestratorAgent(IChatClient chatClient, AIAgent[] agentsAsTools)
     {
 
         _agent = chatClient.CreateAIAgent(
-            name: "MainOrchestratorAgent",
-            description: "A specialized agent for coordinating travel plans and itineraries.",
+            name: "OrchestratorAgent",
+            description: "A specialized agent for orchestrating travel plans and itineraries.",
             tools: LoadAgentsAsTools(agentsAsTools).ToArray(),
             instructions: """
             You are the Main Orchestrator Agent - the main orchestrator for a comprehensive travel agency system. Your role is to:
