@@ -27,6 +27,9 @@ Upon completing the workshop, participants will be able to:
 - Build advanced Agentic RAG (Retrieval-Augmented Generation) systems using Azure AI Search
 - Apply observability and tracing techniques for monitoring AI application behavior
 - Integrate various Azure AI services to create comprehensive intelligent solutions
+- Secure access to MCP servers using Azure API Management with authentication and policies
+- Transform existing REST APIs into MCP servers through Azure API Management
+- Implement MCP server registration and discovery using Azure API Center for centralized governance
 - Apply the learned concepts to create innovative solutions that address real-world challenges across industries.
 
 ## Prerequisites
@@ -60,11 +63,11 @@ The intended audience are individuals with coding skills.
 
 All hands-on challenges (from Challenge 2 onward) are available in both C# and Python.
 
-### Challenge 0: **[Setup and prepare Environment](Student/Challenge-00.md)**
+### Challenge 0: **Setup and prepare Environment** ([Challenge Guide](Student/Challenge-00.md))
 
 - Install the required development tools. This initial session is crucial to ensure that all participants are well-prepared and can fully engage with the workshop's content.
 
-### Challenge 1: **[Accelerate your developer productivity with MCP servers in Visual Studio Code](Student/Challenge-01.md)**
+### Challenge 1: **Accelerate your developer productivity with MCP servers in Visual Studio Code** ([Challenge Guide](Student/Challenge-01.md))
 
 - Learn how to boost your development productivity by integrating Model Context Protocol (MCP) servers directly into Visual Studio Code, enabling enhanced AI-powered development workflows.
 
@@ -105,6 +108,18 @@ All hands-on challenges (from Challenge 2 onward) are available in both C# and P
 ### Challenge 10: **Build Agentic RAG with Azure AI Search**  ([C#](Student/Challenge-10-csharp.md) | [Python](Student/Challenge-10-python.md))
 
 - Create an advanced Agentic Retrieval-Augmented Generation system using Azure AI Search. Build intelligent agents that can dynamically decide what information to retrieve and how to synthesize comprehensive responses.
+
+### Challenge 11: **Optional - Secure access to MCP servers in API Management** ([Challenge Guide](Student/Challenge-11.md))
+
+- Learn how to secure access to Model Context Protocol servers using Azure API Management, implementing authentication, rate limiting, and other security policies to protect your MCP endpoints.
+
+### Challenge 12: **Optional - Expose REST API in API Management as an MCP server** ([Challenge Guide](Student/Challenge-12.md))
+
+- Transform existing REST APIs into Model Context Protocol servers through Azure API Management, enabling seamless integration of traditional APIs into MCP-based agentic workflows.
+
+### Challenge 13: **Optional - Register and discover remote MCP servers in your API inventory** ([Challenge Guide](Student/Challenge-13.md))
+
+- Implement MCP server registration and discovery mechanisms in your API inventory using Azure API Center, enabling centralized management and governance of distributed MCP servers.
 
 ## References
 

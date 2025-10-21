@@ -1,6 +1,6 @@
 # Challenge 10 - Python - Build Agentic RAG with Azure AI Search
 
-[< Previous Challenge](./Challenge-09-python.md) - **[Home](../README.md)**
+[< Previous Challenge](./Challenge-09-python.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-11.md)
 
 [![](https://img.shields.io/badge/C%20Sharp-lightgray)](Challenge-10-csharp.md)
 [![](https://img.shields.io/badge/Python-blue)](Challenge-10-python.md)
