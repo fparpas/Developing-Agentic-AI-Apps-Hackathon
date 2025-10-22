@@ -14,6 +14,8 @@ In this challenge, you will build and run a minimal Model Context Protocol (MCP)
 
 ## Concepts
 
+The Model Context Protocol (MCP) is an open standard for connecting AI language models (LLMs) with external tools, resources, and prompts. It enables LLMs to extend their capabilities by calling out to specialized services, enhancing their functionality beyond text generation.
+
 MCP servers provide tools, resources, and prompts over a standard transport. An IDE agent (like Copilot Chat) connects to your server, lists capabilities, and calls your tools with JSON inputs, receiving structured outputs.
 
 - **Transport:** Most commonly, MCP servers run as local processes launched by VS Code or Copilot, communicating via stdio. Alternatively, MCP servers can be hosted remotely and accessed over a network, allowing multiple users or agents to connect.

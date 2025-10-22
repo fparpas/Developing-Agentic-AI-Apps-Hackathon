@@ -1,27 +1,27 @@
 ![](https://img.shields.io/badge/For%20Final%20Review-orange)
 ![](https://img.shields.io/badge/Collect%20Feedback-orange)
 
-# Challenge 00 - Setup and prepare Evironment
+# Challenge 00 - Setup and prepare Environment
 
 **[Home](../README.md)** - [Next Challenge >](./Challenge-01.md)
-
-## Pre-requisites
-
-- Your laptop (development machine): Win, MacOS or Linux that you have **administrator rights**.
-- Active Azure Subscription with **Contributor access** to create or modify resources.
-- Access to Azure OpenAI in the desired Azure subscription.
-- Latest version of Azure CLI
-- GitHub Copilot (free tier with limitations available, or start a Copilot Pro trial for enhanced features)
- - For C#/.NET track:
-   - Latest version of Visual Studio Code or Visual Studio
-   - .NET 8.0 SDK or later version
- - For Python track:
-   - Latest version of Visual Studio Code with Python extension and Jupyter package
-   - Python 3.12 or later version
 
 ## Introduction
 
 In this session you will setup your computer and cloud environment with the minimum required tools.
+
+## Pre-requisites
+
+- Your laptop (development machine): Win, MacOS or Linux that you have **administrator rights**.
+- Active Azure Subscription with **Owner access** to create, modify resources and manage role assignments
+- Access to Azure OpenAI in the desired Azure subscription.
+- Latest version of Azure CLI
+- GitHub Copilot (free tier with limitations available, or start a Copilot Pro trial for enhanced features)
+ - For C#/.NET track:
+   - Latest version of Visual Studio Code
+   - .NET 8.0 SDK or later version
+ - For Python track:
+   - Latest version of Visual Studio Code with Python extension and Jupyter package
+   - Python 3.12 or later version
 
 ## Description
 
