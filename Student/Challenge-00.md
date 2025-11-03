@@ -11,7 +11,7 @@
 - Active Azure Subscription with **Contributor access** to create or modify resources.
 - Access to Azure OpenAI in the desired Azure subscription.
 - Latest version of Azure CLI
-- GitHub Copilot (free tier with limitations available, or start a Copilot Pro trial for enhanced features)
+- GitHub Copilot licence (or use a one-time Copilot Pro trial, valid for 30 days)
  - For C#/.NET track:
    - Latest version of Visual Studio Code or Visual Studio
    - .NET 8.0 SDK or later version
