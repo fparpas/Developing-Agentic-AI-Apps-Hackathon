@@ -112,8 +112,6 @@ In this challenge, you will secure your MCP Weather Server using Azure API Manag
 
 Set up Azure API Management to act as a secure gateway for your MCP server.
 
-1. **Create API Management Instance**:
-
 If you don't already have an API Management instance, complete the following quickstart: [Create an Azure API Management instance](https://learn.microsoft.com/en-us/azure/api-management/get-started-create-service-instance)
 
 ### Task 2: Expose an Existing MCP Server
