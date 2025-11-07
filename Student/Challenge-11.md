@@ -116,9 +116,9 @@ If you don't already have an API Management instance, complete the following qui
 
 ### Task 2: Expose an Existing MCP Server
 
-Learn how to expose and govern an existing MCP server through API Management. This approach is useful when you have MCP servers hosted in Azure Functions, Logic Apps, LangServe, or other platforms.
+Expose and govern an existing MCP server through API Management.
 
-1. **Prepare Your Existing MCP Server**:
+1. **Prepare Your Existing Remote MCP Server created in previous challenges**:
    - Verify it supports Streamable HTTP transport
    - Note the base URL of your existing MCP server
    - Gather authentication credentials (API keys, OAuth tokens, etc.)
@@ -145,23 +145,26 @@ Learn how to expose and govern an existing MCP server through API Management. Th
 
 Apply comprehensive governance policies specifically designed for MCP servers.
 
-1. **Create MCP-Optimized Policy**:
-   Navigate to your MCP server's **Policies** section and add:
-   
+1. **Create MCP Policy to Authenticate with API Key**:
+
+   Navigate to your MCP server's **Policies** section and add the following policy to require an API key (subscription key) for authentication and forward it to your backend MCP server:
+
    ```xml
    <policies>
        <inbound>
            <base />
-           <!-- Validate subscription key -->
-           <check-header name="Ocp-Apim-Subscription-Key" failed-check-httpcode="401" failed-check-error-message="Subscription key required" ignore-case="true" />           
+           <!-- Require API key via subscription key header -->
+           <check-header name="Ocp-Apim-Subscription-Key" failed-check-httpcode="401" failed-check-error-message="API key (subscription key) required" ignore-case="true" />
            
-           <!-- Forward subscription key to backend if needed -->
+           <!-- Forward API key to backend if needed -->
            <set-header name="X-API-Key" exists-action="override">
                <value>@(context.Request.Headers.GetValueOrDefault("Ocp-Apim-Subscription-Key"))</value>
            </set-header>
        </inbound>
    </policies>
    ```
+
+   This policy ensures that every request to your MCP server must include a valid API key (subscription key), and securely passes it to your backend MCP server for further validation if required.
 
 2. **Optional: Implement OAuth 2.0 with Entra ID**:
    For enterprise scenarios, replace subscription key with OAuth:
