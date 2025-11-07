@@ -52,8 +52,6 @@ graph TB
     C -->|Authorization| D[MCP Server]
     D -->|Outbound Calls| E[External APIs]
     B -->|Analytics| F[Monitoring & Logging]   
-
-    end
 ```
 
 ### Inbound vs Outbound Security
