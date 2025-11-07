@@ -21,7 +21,6 @@
    - Latest version of Visual Studio Code with Python extension and Jupyter package
    - Python 3.12 or later version
 
->>>>>>> 86862127b978ed60bfcb214d2db890f42a88c8ba
 ## Introduction
 
 In this session you will setup your computer and cloud environment with the minimum required tools.
