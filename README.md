@@ -40,6 +40,7 @@ Upon completing the workshop, participants will be able to:
 - Your laptop (development machine): Windows, macOS or Linux with **administrator rights**
 - Active Azure Subscription with **Owner access** to create, modify resources and manage role assignments
 - Access to Azure OpenAI in the desired Azure subscription
+- GitHub Copilot licence (or use a one-time Copilot Pro trial, valid for 30 days)
 - Latest version of Azure CLI
 - For C#/.NET track:
   - Latest version of Visual Studio Code
