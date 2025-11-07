@@ -5,8 +5,6 @@
 
 **[Home](../README.md)** - [Next Challenge >](./Challenge-01.md)
 
-<<<<<<< HEAD
-=======
 ## Pre-requisites
 
 - Your laptop (development machine): Win, MacOS or Linux that you have **administrator rights**.
