@@ -120,25 +120,8 @@ In this challenge, you will secure your MCP Weather Server using Azure API Manag
 Set up Azure API Management to act as a secure gateway for your MCP server.
 
 1. **Create API Management Instance**:
-   
-   ```bash
-   # Create resource group (if not already existing)
-   az group create --name rg-mcp-security --location eastus
-   
-   # Create API Management instance (this takes 15-30 minutes)
-   az apim create \
-     --name <your-apim-name> \
-     --resource-group rg-mcp-security \
-     --location eastus \
-     --publisher-name "Your Organization" \
-     --publisher-email "admin@yourorg.com" \
-     --sku-name Basic
-   ```
 
-2. **Configure Basic Settings**:
-   - Note the gateway URL: `https://<your-apim-name>.azure-api.net`
-   - Enable managed identity for secure credential management
-   - Configure custom domain (optional for production scenarios)
+If you don't already have an API Management instance, complete the following quickstart: [Create an Azure API Management instance](https://learn.microsoft.com/en-us/azure/api-management/get-started-create-service-instance)
 
 ### Task 2: Expose an Existing MCP Server
 
@@ -299,6 +282,7 @@ Verify your security implementation and explore monitoring capabilities.
 
 - [Secure access to MCP servers in API Management](https://learn.microsoft.com/en-us/azure/api-management/secure-mcp-servers)
 - [Expose and govern an existing MCP server](https://learn.microsoft.com/en-us/azure/api-management/expose-existing-mcp-server)
+- [Quickstart: Create a new Azure API Management instance by using the Azure portal](https://learn.microsoft.com/en-us/azure/api-management/get-started-create-service-instance)
 - [About MCP servers in Azure API Management](https://learn.microsoft.com/en-us/azure/api-management/mcp-server-overview)
 - [API Management Policies Reference](https://docs.microsoft.com/en-us/azure/api-management/api-management-policies)
 - [API Management Security Features](https://docs.microsoft.com/en-us/azure/api-management/api-management-security-controls)
