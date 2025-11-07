@@ -51,13 +51,8 @@ graph TB
     B -->|Policy Validation| C[Rate Limiting & Throttling]
     C -->|Authorization| D[MCP Server]
     D -->|Outbound Calls| E[External APIs]
-    B -->|Analytics| F[Monitoring & Logging]
-    
-    subgraph "Security Layers"
-        G[Subscription Keys]
-        H[OAuth 2.0 / Entra ID]
-        I[IP Filtering]
-        J[CORS Policies]
+    B -->|Analytics| F[Monitoring & Logging]   
+
     end
 ```
 
