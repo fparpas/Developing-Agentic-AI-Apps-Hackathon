@@ -1,0 +1,13 @@
+# MCP Weather Client Agent Dependencies
+# Python 3.10+ required
+
+# Microsoft Agent Framework (includes pre-release Azure AI Agents)
+agent-framework>=0.1.0
+azure-ai-agents>=1.2.0b5
+
+# Model Context Protocol SDK
+mcp[cli]>=1.2.0
+
+# Environment variable management
+python-dotenv>=1.0.0
+

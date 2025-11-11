@@ -1,11 +1,9 @@
 # Challenge 02 - Python - Build your first MCP server
 
  [< Previous Challenge](./Challenge-01.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-03-python.md)
- 
+
 [![](https://img.shields.io/badge/C%20Sharp-lightgray)](Challenge-02-csharp.md)
 [![](https://img.shields.io/badge/Python-blue)](Challenge-02-python.md)
-
-![](https://img.shields.io/badge/Challenge%20Under%20Development-red)
 
 ## Introduction
 
@@ -16,7 +14,7 @@ In this challenge, you will build and run a minimal Model Context Protocol (MCP)
 MCP servers provide tools, resources, and prompts over a standard transport. An IDE agent (like Copilot Chat) connects to your server, lists capabilities, and calls your tools with JSON inputs, receiving structured outputs.
 
 - **Transport:** Most commonly, MCP servers run as local processes launched by VS Code or Copilot, communicating via stdio. Alternatively, MCP servers can be hosted remotely and accessed over a network, allowing multiple users or agents to connect.
-- **Local vs Remote Servers:** 
+- **Local vs Remote Servers:**
     - *Local servers* run on your machine, providing fast, direct integration with your IDE and access to local files or resources.
     - *Remote servers* are hosted elsewhere (e.g. in Azure Functions, Azure Container Apps), enabling centralized management, scalability, and access from different locations or users.
 - **Capabilities:** Tools (functions you expose), resources (read-only data), prompts (templated guidance).
@@ -41,48 +39,93 @@ You will build a server that exposes two tools: `get_alerts` and `get_forecast`,
 
 ### Task 1: Set up your environment
 
-Use the official MCP C# quickstart as your base: https://modelcontextprotocol.io/quickstart/server#c%23
+**For faster dependency management, consider using `uv`:** [`uv` is an extremely fast Python package installer and resolver](https://docs.astral.sh/uv/). It's significantly faster than `pip` (10-100x in many cases) and handles dependency resolution more efficiently. You can install it from https://docs.astral.sh/uv/getting-started/installation/.
 
-1. Create a console app
+Use the official MCP Python quickstart as your base: https://modelcontextprotocol.io/quickstart/server
+
+1. Create a project directory and install dependencies
+
+**Using `uv` (recommended for performance):**
 ```bash
-dotnet new console -n WeatherMcpServer
-cd WeatherMcpServer
+# Create a new directory for the project
+mkdir weather_mcp_server
+cd weather_mcp_server
+
+# Create a virtual environment
+uv venv .venv
+
+# Activate the virtual environment
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Install the MCP SDK and dependencies
+uv pip install "mcp[cli]" httpx
 ```
 
-2. Add the required NuGet packages for the Model Context Protocol SDK and hosting
-
+**Or using standard `pip`:**
 ```bash
-# Add the Model Context Protocol SDK NuGet package
-dotnet add package ModelContextProtocol --prerelease
-# Add the .NET Hosting NuGet package
-dotnet add package Microsoft.Extensions.Hosting
+# Create a new directory for the project
+mkdir weather_mcp_server
+cd weather_mcp_server
+
+# Create a virtual environment
+python -m venv .venv
+
+# Activate the virtual environment
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Install the MCP SDK and dependencies
+pip install "mcp[cli]" httpx
 ```
 
-### Task 2: Scaffold your MCP server (C# / .NET)
+### Task 2: Create your MCP server (Python)
 
-Open the `Program.cs` file in your project and replace its contents with the following code. This sets up a basic console application that uses the Model Context Protocol SDK to create an MCP server with standard input/output (stdio) transport.
-```csharp
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using ModelContextProtocol;
-using System.Net.Http.Headers;
+Create a file named `weather.py` in your project directory with the following code. This sets up a basic MCP server that uses the FastMCP pattern for automatic tool discovery:
+```python
+from typing import Any
+import httpx
+from mcp.server.fastmcp import FastMCP
 
-var builder = Host.CreateEmptyApplicationBuilder(settings: null);
+# Initialize FastMCP server - this automatically handles stdio transport
+mcp = FastMCP("weather")
 
-builder.Services.AddMcpServer()
-    .WithStdioServerTransport()
-    .WithToolsFromAssembly();
+# Constants for the National Weather Service API
+NWS_API_BASE = "https://api.weather.gov"
+USER_AGENT = "weather-app/1.0"
 
-builder.Services.AddSingleton(_ =>
-{
-    var client = new HttpClient() { BaseAddress = new Uri("https://api.weather.gov") };
-    client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("weather-tool", "1.0"));
-    return client;
-});
 
-var app = builder.Build();
+async def make_nws_request(url: str) -> dict[str, Any] | None:
+    """Make a request to the NWS API with proper error handling.
 
-await app.RunAsync();
+    This helper function handles HTTP requests to the National Weather Service
+    API with proper headers and timeout configuration.
+    """
+    headers = {
+        "User-Agent": USER_AGENT,
+        "Accept": "application/geo+json"
+    }
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.get(url, headers=headers, timeout=30.0)
+            response.raise_for_status()
+            return response.json()
+        except Exception:
+            return None
+
+
+def format_alert(feature: dict) -> str:
+    """Format an alert feature into a readable string.
+
+    Takes a GeoJSON feature from the NWS API and extracts key
+    alert information for display to the user.
+    """
+    props = feature["properties"]
+    return f"""
+Event: {props.get('event', 'Unknown')}
+Area: {props.get('areaDesc', 'Unknown')}
+Severity: {props.get('severity', 'Unknown')}
+Description: {props.get('description', 'No description available')}
+Instructions: {props.get('instruction', 'No specific instructions provided')}
+"""
 ```
 
 ### Task 3: Add weather tools to your MCP server
@@ -94,113 +137,147 @@ Add the following tools to your server:
 
 > ℹ️ These weather tools integrate with the National Weather Service API. It provides real-time weather updates and alerts for US locations only.
 
-Create an extension class for HttpClient which helps simplify JSON request handling:
-```csharp
-using System.Text.Json;
+Add these tool functions to your `weather.py` file (after the helper functions from Task 2):
 
-internal static class HttpClientExt
-{
-    public static async Task<JsonDocument> ReadJsonDocumentAsync(this HttpClient client, string requestUri)
-    {
-        using var response = await client.GetAsync(requestUri);
-        response.EnsureSuccessStatusCode();
-        return await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync());
-    }
-}
+```python
+@mcp.tool()
+async def get_alerts(state: str) -> str:
+    """Get weather alerts for a US state.
+
+    This tool queries the National Weather Service API for active severe weather
+    alerts in the specified US state.
+
+    Args:
+        state: Two-letter US state code (e.g. CA, NY, WA, TX)
+    """
+    # Construct URL to fetch alerts for the specified state
+    url = f"{NWS_API_BASE}/alerts/active/area/{state}"
+    data = await make_nws_request(url)
+
+    # Handle API errors or missing data
+    if not data or "features" not in data:
+        return "Unable to fetch alerts or no alerts found."
+
+    # Return appropriate message if no active alerts
+    if not data["features"]:
+        return "No active alerts for this state."
+
+    # Format and join all alerts with a separator
+    alerts = [format_alert(feature) for feature in data["features"]]
+    return "\n---\n".join(alerts)
+
+
+@mcp.tool()
+async def get_forecast(latitude: float, longitude: float) -> str:
+    """Get weather forecast for a location.
+
+    This tool retrieves a detailed weather forecast for a specific geographic
+    location using the National Weather Service API.
+
+    Args:
+        latitude: Latitude of the location
+        longitude: Longitude of the location
+    """
+    # First, get the forecast grid endpoint for the given coordinates
+    points_url = f"{NWS_API_BASE}/points/{latitude},{longitude}"
+    points_data = await make_nws_request(points_url)
+
+    # Handle errors fetching point data
+    if not points_data:
+        return "Unable to fetch forecast data for this location."
+
+    # Extract the forecast URL from the points response
+    try:
+        forecast_url = points_data["properties"]["forecast"]
+    except KeyError:
+        return "Unable to determine forecast URL for this location."
+
+    # Fetch the actual forecast data
+    forecast_data = await make_nws_request(forecast_url)
+    if not forecast_data:
+        return "Unable to fetch detailed forecast."
+
+    # Format the forecast periods into readable text
+    periods = forecast_data["properties"]["periods"]
+    forecasts = []
+
+    # Show the next 5 forecast periods
+    for period in periods[:5]:
+        forecast = f"""
+{period['name']}:
+Temperature: {period['temperature']}°{period['temperatureUnit']}
+Wind: {period['windSpeed']} {period['windDirection']}
+Forecast: {period['detailedForecast']}
+"""
+        forecasts.append(forecast)
+
+    return "\n---\n".join(forecasts)
 ```
 
-Next, define a class with the tool execution handlers for querying and converting responses from the National Weather Service API:
-```csharp
-using ModelContextProtocol.Server;
-using System.ComponentModel;
-using System.Globalization;
-using System.Text.Json;
+### Task 4: Initialize and run the server
 
-namespace QuickstartWeatherServer.Tools;
+Finally, add this code to the end of your `weather.py` file to initialize and run the server:
 
-[McpServerToolType]
-public static class WeatherTools
-{
-    [McpServerTool, Description("Get weather alerts for a US state.")]
-    public static async Task<string> GetAlerts(
-        HttpClient client,
-        [Description("The US state to get alerts for.")] string state)
-    {
-        using var jsonDocument = await client.ReadJsonDocumentAsync($"/alerts/active/area/{state}");
-        var jsonElement = jsonDocument.RootElement;
-        var alerts = jsonElement.GetProperty("features").EnumerateArray();
+```python
+def main():
+    """Initialize and run the MCP server.
 
-        if (!alerts.Any())
-        {
-            return "No active alerts for this state.";
-        }
+    This starts the server listening on stdio, which allows MCP hosts
+    (like Claude Desktop or VS Code) to communicate with it.
+    """
+    mcp.run(transport='stdio')
 
-        return string.Join("\n--\n", alerts.Select(alert =>
-        {
-            JsonElement properties = alert.GetProperty("properties");
-            return $"""
-                    Event: {properties.GetProperty("event").GetString()}
-                    Area: {properties.GetProperty("areaDesc").GetString()}
-                    Severity: {properties.GetProperty("severity").GetString()}
-                    Description: {properties.GetProperty("description").GetString()}
-                    Instruction: {properties.GetProperty("instruction").GetString()}
-                    """;
-        }));
-    }
 
-    [McpServerTool, Description("Get weather forecast for a location.")]
-    public static async Task<string> GetForecast(
-        HttpClient client,
-        [Description("Latitude of the location.")] double latitude,
-        [Description("Longitude of the location.")] double longitude)
-    {
-        var pointUrl = string.Create(CultureInfo.InvariantCulture, $"/points/{latitude},{longitude}");
-        using var jsonDocument = await client.ReadJsonDocumentAsync(pointUrl);
-        var forecastUrl = jsonDocument.RootElement.GetProperty("properties").GetProperty("forecast").GetString()
-            ?? throw new Exception($"No forecast URL provided by {client.BaseAddress}points/{latitude},{longitude}");
-
-        using var forecastDocument = await client.ReadJsonDocumentAsync(forecastUrl);
-        var periods = forecastDocument.RootElement.GetProperty("properties").GetProperty("periods").EnumerateArray();
-
-        return string.Join("\n---\n", periods.Select(period => $"""
-                {period.GetProperty("name").GetString()}
-                Temperature: {period.GetProperty("temperature").GetInt32()}°F
-                Wind: {period.GetProperty("windSpeed").GetString()} {period.GetProperty("windDirection").GetString()}
-                Forecast: {period.GetProperty("detailedForecast").GetString()}
-                """));
-    }
-}
+if __name__ == "__main__":
+    main()
 ```
-### Task 4: Run and validate locally
 
-From the `WeatherMcpServer` folder:
+### Task 5: Run and validate locally
+
+From your project folder:
 ```bash
-dotnet run
+python weather.py
 ```
+
 This starts the server and listens for incoming requests on standard input/output.
 
-### Task 5: Connect to an MCP host
+
+### Task 6: Connect to an MCP host
 
 Option A: Visual Studio Code (GitHub Copilot Chat)
 - Follow the VS Code MCP [guide:](https://code.visualstudio.com/docs/copilot/customization/mcp-servers#_use-mcp-tools-in-agent-mode)
 - Add a server entry that invokes:
-    - command: `dotnet`
-    - args: `["run", "--project", "PATH_TO_YOUR_PROJECT"]`
+    - command: `python`
+    - args: `["-m", "weather"]` or the path to your script
     - transport: `stdio`
+- Alternatively, if using `uv`:
+    - command: `uv`
+    - args: `["run", "--directory", "/ABSOLUTE/PATH/TO/weather_mcp_server", "weather.py"]`
 - Reload VS Code. In Copilot Chat, use `/tools` to see your server and try:
-    - `get_forecast` with latitude/longitude
+    - `get_forecast` with latitude/longitude (e.g., 47.6062, -122.3321)
     - `get_alerts` with a two-letter state (e.g., WA)
 
 Option B: Claude Desktop
 - Follow the Claude MCP config [guide:](https://modelcontextprotocol.io/quickstart/server#testing-your-server-with-claude-for-desktop-5)
+- Add to your `claude_desktop_config.json`:
+```json
+{
+  "mcpServers": {
+    "weather": {
+      "command": "python",
+      "args": ["/ABSOLUTE/PATH/TO/weather.py"]
+    }
+  }
+}
+```
 
-### Task 6: Use MCP Inspector for testing and debugging Model Context Protocol servers
+### Task 7: Use MCP Inspector for testing and debugging Model Context Protocol servers
 
 The [MCP Inspector](https://modelcontextprotocol.io/legacy/tools/inspector) is an interactive developer tool for testing and debugging MCP servers. It lets you start/attach servers, call tools with JSON inputs, inspect requests/responses, and view logs.
 
 1. Prerequisites
     - Node.js 18+ installed
-    - Your `WeatherMcpServer` builds and runs locally
+    - Your weather MCP server runs locally
 
 2. Start the Inspector
 ```bash
@@ -211,11 +288,8 @@ The Inspector opens in your browser (or prints a local URL). Keep the terminal o
 3. Configure a server via the UI
      - In the Inspector, add the MCP server
      - Choose `Stdio`
-     - Command: `dotnet`
-     - Args:
-         - `run`
-         - `--project`
-         - `ABSOLUTE_PATH\\WeatherMcpServer\\WeatherMcpServer.csproj`
+     - Command: `python`
+     - Args: `/ABSOLUTE/PATH/TO/weather.py`
      - Use the UI to:
          - List tools (`get_forecast`, `get_alerts`)
          - Invoke a tool and provide JSON input, for example:
@@ -224,12 +298,12 @@ The Inspector opens in your browser (or prints a local URL). Keep the terminal o
 
 ## Success Criteria
 
-- ✅ A .NET MCP server runs locally over stdio.
+- ✅ A Python MCP server runs locally over stdio.
 - ✅ The server lists two tools: `get_forecast` and `get_alerts`.
-- ✅ Invoking `get_forecast` returns current temperature (or basic forecast info) for the given latitude/longitude.
+- ✅ Invoking `get_forecast` returns weather forecast info for the given latitude/longitude.
 - ✅ Invoking `get_alerts` returns zero or more active alerts for the specified US state.
 - ✅ Tools are visible and callable from your chosen MCP host (VS Code Copilot Chat or Claude Desktop).
-- ✅ Validated with MCP Inspector: server connects via stdio, tools (`get_forecast`, `get_alerts`) invoke successfully, and requests/responses are visible without schema errors.
+- ✅ Validated with MCP Inspector: server connects via stdio, tools (`get_forecast`, `get_alerts`) invoke successfully, and requests/responses are visible without errors.
 - ✅ The user gets a response to the prompt "Get the weather in Sacramento" when using the MCP tools in VS Code Copilot Chat or Claude Desktop.
 
 ## Learning Resources
