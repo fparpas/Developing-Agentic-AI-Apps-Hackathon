@@ -18,14 +18,31 @@ An MCP client using the Agent Framework is responsible for:
 - **Tool execution**: Calling tools on behalf of the agent and handling responses
 - **Conversation management**: Managing the lifecycle of multi-turn conversations
 
+![MCP Client Architecture](./Resources/Diagrams/FunctionCallingWithMCP.jpg)
+
 The typical flow is:
-1. Agent Framework creates an agent with an LLM chat client (e.g., OpenAI)
-2. Agent connects to one or more MCP servers via stdio
-3. Agent discovers available tools from each server
-4. User submits a natural language query
-5. Agent analyzes the query and decides which tools to use
-6. Agent calls tools via the MCP servers
-7. Agent processes results and provides a natural language response
+
+1. Person makes a request
+    - The user initiates an action or query.
+2. MCP Client retrieves tool schema
+   - The MCP Client requests the tools schema from the MCP Server and adds it to the model request.
+3. MCP Server returns tools schema
+   - The MCP Server responds with the tools schema to the MCP Client.
+4. Request sent to the model
+   - The MCP Client sends the user request, conversation history, tools schema, and any previous function results to the AI model.
+5. Model generates a response
+ - The model processes the request and generates a response.
+ - The model decides whether to:
+    - Provide a Chat Response, or
+    - Provide a Function Response (tool invocation)
+6. Handle response
+   - If the response is a Chat Response:
+     - The MCP Client sends the response back to the user.
+    - If the response is a Function Response:
+      - The MCP Client extracts tool function parameters from the model’s response.
+7. Execute function and return result
+    - MCP Server executes function using the provided parameters.
+    - Return function result to the MCP Client and then to the user.
 
 ## Description
 
@@ -47,7 +64,7 @@ Create a `requirements.txt` file in your project:
 # Python 3.10+ required
 
 # Microsoft Agent Framework (includes pre-release Azure AI Agents)
-agent-framework>=0.1.0
+agent-framework>=1.0.0b251114
 azure-ai-agents>=1.2.0b5
 
 # Model Context Protocol SDK

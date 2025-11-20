@@ -45,17 +45,16 @@ Understanding the agent interaction model:
 The general architecture for AI agents with file search follows this pattern:
 
 ```mermaid
-graph LR
-    A[User Query] --> B[Thread]
-    B --> C[Agent<br/>with File Search]
+graph TD
+    A[User Query]
+    A --> B[Create Thread]
+    B --> C[Agent with File Search]
     C --> D[Vector Store]
     D --> E[Documents]
-    E --> F[Document<br/>Chunks]
-    F --> G[Relevant<br/>Content]
-    G --> H[Agent Response]
-    H --> I[Thread]
-    I --> J[Response]
-    J --> A
+    E --> F[Document Chunks]
+    F --> G[Retrieve Relevant Content]
+    G --> H[Generate Response]
+    H --> I[Response to User]
 ```
 
 ## Description
@@ -76,17 +75,16 @@ You'll build a specialized AI agent that acts as a compliance advisor for compan
 **Agent Architecture for This Challenge:**
 
 ```mermaid
-graph LR
-    A[User Query] --> B[Thread]
-    B --> C[Travel Agent<br/>with File Search]
+graph TD
+    A[User Query]
+    A --> B[Create Thread]
+    B --> C[Travel Agent with File Search]
     C --> D[Vector Store]
-    D --> E[Travel Policy<br/>Documents]
-    E --> F[Policy Document<br/>Chunks]
-    F --> G[Relevant Policy<br/>Content]
-    G --> H[Agent Response]
-    H --> I[Thread]
-    I --> J[Response]
-    J --> A
+    D --> E[Travel Policy Documents]
+    E --> F[Policy Document Chunks]
+    F --> G[Retrieve Relevant Policy Content]
+    G --> H[Generate Agent Response]
+    H --> I[Response to User]
 ```
 
 The agent will use the company travel policy document as its knowledge base to provide accurate, policy-compliant guidance to employees.
@@ -100,9 +98,7 @@ Your first task is to set up the AI agent using the Azure AI Foundry portal:
    - Create a new AI agent with file search capabilities enabled
    - Configure the agent with the following instructions:
 
-   ```text
-   You are a Travel Compliance Policy Agent for a company. Your role is to review, validate, and enforce the company's travel policy by evaluating travel requests, itineraries, and expense reports. You must ensure all travel activities comply with the policy's rules, financial limits, and approval workflows.
-   ```
+   > You are a Travel Compliance Policy Agent for a company. Your role is to review, validate, and enforce the company's travel policy by evaluating travel requests, itineraries, and expense reports. You must ensure all travel activities comply with the policy's rules, financial limits, and approval workflows.
 
 2. **Set Up File Search Knowledge Base**
    - Add file search as a knowledge source for your agent
@@ -151,6 +147,14 @@ Your second task is to create a Python application that integrates with your con
 **Sample Python Code to Get Started:**
 
 Use this code as a foundation for your application:
+
+`requirements.txt`:
+
+```plaintxt
+azure-ai-projects>=1.1.0b4
+azure-identity>=1.25.1
+python-dotenv>=1.0.0
+```
 
 ```python
 import asyncio
@@ -211,7 +215,7 @@ async def run_agent_conversation():
 
         # Poll until run completes
         while run.status in ["queued", "in_progress"]:
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(1)
             run = agents_client.runs.get(thread_id=thread.id, run_id=run.id)
 
         if run.status != "completed":
@@ -250,7 +254,7 @@ Or using standard `pip`:
 pip install azure-ai-projects azure-identity
 ```
 
-- This code demonstrates a basic conversation loop - you can extend it with additional features
+- The code demonstrates a basic conversation loop - you can extend it with additional features
 
 ### What You'll Deliver
 

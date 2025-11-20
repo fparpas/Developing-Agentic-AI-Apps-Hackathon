@@ -75,7 +75,16 @@ Microsoft Agent Framework can integrate with MCP servers to extend functionality
 
 This challenge will guide you through the process of developing your first intelligent app with Microsoft Agent Framework.
 
-In just a few steps, you can build your first AI agent with Microsoft Agent Framework in either .NET.
+In just a few steps, you can build your first AI agent with Microsoft Agent Framework in Python.
+
+`requirements.txt`:
+
+```plaintxt
+azure-ai-agents>=1.2.0b5
+agent-framework>=1.0.0b251114
+mcp[cli]>=1.2.0
+python-dotenv>=1.0.0
+```
 
 ### Task 1: Current time tool
 
@@ -108,18 +117,21 @@ current_time_function = Function(
 
 ```python
 from agent_framework import ChatAgent
-from agent_framework.clients import OpenAIResponsesClient
-from openai import AsyncOpenAI
+from agent_framework.clients import AzureOpenAIResponsesClient
+from azure.ai.inference import AsyncAzureOpenAIClient
 import os
 
 async def create_agent_with_tools():
     """Create an agent with the current time tool registered."""
 
-    # Initialize the OpenAI client
-    openai_client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    # Initialize the Azure OpenAI client
+    azure_openai_client = AsyncAzureOpenAIClient(
+        endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
+        credential=os.getenv("AZURE_OPENAI_API_KEY")
+    )
 
     # Create the chat client
-    chat_client = OpenAIResponsesClient(client=openai_client, model="gpt-4o-mini")
+    chat_client = AzureOpenAIResponsesClient(client=azure_openai_client, model="gpt-4o-mini")
 
     # Define the current time tool as a Function
     current_time_function = Function(
@@ -133,7 +145,6 @@ async def create_agent_with_tools():
     agent = ChatAgent(
         name="TimeAgent",
         client=chat_client,
-        model="gpt-4o-mini",
         instructions="You are a helpful assistant. When the user asks for the current time, use the get_current_time_utc tool to provide an accurate response.",
         tools=[current_time_function]
     )

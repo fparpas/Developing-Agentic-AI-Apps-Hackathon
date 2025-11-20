@@ -35,7 +35,7 @@ Many LLMs do not currently have the ability to fetch real-time forecasts and sev
 
 You will build a server that exposes two tools: `get_alerts` and `get_forecast`, then connect the server to an MCP host (Visual Studio Code or Claude for Desktop).
 
-> ℹ️ Servers can connect to any client. We’ve chosen Visual Studio Code or Claude for Desktop here for simplicity, but you could also connect to other clients like Copilot Chat in JetBrains IDEs or even build your own client.
+> ℹ️ Servers can connect to any client. We’ve chosen Visual Studio Code or Claude Desktop here for simplicity, but you could also connect to other clients like Copilot Chat in JetBrains IDEs or even build your own client.
 
 ### Task 1: Set up your environment
 
@@ -252,7 +252,7 @@ Option A: Visual Studio Code (GitHub Copilot Chat)
     - transport: `stdio`
 - Alternatively, if using `uv`:
     - command: `uv`
-    - args: `["run", "--directory", "/ABSOLUTE/PATH/TO/weather_mcp_server", "weather.py"]`
+    - args: `["run", "--directory", "/absolute/path/to/weather_mcp_server", "weather.py"]`
 - Reload VS Code. In Copilot Chat, use `/tools` to see your server and try:
     - `get_forecast` with latitude/longitude (e.g., 47.6062, -122.3321)
     - `get_alerts` with a two-letter state (e.g., WA)
@@ -265,7 +265,7 @@ Option B: Claude Desktop
   "mcpServers": {
     "weather": {
       "command": "python",
-      "args": ["/ABSOLUTE/PATH/TO/weather.py"]
+      "args": ["/absolute/path/to/weather.py"]
     }
   }
 }

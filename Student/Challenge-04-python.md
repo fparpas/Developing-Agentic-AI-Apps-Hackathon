@@ -268,6 +268,8 @@ Instructions: {props.get('instruction', 'No specific instructions provided')}
 #         log_level="info"
 #     )
 ```
+> ## _Wait a minute, what in the world is import httpx?_
+Requests is a mature, synchronous HTTP client that prioritizes simplicity, while `httpx` is a newer client that keeps a very similar API but adds first‑class async support, HTTP/2, stricter defaults, and more modern features. See https://www.python-httpx.org for more.
 
 ## Implementation Hints
 
