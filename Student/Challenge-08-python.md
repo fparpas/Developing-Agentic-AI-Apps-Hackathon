@@ -5,8 +5,6 @@
 [![](https://img.shields.io/badge/C%20Sharp-lightgray)](Challenge-08-csharp.md)
 [![](https://img.shields.io/badge/Python-blue)](Challenge-08-python.md)
 
-![](https://img.shields.io/badge/Challenge%20Under%20Development-red)
-
 ## Introduction
 
 In this challenge you'll practice how to use the powerful capabilities of Microsoft Agent Framework to design and orchestrate intelligent agents that work collaboratively to solve complex problems. You'll build a multi-agent application that leverages the strengths of different agents to achieve a common goal.
@@ -33,14 +31,24 @@ To learn more about the supported patterns, refer to the [Microsoft Agent Framew
 |---------|-------------|------------------|
 | **Concurrent** | Broadcasts a task to all agents, collects results independently | Parallel analysis, independent subtasks, ensemble decision making |
 | **Sequential** | Passes the result from one agent to the next in a defined order | Step-by-step workflows, pipelines, multi-stage processing |
+| **Group Chat** | Coordinates multiple agents in a collaborative conversation with a manager controlling speaker selection and flow. | Iterative refinement, collaborative problem-solving, content review. |
 | **Handoff** | Dynamically passes control between agents based on context or rules | Dynamic workflows, escalation, fallback, or expert handoff scenarios |
-| **Magentic** | Group chat-like orchestration inspired by MagenticOne research | Complex, generalist multi-agent collaboration |
+
+### Agents as tools
+"Agents as Tools" is an architectural pattern in AI systems where specialized AI agents are wrapped as callable functions (tools) that can be used by other agents. This creates a hierarchical structure where:
+
+ 1. A primary "orchestrator" agent handles user interaction and determines which specialized agent to call
+ 2. Specialized "tool agents" perform domain-specific tasks when called by the orchestrator
+
+This approach mimics human team dynamics, where a manager coordinates specialists, each bringing unique expertise to solve complex problems. Rather than a single agent trying to handle everything, tasks are delegated to the most appropriate specialized agent.
+
+In some workflows, you may want a central agent to orchestrate a network of specialized agents, instead of handing off control. You can do this by modeling agents as tools.
 
 ### A unified orchestration workflow
 
 Regardless of which orchestration pattern you choose, the Microsoft Agent Framework  provides a consistent, developer-friendly interface for building and running them. The typical flow looks like this:
 
-1. Define your agents and describe their capabilities
+1. Define your agents and describe their capabilities and tools
 2. Select and create an orchestration pattern, optionally adding a manager agent if needed
 3. Optionally configure callbacks or transforms for custom input and output handling
 4. Start a runtime to manage execution
@@ -50,6 +58,20 @@ Regardless of which orchestration pattern you choose, the Microsoft Agent Framew
 Because all patterns share the same core interface, you can easily experiment with different orchestration strategies without rewriting agent logic or learning new APIs. The SDK abstracts the complexity of agent communication, coordination, and result aggregation so you can focus on designing workflows that deliver results.
 
 Multi-agent orchestration in Microsoft Agent Framework provides a flexible, scalable way to build intelligent systems that combine the strengths of multiple specialized agents. With built-in orchestration patterns, a unified development model, and runtime features for managing execution, you can quickly prototype, refine, and deploy collaborative AI workflows. Whether you’re running agents in parallel, coordinating sequential steps, or enabling dynamic conversations, the framework gives you the tools to turn multiple agents into a cohesive problem-solving team.
+
+## Prerequisites
+
+### Starting the Travel MCP Server
+
+The Travel MCP Server provides the travel booking APIs (Amadeus) that the agents will use. Make sure it's running before starting this challenge:
+
+Before starting the Travel MCP Server, you need to register for an Amadeus API key:
+1. Visit the [Amadeus for Developers portal](https://developers.amadeus.com/)
+2. Create an account or sign in
+3. Register your application to obtain your API key and secret
+4. Configure these credentials in your Travel MCP Server settings
+
+Start your Travel MCP Server by opening a terminal and executing the command to run the local MCP server
 
 ## Description
 
@@ -141,3 +163,5 @@ To successfully complete this challenge, you must demonstrate:
 - [Understand Agent Orchestration](https://learn.microsoft.com/en-us/training/modules/orchestrate-semantic-kernel-multi-agent-solution/3-understand-agent-orchestration)
 - [AI Agent Orchestration Patterns](https://learn.microsoft.com/en-us/azure/architecture/ai-ml/guide/ai-agent-design-patterns)
 - [Agents in Workflows](https://learn.microsoft.com/en-us/agent-framework/tutorials/workflows/agents-in-workflows?pivots=programming-language-csharp)
+- [Amadeus for Developers](https://developers.amadeus.com/)
+- [Amadeus Open AI Specification](https://github.com/amadeus4dev/amadeus-open-api-specification/tree/main/spec/json)
