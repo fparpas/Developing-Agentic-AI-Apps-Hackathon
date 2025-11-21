@@ -40,22 +40,6 @@ Understanding the agent interaction model:
 - **Runs**: Individual executions of agent processing within a thread
 - **Messages**: User inputs and agent responses within a conversation thread
 
-### AI Agent Architecture
-
-The general architecture for AI agents with file search follows this pattern:
-
-```mermaid
-graph TD
-    A[User Query]
-    A --> B[Create Thread]
-    B --> C[Agent with File Search]
-    C --> D[Vector Store]
-    D --> E[Documents]
-    E --> F[Document Chunks]
-    F --> G[Retrieve Relevant Content]
-    G --> H[Generate Response]
-    H --> I[Response to User]
-```
 
 ## Description
 
@@ -63,7 +47,9 @@ This challenge is divided into two main tasks that will guide you through creati
 
 ### About the Travel Policy Compliance Agent
 
-You'll build a specialized AI agent that acts as a compliance advisor for company travel policies. This agent will:
+You'll build a specialized AI agent that acts as a compliance advisor for company travel policies. 
+
+The agent will use the company travel policy document as its knowledge base to provide accurate, policy-compliant guidance to employees.
 
 **Core Capabilities:**
 
@@ -72,22 +58,6 @@ You'll build a specialized AI agent that acts as a compliance advisor for compan
 - **Booking Guidance**: Provide recommendations for compliant travel bookings
 - **Exception Handling**: Explain when and how to request policy exceptions
 
-**Agent Architecture for This Challenge:**
-
-```mermaid
-graph TD
-    A[User Query]
-    A --> B[Create Thread]
-    B --> C[Travel Agent with File Search]
-    C --> D[Vector Store]
-    D --> E[Travel Policy Documents]
-    E --> F[Policy Document Chunks]
-    F --> G[Retrieve Relevant Policy Content]
-    G --> H[Generate Agent Response]
-    H --> I[Response to User]
-```
-
-The agent will use the company travel policy document as its knowledge base to provide accurate, policy-compliant guidance to employees.
 
 ### Task 1: Create and Configure the Agent in Azure AI Foundry
 
@@ -136,7 +106,6 @@ Your second task is to create a Python application that integrates with your con
 2. Create an interactive console interface:
    - Handle user input for policy questions
    - Display agent responses with proper formatting
-   - Implement error handling for API failures
    - Provide clear instructions
 
 3. Agent integration:

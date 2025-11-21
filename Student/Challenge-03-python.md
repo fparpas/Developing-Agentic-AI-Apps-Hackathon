@@ -11,16 +11,30 @@ In this challenge, you will build your first Model Context Protocol (MCP) client
 
 ## Concepts
 
-An MCP client using the Agent Framework is responsible for:
+An MCP client is a software application that connects to Model Context Protocol (MCP) servers to enable AI-powered interactions with external tools and services. It acts as a bridge between users, AI models, and MCP servers, handling tasks such as discovering available tools, orchestrating function calls, and managing communication sessions. By leveraging the MCP client, applications can dynamically invoke server-side functions in response to user queries, enabling richer and more context-aware AI experiences.
+
+The MCP client is responsible for:
 - **Connecting to MCP servers**: Establishing communication with one or more MCP servers via standard transport (typically stdio)
-- **Service discovery**: Listing available tools from connected servers
-- **Agent orchestration**: Using an AI agent that can understand natural language and decide which tools to use
-- **Tool execution**: Calling tools on behalf of the agent and handling responses
-- **Conversation management**: Managing the lifecycle of multi-turn conversations
+- **Service discovery**: Listing available tools, resources, and prompts from connected servers
+- **Tool orchestration**: Calling tools on behalf of an AI assistant and handling responses
+- **Session management**: Managing the lifecycle of connections and conversations
+
+### MCP Function Calling 
+
+### What is Function Calling?
+
+Function calling is a mechanism that allows AI models to invoke external functions or tools in response to user queries. Instead of only generating text, the AI can recognize when a user's request requires real-world data or actions, and then call the appropriate function with the necessary parameters. This enables the AI to interact with external systems, retrieve information, or perform operations beyond its built-in knowledge.
+
+Function calling is the enabler for AI reasoning, allowing the model to dynamically decide when to use its own knowledge and when to leverage external tools. By orchestrating function calls, the AI can provide more accurate, actionable, and context-aware responses, bridging the gap between conversational understanding and real-world execution.
+
+### MCP Function Calling Flow
+The MCP Function Calling Flow illustrates how an MCP client interacts with both the user and the MCP server to fulfill requests using AI and available tools. The process begins when a user submits a prompt to the MCP client. The client then communicates with the MCP server to retrieve the available tool schemas, which describe the functions and capabilities the server offers. These schemas are included in the request sent to the AI model, enabling it to understand which tools it can invoke to address the user's query.
+
+The AI model analyzes the user's input, the conversation history, and the provided tool schemas. Based on this context, it determines whether to respond directly to the user or to invoke a specific tool by generating a function call. If a tool invocation is required, the MCP client extracts the necessary parameters from the model's response and instructs the MCP server to execute the function. The result is then relayed back to the user, completing the interaction. This flow enables seamless orchestration between user intent, AI reasoning, and tool execution.
 
 ![MCP Client Architecture](./Resources/Diagrams/FunctionCallingWithMCP.jpg)
 
-The typical flow is:
+#### Steps for MCP Function Calling Flow
 
 1. Person makes a request
     - The user initiates an action or query.

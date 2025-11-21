@@ -11,6 +11,8 @@ In this challenge, you will build and run a minimal Model Context Protocol (MCP)
 
 ## Concepts
 
+The Model Context Protocol (MCP) is an open standard for connecting AI language models (LLMs) with external tools, resources, and prompts. It enables LLMs to extend their capabilities by calling out to specialized services, enhancing their functionality beyond text generation.
+
 MCP servers provide tools, resources, and prompts over a standard transport. An IDE agent (like Copilot Chat) connects to your server, lists capabilities, and calls your tools with JSON inputs, receiving structured outputs.
 
 - **Transport:** Most commonly, MCP servers run as local processes launched by VS Code or Copilot, communicating via stdio. Alternatively, MCP servers can be hosted remotely and accessed over a network, allowing multiple users or agents to connect.
@@ -311,7 +313,7 @@ The Inspector opens in your browser (or prints a local URL). Keep the terminal o
 - [Model Context Protocol (MCP) Overview](https://modelcontextprotocol.io/)
 - [VS Code MCP Tools](https://code.visualstudio.com/docs/copilot/customization/mcp-servers#_use-mcp-tools-in-agent-mode)
 - [MCP SDK Documentation](https://modelcontextprotocol.io/docs/sdk)
-- [C# Quickstart (server)](https://modelcontextprotocol.io/quickstart/server#c%23)
+- [Quickstart (server)](https://modelcontextprotocol.io/quickstart/server#c%23)
 - [VS Code MCP Servers](https://code.visualstudio.com/mcp)
 - [GitHub Copilot in VS Code](https://code.visualstudio.com/docs/editor/github-copilot)
 - [Weather.gov API](https://www.weather.gov/documentation/services-web-api)
