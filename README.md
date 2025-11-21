@@ -57,7 +57,6 @@ The intended audience are individuals with coding skills.
 ## Challenges
 
 ---
- 
 
 All hands-on challenges (from Challenge 2 onward) are available in both C# and Python.
 
