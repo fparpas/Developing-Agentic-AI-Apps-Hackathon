@@ -1,6 +1,3 @@
-![](https://img.shields.io/badge/For%20Final%20Review-orange)
-![](https://img.shields.io/badge/Collect%20Feedback-orange)
-
 # Challenge 02 - C# - Build your first MCP server
 
  [< Previous Challenge](./Challenge-01.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-03-csharp.md)
@@ -19,7 +16,7 @@ The Model Context Protocol (MCP) is an open standard for connecting AI language 
 MCP servers provide tools, resources, and prompts over a standard transport. An IDE agent (like Copilot Chat) connects to your server, lists capabilities, and calls your tools with JSON inputs, receiving structured outputs.
 
 - **Transport:** Most commonly, MCP servers run as local processes launched by VS Code or Copilot, communicating via stdio. Alternatively, MCP servers can be hosted remotely and accessed over a network, allowing multiple users or agents to connect.
-- **Local vs Remote Servers:** 
+- **Local vs Remote Servers:**
     - *Local servers* run on your machine, providing fast, direct integration with your IDE and access to local files or resources.
     - *Remote servers* are hosted elsewhere (e.g. in Azure Functions, Azure Container Apps), enabling centralized management, scalability, and access from different locations or users.
 - **Capabilities:** Tools (functions you expose), resources (read-only data), prompts (templated guidance).
@@ -40,7 +37,7 @@ Many LLMs do not currently have the ability to fetch real-time forecasts and sev
 
 You will build a server that exposes two tools: `get_alerts` and `get_forecast`, then connect the server to an MCP host (Visual Studio Code or Claude for Desktop).
 
-> ℹ️ Servers can connect to any client. We’ve chosen Visual Studio Code or Claude for Desktop here for simplicity, but you could also connect to other clients like Copilot Chat in JetBrains IDEs or even build your own client.
+> ℹ️ Servers can connect to any client. We’ve chosen Visual Studio Code or Claude Desktop here for simplicity, but you could also connect to other clients like Copilot Chat in JetBrains IDEs or even build your own client.
 
 ### Task 1: Set up your environment
 
@@ -240,7 +237,7 @@ The Inspector opens in your browser (or prints a local URL). Keep the terminal o
 - [Model Context Protocol (MCP) Overview](https://modelcontextprotocol.io/)
 - [VS Code MCP Tools](https://code.visualstudio.com/docs/copilot/customization/mcp-servers#_use-mcp-tools-in-agent-mode)
 - [MCP SDK Documentation](https://modelcontextprotocol.io/docs/sdk)
-- [C# Quickstart (server)](https://modelcontextprotocol.io/quickstart/server#c%23)
+- [Quickstart (server)](https://modelcontextprotocol.io/quickstart/server#c%23)
 - [VS Code MCP Servers](https://code.visualstudio.com/mcp)
 - [GitHub Copilot in VS Code](https://code.visualstudio.com/docs/editor/github-copilot)
 - [Weather.gov API](https://www.weather.gov/documentation/services-web-api)

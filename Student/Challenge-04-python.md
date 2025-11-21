@@ -1,4 +1,4 @@
-# Challenge 04 - Python - Host your MCP remote servers on ACA or Azure Functions
+# Challenge 04 - Python - Host MCP Remote Servers on ACA or Azure Functions
 
  [< Previous Challenge](./Challenge-03-python.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-05-python.md)
 
