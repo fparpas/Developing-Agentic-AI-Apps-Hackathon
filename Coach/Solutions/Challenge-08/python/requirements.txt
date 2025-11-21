@@ -1,0 +1,9 @@
+# Multi-Agent Travel Planning Assistant - Challenge 08 Dependencies
+
+azure-ai-agents>=1.2.0b5
+agent-framework>=1.0.0b251114
+azure-ai-projects>=2.0.0b2
+azure-identity>=1.15.0
+amadeus>=8.1.0
+mcp>=1.21.2
+python-dotenv>=1.0.0

@@ -1,0 +1,16 @@
+# FastAPI + MCP Remote Server Requirements
+# For deployment on Azure Container Apps or Azure Functions
+
+# Web Framework
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+
+# MCP SDK
+mcp[cli]>=1.2.0
+
+# HTTP Client
+httpx>=0.24.0
+
+# For Azure deployment
+azure-identity>=1.14.0
+azure-functions>=1.18.0  # Only needed for Azure Functions deployment

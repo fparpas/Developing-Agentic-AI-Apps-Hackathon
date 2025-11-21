@@ -43,7 +43,7 @@ class Program
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ An error occurred while running the application: {ex.Message}");
+            Console.WriteLine($"An error occurred while running the application: {ex.Message}");
         }
     }
 

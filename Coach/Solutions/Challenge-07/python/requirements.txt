@@ -1,0 +1,26 @@
+# Observability and Tracing Dependencies
+
+# Agent Framework
+agent-framework>=0.1.0
+
+# MCP Integration
+mcp[cli]>=1.2.0
+
+# OpenTelemetry - Tracing Core
+opentelemetry-api>=1.20.0
+opentelemetry-sdk>=1.20.0
+
+# OpenTelemetry Exporters
+opentelemetry-exporter-otlp>=0.41b0
+
+# OpenTelemetry Instrumentation
+opentelemetry-instrumentation>=0.41b0
+opentelemetry-instrumentation-fastapi>=0.41b0
+opentelemetry-instrumentation-httpx>=0.41b0
+opentelemetry-instrumentation-requests>=0.41b0
+
+# Configuration
+python-dotenv>=1.0.0
+
+# Logging and Monitoring
+opentelemetry-instrumentation-logging>=0.41b0

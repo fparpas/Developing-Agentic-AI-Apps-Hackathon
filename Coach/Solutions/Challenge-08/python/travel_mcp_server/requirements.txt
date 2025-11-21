@@ -1,0 +1,4 @@
+# Travel MCP Server dependencies
+mcp[fast]>=1.2.0
+amadeus>=8.1.0
+python-dotenv>=1.0.0

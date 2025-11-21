@@ -34,7 +34,7 @@ To learn more about the supported patterns, refer to the [Microsoft Agent Framew
 | **Concurrent** | Broadcasts a task to all agents, collects results independently | Parallel analysis, independent subtasks, ensemble decision making |
 | **Sequential** | Passes the result from one agent to the next in a defined order | Step-by-step workflows, pipelines, multi-stage processing |
 | **Handoff** | Dynamically passes control between agents based on context or rules | Dynamic workflows, escalation, fallback, or expert handoff scenarios |
-   | **Magentic** | Group chat-like orchestration inspired by MagenticOne research | Complex, generalist multi-agent collaboration |
+| **Magentic** | Group chat-like orchestration inspired by MagenticOne research | Complex, generalist multi-agent collaboration |
 
 ### A unified orchestration workflow
 

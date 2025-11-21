@@ -1,11 +1,9 @@
 # Challenge 07 - Python - Tracing Intelligence: Observability in Agentic AI with Microsoft Agent Framework
 
  [< Previous Challenge](./Challenge-06-python.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-08-python.md)
- 
+
 [![](https://img.shields.io/badge/C%20Sharp-lightgray)](Challenge-07-csharp.md)
 [![](https://img.shields.io/badge/Python-blue)](Challenge-07-python.md)
-
-![](https://img.shields.io/badge/Challenge%20Under%20Development-red)
 
 ## Introduction
 
@@ -49,7 +47,6 @@ You can use the following observability tools to monitor and analyze the behavio
 
 - **Console Exporter**: Although the console is not recommended for production, it provides a simple way to get started with observability during development. Microsoft Agent Framework includes built-in console exporters for quick debugging.
 - **Application Insights**: Application Insights is part of Azure Monitor, which is a comprehensive solution for collecting, analyzing, and acting on telemetry data from your cloud and on-premises environments. Perfect for production agent monitoring.
-- **Aspire Dashboard**: Aspire Dashboard is part of the .NET Aspire offering. The dashboard allows developers to monitor and inspect their distributed applications, including multi-agent scenarios.
 - **Azure AI Foundry Tracing UI**: Azure AI Foundry provides specialized tracing capabilities for AI applications, offering detailed insights into agent conversations, tool usage, and model interactions.
 - **OpenTelemetry Compatible Tools**: Since Microsoft Agent Framework uses OpenTelemetry standards, you can integrate with any OpenTelemetry-compatible observability platform like Grafana.
 
@@ -57,15 +54,28 @@ You can use the following observability tools to monitor and analyze the behavio
 You should incorporate observability into your Microsoft Agent Framework application using a Console exporter and one or more of the following approaches to visualize and analyze the telemetry data:
 
 1. Console Exporter for development and debugging
-2. Application Insights for production monitoring
-3. Aspire Dashboard for distributed application insights
+2. Application Insights or AI Foundry Tracing for production monitoring
 
 Use the Agent Framework application created in the previous challenge and add comprehensive observability to track agent behavior, tool executions, and conversation flows.
+
+### Observability Pipeline
+
+```mermaid
+graph TD
+    A["Agent Operations"] -->|Instrument| B["OpenTelemetry Instrumentation"]
+    B -->|Collect| C["Spans, Metrics, Logs"]
+    C -->|Export| D["OTLP Exporter"]
+    D -->|Send| E["Backend"]
+    E -->|Supports| F["Jaeger"]
+    E -->|Supports| G["Application Insights"]
+    E -->|Supports| H["Azure Monitor"]
+    E -->|Supports| I["Console / Local Dev"]
+```
 
 ## Success Criteria
 - ✅ Ensure that your Agent Framework application is running with observability enabled
 - ✅ See the traces generated with Console exporter
-- ✅ Visualize traces using at least one of the recommended tools (Application Insights or Aspire Dashboard, )
+- ✅ Visualize traces using at least one of the recommended tools (Application Insights, AI Foundry Tracing)
 - ✅ Inspect the telemetry data and observe the sequence of agent operations, tool calls, and AI model interactions
 - ✅ Demonstrate that you can see agent conversation history, tool execution details, and performance metrics
 - ✅ Show how observability helps in debugging and monitoring agent behavior in real-time
@@ -73,9 +83,9 @@ Use the Agent Framework application created in the previous challenge and add co
 ## Learning Resources
 
 ### Agents Observability
-- [Agent Observability Overview](https://learn.microsoft.com/en-us/agent-framework/user-guide/agents/agent-observability?pivots=programming-language-csharp)
-- [Tutorial - Enabling observability for Agents](https://learn.microsoft.com/en-us/agent-framework/tutorials/agents/enable-observability?pivots=programming-language-csharp)
-- [Sample - Agent Observability with Console Exporter](https://github.com/microsoft/agent-framework/blob/main/dotnet/samples/GettingStarted/Agents/Agent_Step08_Observability)
-- [Sample - OpenTelemetry with the Microsoft Agent Framework](https://github.com/microsoft/agent-framework/blob/main/dotnet/samples/GettingStarted/AgentOpenTelemetry)
-- [Microsoft Agent Framework Workflows - Observability](https://learn.microsoft.com/en-us/agent-framework/user-guide/workflows/observability)
-- [View trace results for AI applications using OpenAI SDK](https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/develop/trace-application)
+- [Agent Observability Overview](https://learn.microsoft.com/en-us/agent-framework/user-guide/agents/agent-observability?pivots=programming-language-python)
+- [Tutorial - Enabling observability for Agents](https://learn.microsoft.com/en-us/agent-framework/tutorials/agents/enable-observability?pivots=programming-language-python)
+- [Sample - Agent Observability with Console Exporter](https://github.com/microsoft/agent-framework/tree/main/python/samples)
+- [OpenTelemetry Python SDK](https://opentelemetry.io/docs/instrumentation/python/)
+- [Microsoft Agent Framework Python Observability](https://github.com/microsoft/agent-framework/tree/main/python)
+- [View trace results for AI applications using OpenTelemetry](https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/develop/trace-application)

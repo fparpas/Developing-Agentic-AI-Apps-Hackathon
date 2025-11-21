@@ -1,0 +1,9 @@
+# Azure AI Agent Service Dependencies
+# For Challenge 05: Travel Policy Compliance Agent
+
+# Azure AI integration
+azure-ai-projects>=0.1.0
+azure-identity>=1.14.0
+
+# Environment and configuration
+python-dotenv>=1.0.0

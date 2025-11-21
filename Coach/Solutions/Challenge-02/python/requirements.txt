@@ -1,0 +1,8 @@
+# Weather MCP Server Dependencies
+# Python 3.10+ required
+
+# Model Context Protocol SDK
+mcp[cli]>=1.2.0
+
+# HTTP client for API requests
+httpx>=0.24.0

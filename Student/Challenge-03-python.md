@@ -5,217 +5,414 @@
 [![](https://img.shields.io/badge/C%20Sharp-lightgray)](Challenge-03-csharp.md)
 [![](https://img.shields.io/badge/Python-blue)](Challenge-03-python.md)
 
-![](https://img.shields.io/badge/Challenge%20Under%20Development-red)
-
 ## Introduction
 
-In this challenge, you will build your first Model Context Protocol (MCP) client using C# and .NET. While in the previous challenge you created an MCP server that provides tools, now you'll create a client that can connect to MCP servers, discover their capabilities, and interact with their tools through an AI assistant.
+In this challenge, you will build your first Model Context Protocol (MCP) client using Python and the Microsoft Agent Framework. While in the previous challenge you created an MCP server that provides tools, now you'll create an agent client that can connect to MCP servers, discover their capabilities, and interact with their tools through an AI assistant.
 
 ## Concepts
 
-An MCP client is responsible for:
+An MCP client using the Agent Framework is responsible for:
 - **Connecting to MCP servers**: Establishing communication with one or more MCP servers via standard transport (typically stdio)
-- **Service discovery**: Listing available tools, resources, and prompts from connected servers
-- **Tool orchestration**: Calling tools on behalf of an AI assistant and handling responses
-- **Session management**: Managing the lifecycle of connections and conversations
+- **Service discovery**: Listing available tools from connected servers
+- **Agent orchestration**: Using an AI agent that can understand natural language and decide which tools to use
+- **Tool execution**: Calling tools on behalf of the agent and handling responses
+- **Conversation management**: Managing the lifecycle of multi-turn conversations
+
+![MCP Client Architecture](./Resources/Diagrams/FunctionCallingWithMCP.jpg)
 
 The typical flow is:
-1. Client connects to one or more MCP servers
-2. Client discovers available tools from each server
-3. User makes a query to the client
-4. Client forwards the query and available tools to an AI assistant
-5. AI assistant decides which tools to use and makes tool calls
-6. Client executes tool calls on the appropriate servers
-7. Client returns results to the AI assistant
-8. AI assistant provides a natural language response to the user
+
+1. Person makes a request
+    - The user initiates an action or query.
+2. MCP Client retrieves tool schema
+   - The MCP Client requests the tools schema from the MCP Server and adds it to the model request.
+3. MCP Server returns tools schema
+   - The MCP Server responds with the tools schema to the MCP Client.
+4. Request sent to the model
+   - The MCP Client sends the user request, conversation history, tools schema, and any previous function results to the AI model.
+5. Model generates a response
+ - The model processes the request and generates a response.
+ - The model decides whether to:
+    - Provide a Chat Response, or
+    - Provide a Function Response (tool invocation)
+6. Handle response
+   - If the response is a Chat Response:
+     - The MCP Client sends the response back to the user.
+    - If the response is a Function Response:
+      - The MCP Client extracts tool function parameters from the model’s response.
+7. Execute function and return result
+    - MCP Server executes function using the provided parameters.
+    - Return function result to the MCP Client and then to the user.
 
 ## Description
 
-In this challenge, you will build a console-based MCP client that can connect to your Weather MCP Server from the previous challenge (or any other MCP server) and provide an interactive chat interface where users can ask questions that leverage the server's tools.
+In this challenge, you will build a Python agent application using the Microsoft Agent Framework that can connect to your Weather MCP Server from the previous challenge (or any other MCP server) and provide an interactive interface where users can ask questions that leverage the server's tools.
 
 ### Task 1: Set up your environment
 
-Create a new .NET console application for the MCP client:
+**For faster dependency management, consider using `uv`:** [`uv` is an extremely fast Python package installer and resolver](https://docs.astral.sh/uv/). It's significantly faster than `pip` (10-100x in many cases) and handles dependency resolution more efficiently. You can install it from https://docs.astral.sh/uv/getting-started/installation/.
 
+Create a new directory for the project:
 ```bash
-dotnet new console -n WeatherMcpClient
-cd WeatherMcpClient
+mkdir mcp_weather_client
+cd mcp_weather_client
 ```
 
-Add the required NuGet packages:
-```bash
-# Add the Model Context Protocol SDK
-dotnet add package ModelContextProtocol.Client --prerelease
-# Add Azure OpenAI client
-dotnet add package Azure.AI.OpenAI --prerelease
+Create a `requirements.txt` file in your project:
+```plaintxt
+# MCP Weather Client Agent Dependencies
+# Python 3.10+ required
+
+# Microsoft Agent Framework (includes pre-release Azure AI Agents)
+agent-framework>=1.0.0b251114
+azure-ai-agents>=1.2.0b5
+
+# Model Context Protocol SDK
+mcp[cli]>=1.2.0
+
+# Environment variable management
+python-dotenv>=1.0.0
 ```
 
-### Task 2: Configure Azure OpenAI and get environment variables
+Create a new Python project for the MCP client agent:
+
+**Using `uv` (recommended for performance):**
+```bash
+# Create a virtual environment
+uv venv .venv
+
+# Activate the virtual environment
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Install the Agent Framework and dependencies
+uv pip install -r requirements.txt
+```
+
+**Or using standard `pip`:**
+```bash
+# Create a virtual environment
+python -m venv .venv
+
+# Activate the virtual environment
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Install the Agent Framework and dependencies
+pip install -r requirements.txt
+```
+
+### Task 2: Configure Azure OpenAI and environment variables
 
 **Prerequisites:**
-1. Create an Azure OpenAI resource in the Azure portal
-2. Deploy a GPT-4 model in your Azure OpenAI resource
-3. Note down your endpoint URL, API key, and deployment name
+1. Have an Azure OpenAI resource deployed with a chat model (e.g., gpt-4o or gpt-4o-mini)
+2. Have the following information:
+   - Endpoint URL
+   - API Key
+   - Deployment name
+   - API version
 
-**Note:** You can find these values in your Azure OpenAI resource:
-- **Endpoint**: In the "Keys and Endpoint" section of your Azure OpenAI resource
-- **API Key**: Also in the "Keys and Endpoint" section
-- **Deployment Name**: The name you gave when deploying your GPT model in Azure OpenAI Studio
-
-Add environment variable setup for Azure OpenAI. Create a `.env` file in your project:
+Create a `.env` file in your project:
 
 ```env
-AZURE_OPENAI_ENDPOINT=https://your-resource-name.openai.azure.com/
+AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
 AZURE_OPENAI_API_KEY=your_azure_openai_api_key_here
-AZURE_OPENAI_DEPLOYMENT_NAME=your_gpt4_deployment_name
+AZURE_OPENAI_DEPLOYMENT_NAME=your_deployment_name
+AZURE_OPENAI_API_VERSION=latest
 ```
 
-Replace the contents of `Program.cs` to get environment variables
+You can start from the provided `.env.sample` file.
 
-```csharp
-using ModelContextProtocol.Client;
-using Azure.AI.OpenAI;
-using Azure;
+> ⚠️ **Never commit your .env file to version control!** Add it to `.gitignore`.
 
-// Initialize Azure OpenAI client
-var endpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT") ?? "<Add your endpoint>";
-var apiKey = Environment.GetEnvironmentVariable("AZURE_OPENAI_API_KEY") ?? "<Add your API key>";
-var deploymentName = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT_NAME") ?? "gpt-4";
+### Task 3: Create an MCP client agent
 
-if (string.IsNullOrEmpty(endpoint) || string.IsNullOrEmpty(apiKey))
-{
-    Console.WriteLine("Please set AZURE_OPENAI_ENDPOINT and AZURE_OPENAI_API_KEY environment variables.");
-    return;
-}
+The Microsoft Agent Framework provides `MCPStdioTool` to simplify connecting to MCP servers. This automatically handles tool discovery and execution. Create a file named `mcp_weather_client.py`:
+
+```python
+"""
+MCP Weather Client Agent - Challenge 03
+
+This module demonstrates integrating MCP tools with the Agent Framework
+using MCPStdioTool for easy tool discovery and execution from MCP servers.
+"""
+
+import asyncio
+import os
+import sys
+from agent_framework import ChatAgent
+from agent_framework.azure import AzureOpenAIResponsesClient
+from agent_framework import MCPStdioTool
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+
+async def main():
+    """Main entry point for the MCP weather client agent."""
+    if len(sys.argv) < 2:
+        print("Usage: python mcp_weather_client.py <path_to_weather_server.py>")
+        print("\nExample:")
+        print("  python mcp_weather_client.py ../../Challenge-02/python/weather.py")
+        sys.exit(1)
+
+    server_path = sys.argv[1]
+
+    # Verify the server file exists
+    if not os.path.exists(server_path):
+        print(f"Error: Server file not found: {server_path}")
+        sys.exit(1)
+
+    # Get Azure OpenAI configuration
+    endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+    api_key = os.getenv("AZURE_OPENAI_API_KEY")
+    deployment_name = os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME")
+    api_version = os.getenv("AZURE_OPENAI_API_VERSION")
+
+    # Validate configuration
+    if not all([endpoint, api_key, deployment_name, api_version]):
+        missing = [
+            var for var, val in [
+                ("AZURE_OPENAI_ENDPOINT", endpoint),
+                ("AZURE_OPENAI_API_KEY", api_key),
+                ("AZURE_OPENAI_DEPLOYMENT_NAME", deployment_name),
+                ("AZURE_OPENAI_API_VERSION", api_version),
+            ] if not val
+        ]
+        print("Error: Missing required environment variables:")
+        for var in missing:
+            print(f"  - {var}")
+        sys.exit(1)
+
+    # Create Azure OpenAI chat client
+    chat_client = AzureOpenAIResponsesClient(
+        endpoint=endpoint,
+        api_key=api_key,
+        deployment_name=deployment_name,
+        api_version=api_version
+    )
+
+    # Create MCP tool for the weather server
+    mcp_tool = MCPStdioTool(
+        name="WeatherMCP",
+        command="python",
+        args=[server_path]
+    )
+
+    # Create agent with MCP tools
+    async with ChatAgent(
+        chat_client=chat_client,
+        name="WeatherAgent",
+        instructions="You are a helpful weather assistant. Use the available MCP tools to answer weather questions accurately.",
+        tools=[mcp_tool]
+    ) as agent:
+        print("\n" + "=" * 60)
+        print("Weather Assistant")
+        print("=" * 60)
+        print("Ask me about the weather. Type 'exit' to quit.\n")
+
+        # Interactive chat loop
+        while True:
+            try:
+                user_input = input("You: ").strip()
+
+                if user_input.lower() in ("exit", "quit", "bye"):
+                    print("Goodbye!")
+                    break
+
+                if not user_input:
+                    continue
+
+                print("Agent: ", end="", flush=True)
+                response = await agent.run(user_input)
+                print(response)
+                print()
+
+            except KeyboardInterrupt:
+                print("\n\nSession ended.")
+                break
+            except Exception as e:
+                print(f"Error: {str(e)}\n")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
 ```
 
-### Task 3: Setup MCP client
-
-Setup the MCP Client. This will create an MCP client that will connect to a server that is provided as a command line argument. It then lists the available tools from the connected server.
-
-```csharp
-var clientTransport = new StdioClientTransport(new()
-{
-    Name = "Weather MCP Server",
-    Command = "dotnet",
-    Arguments = ["run", "--project", "../WeatherMcpServer/WeatherMcpServer.csproj"]
-});
-
-await using var mcpClient = await McpClientFactory.CreateAsync(clientTransport);
-
-var tools = await mcpClient.ListToolsAsync();
-foreach (var tool in tools)
-{
-    Console.WriteLine($"Connected to server with tools: {tool.Name}");
-}
-
-### Task 3: Add Azure OpenAI Integration
-
-Implement the Azure OpenAI integration by adding the following code
-
-```csharp
-
-var openAIClient = new OpenAIClient(new Uri(endpoint), new AzureKeyCredential(apiKey));
-
-var chatCompletionsOptions = new ChatCompletionsOptions(deploymentName, new[]
-    {
-        new ChatRequestUserMessage(query)
-    })
-    {
-        MaxTokens = 1000,
-        Temperature = 0.7f,
-        Tools = ConvertToAzureOpenAITool(tools)
-    };
+## Resulting Project Structure
+```
+mcp_weather_client/
+├── mcp_weather_client.py     # Main agent client implementation
+├── requirements.txt          # Python dependencies
+├── .env                      # Environment variables
+└── .venv/                    # Python Virtual Environment (created during setup)
 ```
 
-This method will convert MCP tools to Azure OpenAI tools.
+## Success Criteria
 
-```csharp
-ChatCompletionsFunctionToolDefinition ConvertToAzureOpenAITool(Tool mcpTool)
-{
-    return new ChatCompletionsFunctionToolDefinition()
-    {
-        Name = mcpTool.Name,
-        Description = mcpTool.Description,
-        Parameters = BinaryData.FromString(JsonSerializer.Serialize(mcpTool.InputSchema))
-    };
-}
-```
+- ✅ A Python agent application using the Microsoft Agent Framework that can connect to MCP servers via stdio
+- ✅ Agent can connect to and discover tools from connected MCP servers
+- ✅ Interactive interface for user queries
+- ✅ Integration with Azure OpenAI chat client for natural language processing
+- ✅ Agent can reason about which tools to use based on user queries
+- ✅ Agent can execute tool calls on MCP servers and return results
+- ✅ User can ask weather-related questions and get natural language responses
+- ✅ Agent works with the Weather MCP Server from Challenge 02
 
-### Task 4: Query processing logic
+## Running Your Agent
 
-Add the core functionality for processing queries and handling tool calls:
-
-```csharp
-
-Console.ForegroundColor = ConsoleColor.Green;
-Console.WriteLine("MCP Client Started!");
-Console.ResetColor();
-
-PromptForInput();
-while(Console.ReadLine() is string query && !"exit".Equals(query, StringComparison.OrdinalIgnoreCase))
-{
-    if (string.IsNullOrWhiteSpace(query))
-    {
-        PromptForInput();
-        continue;
-    }
-
-    var response = await openAIClient.GetChatCompletionsAsync(chatCompletionsOptions);
-
-    Console.Write(response.Value.Choices[0].Message.Content);
-    
-    Console.WriteLine();
-
-    PromptForInput();
-}
-
-static void PromptForInput()
-{
-    Console.WriteLine("Enter a command (or 'exit' to quit):");
-    Console.ForegroundColor = ConsoleColor.Cyan;
-    Console.Write("> ");
-    Console.ResetColor();
-}
-```
-
-### Task 5: Test with your Weather Server
-
-Run your Weather MCP Server from the previous challengeand test the client:
+In a terminal window, run your agent client. The first and only argument
+that you need to pass is the path to the weather MCP server from Challenge-02.
+The client will start the MCP server automatically.
 
 ```bash
-# In one terminal, ensure your weather server works:
-cd WeatherMcpServer
-dotnet run
+python mcp_weather_client.py weather.py
+```
 
-# In another terminal, run your client:
-cd WeatherMcpClient
-dotnet run dotnet run --project ../WeatherMcpServer
+Expected output:
+```
+[10/24/25 16:34:00] INFO     Processing request of type ListToolsRequest              server.py:674
+                    INFO     Processing request of type ListPromptsRequest            server.py:674
+
+============================================================
+Weather Assistant
+============================================================
+Ask me about the weather. Type 'exit' to quit.
+
+You: Is it going to rain tomorrow in Seattle?
+Agent: [10/24/25 15:58:05] INFO     Processing request of type CallToolRequest                                              server.py:674
+[10/24/25 15:58:08] INFO     HTTP Request: GET https://api.weather.gov/points/47.6062,-122.3321 "HTTP/1.1 200 OK"           _client.py:1740
+[10/24/25 15:58:09] INFO     HTTP Request: GET https://api.weather.gov/gridpoints/SEW/125,68/forecast "HTTP/1.1 200 OK"     _client.py:1740
+
+Yes, it's going to rain in Seattle tomorrow.
+
+- **Friday Forecast**:
+  - High Temperature: 61°F
+  - Winds: 9 to 13 mph SSW
+  - Forecast: Rain expected, with a 100% chance of precipitation. New rainfall amounts between a quarter and half of an inch possible.
+
 ```
 
 Try queries like:
 - "What's the weather in Sacramento?"
 - "Are there any weather alerts for California?"
-- "Give me the forecast for New York City"
+- "Give me the forecast for Seattle"
+- "Tell me about weather alerts in Texas"
 
-## Success Criteria
+## Implementation Architecture
 
-- ✅ A .NET MCP client application that can connect to MCP servers over stdio
-- ✅ Client can discover and list tools from connected servers
-- ✅ Interactive console interface for user queries
-- ✅ Integration with Azure OpenAI for natural language processing
-- ✅ AI assistant can decide which tools to use based on user queries
-- ✅ Client can execute tool calls on MCP servers and return results to the AI application
-- ✅ User can ask "What's the weather in Sacramento?" and get a natural language response
-- ✅ Client works with the Weather MCP Server from previous challenge
+### Client Agent Flow
+
+The agent follows this flow when processing user queries:
+
+1. User submits a natural language query
+2. Agent receives the query and analyzes available tools
+3. Azure OpenAI LLM decides which tools to use
+4. MCPStdioTool executes tool calls on the MCP server
+5. Results are processed by the agent
+6. Natural language response is generated
+7. Response is returned to the user
+
+### Key Components
+
+**MCPStdioTool Integration**
+- Creates a tool that wraps the MCP server using stdio transport
+- Automatically discovers and manages tools from the MCP server
+- Seamlessly integrates MCP tools with the Agent Framework
+
+**ChatAgent Integration**
+- Uses Microsoft Agent Framework ChatAgent for agent orchestration
+- Integrates with Azure OpenAI for language understanding
+- Processes user queries and generates responses
+- Automatically manages tool selection and execution
+
+**Error Handling**
+- Environment variable validation with clear error messages
+- Server file existence checking
+- Interactive error recovery with try-except blocks
+- Graceful handling of interrupt signals (Ctrl+C)
+
+## Extending the Client
+
+### Using Different LLM Providers
+
+Switch between providers by using different chat clients:
+
+```python
+# Azure OpenAI (current implementation)
+from agent_framework.azure import AzureOpenAIResponsesClient
+
+# OpenAI
+from agent_framework.openai import OpenAIResponsesClient
+
+# Anthropic
+from agent_framework.anthropic import AnthropicChatClient
+```
+
+### Connecting to Multiple MCP Servers
+
+Create multiple MCPStdioTool instances and pass them to the agent:
+
+```python
+weather_tool = MCPStdioTool(
+    name="WeatherMCP",
+    command="python",
+    args=[weather_server_path]
+)
+
+news_tool = MCPStdioTool(
+    name="NewsMCP",
+    command="python",
+    args=[news_server_path]
+)
+
+async with ChatAgent(
+    chat_client=chat_client,
+    name="MultiToolAgent",
+    instructions="You have access to weather and news tools...",
+    tools=[weather_tool, news_tool]
+) as agent:
+    # Use both tools
+```
+
+## Troubleshooting
+
+**Missing Command-Line Arguments**
+- Run with: `python mcp_weather_client.py <path_to_weather_server.py>`
+- Example: `python mcp_weather_client.py ../../Challenge-02/python/weather.py`
+
+**Server File Not Found**
+- Verify the path to the weather server is correct and relative to your current directory
+- Use absolute paths if you encounter issues with relative paths
+
+**Missing Environment Variables**
+- Verify all required Azure OpenAI settings are in `.env` file:
+  - `AZURE_OPENAI_ENDPOINT`
+  - `AZURE_OPENAI_API_KEY`
+  - `AZURE_OPENAI_DEPLOYMENT_NAME`
+  - `AZURE_OPENAI_API_VERSION`
+- Check that `.env` file is in the current working directory. For convenience, we provide a `.env.sample` file.
+
+**Connection Issues**
+- MCPStdioTool will automatically start the server, so you don't need to run it separately
+- Check that Python 3.10+ is being used
+- Verify the server script is executable and valid
+
+**Import Errors**
+- Reinstall dependencies: `pip install -r requirements.txt`
+- Verify virtual environment is activated: `source .venv/bin/activate`
+- Check that agent-framework is installed: `pip list | grep agent-framework`
+
+**Agent Not Responding**
+- Verify Azure OpenAI API key is valid and has available quota
+- Check network connectivity to Azure OpenAI endpoint
+- Review error messages in console output
 
 ## Learning Resources
 
 - [Model Context Protocol (MCP) Overview](https://modelcontextprotocol.io/)
+- [MCP Python SDK Documentation](https://modelcontextprotocol.io/docs/sdk/python)
 - [MCP Client Quickstart](https://modelcontextprotocol.io/quickstart/client)
-- [C# Client Implementation Guide](https://modelcontextprotocol.io/quickstart/client#c%23)
-- [MCP SDK Documentation](https://modelcontextprotocol.io/docs/sdk)
-- [Azure OpenAI Service Documentation](https://docs.microsoft.com/en-us/azure/cognitive-services/openai/)
-- [Azure OpenAI .NET SDK](https://github.com/Azure/azure-sdk-for-net/tree/main/sdk/openai/Azure.AI.OpenAI)
-- [.NET Hosting Documentation](https://docs.microsoft.com/en-us/dotnet/core/extensions/generic-host)
+- [Microsoft Agent Framework Documentation](https://learn.microsoft.com/en-us/agent-framework/)
+- [Agent Framework Python Samples](https://github.com/microsoft/agent-framework/tree/main/python/samples)
+- [OpenAI API Documentation](https://platform.openai.com/docs)
 - [MCP Architecture](https://modelcontextprotocol.io/legacy/concepts/architecture)
