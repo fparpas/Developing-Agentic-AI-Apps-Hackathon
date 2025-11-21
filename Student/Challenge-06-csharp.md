@@ -1,6 +1,3 @@
-![](https://img.shields.io/badge/For%20Final%20Review-orange)
-![](https://img.shields.io/badge/Collect%20Feedback-orange)
-
 # Challenge 06 - C# - Build your first Agent with Microsoft Agent Framework and integrate with MCP remote server
 
  [< Previous Challenge](./Challenge-05-csharp.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-07-csharp.md)
@@ -192,4 +189,3 @@ AIAgent agent = new AzureOpenAIClient(
 - [Microsoft Agent Framework | GitHub Repository](https://github.com/microsoft/agent-framework)
 - [Microsoft Agent Framework .NET Samples | GitHub Repository](https://github.com/microsoft/agent-framework/tree/main/dotnet/samples)
 - [Microsoft Agent Framework Python Samples | GitHub Repository](https://github.com/microsoft/agent-framework/tree/main/python/samples)
-- [Microsoft Agent Framework MCP Integration Guide](https://learn.microsoft.com/en-us/agent-framework/concepts/tools/adding-mcp-tools?pivots=programming-language-csharp)

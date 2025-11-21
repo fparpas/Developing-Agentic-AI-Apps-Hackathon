@@ -1,8 +1,4 @@
-![](https://img.shields.io/badge/For%20Final%20Review-orange)
-![](https://img.shields.io/badge/Collect%20Feedback-orange)
-
 # Challenge 08 - C# - Develop Agentic AI Applications using Microsoft Agent Framework and Multi-Agent Architectures
-
 [< Previous Challenge](./Challenge-07-csharp.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-09-csharp.md)
 
 [![](https://img.shields.io/badge/C%20Sharp-blue)](Challenge-08-csharp.md)
@@ -34,6 +30,7 @@ To learn more about the supported patterns, refer to the [Microsoft Agent Framew
 |---------|-------------|------------------|
 | **Concurrent** | Broadcasts a task to all agents, collects results independently | Parallel analysis, independent subtasks, ensemble decision making |
 | **Sequential** | Passes the result from one agent to the next in a defined order | Step-by-step workflows, pipelines, multi-stage processing |
+| **Group Chat** | Coordinates multiple agents in a collaborative conversation with a manager controlling speaker selection and flow. | Iterative refinement, collaborative problem-solving, content review. |
 | **Handoff** | Dynamically passes control between agents based on context or rules | Dynamic workflows, escalation, fallback, or expert handoff scenarios |
 
 ### Agents as tools
@@ -66,6 +63,14 @@ Multi-agent orchestration in Microsoft Agent Framework provides a flexible, scal
 ### Starting the Travel MCP Server
 
 The Travel MCP Server provides the travel booking APIs (Amadeus) that the agents will use. Make sure it's running before starting this challenge:
+
+Before starting the Travel MCP Server, you need to register for an Amadeus API key:
+1. Visit the [Amadeus for Developers portal](https://developers.amadeus.com/)
+2. Create an account or sign in
+3. Register your application to obtain your API key and secret
+4. Configure these credentials in your Travel MCP Server settings
+
+To start the Travel MCP Server, open a terminal and navigate to the Travel MCP Server project directory:
 
 ```powershell
 # Navigate to the Travel MCP Server directory
@@ -124,37 +129,36 @@ Examine and decide which orchestration pattern is more suitable for the given sc
 
 To successfully complete this challenge, you must demonstrate:
 
-### ✅ **Understanding of Provided Agents**
+- ✅ **Understanding of Provided Agents**
 
-- [ ] Reviewed all the pre-built agents and understood their capabilities
-- [ ] Understood how each agent integrates with MCP tools from the Travel MCP Server
-- [ ] Understood how the TravelPolicyAgent leverages the AI Foundry persistent agent to validate and comply with travel policies
-- [ ] Can explain the role and purpose of each specialized agent
-- [ ] Explain the difference between chat client agents and persistent agents (TravelPolicyAgent)
+- Reviewed all the pre-built agents and understood their capabilities
+- Understood how each agent integrates with MCP tools from the Travel MCP Server
+- Understood how the TravelPolicyAgent leverages the AI Foundry persistent agent to validate and comply with travel policies
+- Can explain the role and purpose of each specialized agent
+- Explain the difference between chat client agents and persistent agents (TravelPolicyAgent)
 
 ### ✅ **Orchestration Patterns Implementation**
 
-- [ ] Examine the Sequential Workflow with proper agent chaining
-- [ ] Examine the Concurrent Workflow for parallel agent execution
-- [ ] Examine the Handoff Workflow with dynamic agent transitions
-- [ ] Examine the Agents as Tools pattern with a main orchestrator
-- [ ] Demonstrated understanding of when to use each orchestration pattern
-- [ ] Explain to your coach which orchestration pattern is best suited for the given Travel agents scenario
+- Examine the Sequential Workflow with proper agent chaining
+- Examine the Concurrent Workflow for parallel agent execution
+- Examine the Handoff Workflow with dynamic agent transitions
+- Examine the Agents as Tools pattern with a main orchestrator
+- Demonstrated understanding of when to use each orchestration pattern
+- Explain to your coach which orchestration pattern is best suited for the given Travel agents scenario
 
 ### ✅ **Multi-Turn Conversation Capability**
 
-- [ ] Application maintains conversation context across multiple turns
-- [ ] Users can ask follow-up questions and refine their requests
-- [ ] Conversation history is properly managed and passed between agents
-- [ ] Agents build upon previous responses in the conversation
-- [ ] Session state is maintained throughout the interaction
-
+- Application maintains conversation context across multiple turns
+- Users can ask follow-up questions and refine their requests
+- Conversation history is properly managed and passed between agents
+- Agents build upon previous responses in the conversation
+- Session state is maintained throughout the interaction
 ### ✅ **Testing and Demonstration**
 
-- [ ] Successfully demonstrated the selected orchestration pattern to your coach as a multi-turn conversation
-- [ ] Provides meaningful example scenarios for travel planning
-- [ ] Shows how conversation context is maintained across turns
-- [ ] Demonstrates error handling and graceful failure scenarios
+- Successfully demonstrated the selected orchestration pattern to your coach as a multi-turn conversation
+- Provides meaningful example scenarios for travel planning
+- Shows how conversation context is maintained across turns
+- Demonstrates error handling and graceful failure scenarios
 
 ## Learning Resources
 
