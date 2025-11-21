@@ -13,7 +13,7 @@ builder.Services.AddEndpointsApiExplorer();
 
 // Configure for HTTP transport instead of stdio for remote access
 builder.Services.AddMcpServer()
-    .WithStdioServerTransport() // Stdio is used for local access only, you should use another transport for remote access
+    .WithHttpTransport() // Stdio is used for local access only, you should use another transport for remote access
     .WithToolsFromAssembly();
 
 // Configure HttpClient for weather.gov API
