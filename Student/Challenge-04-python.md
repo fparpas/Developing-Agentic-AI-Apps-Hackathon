@@ -332,7 +332,7 @@ Once your MCP server is working locally, it's time to deploy it to Azure so it c
 - Verify your deployment is accessible via the provided URL
 
 # Task 3: Test with MCP Inspector
-**Goal:** Verify your remote MCP server works with real MCP clients
+Verify your remote MCP server works with real MCP clients
 
 **What you'll do:**
 - Run the official MCP Inspector tool

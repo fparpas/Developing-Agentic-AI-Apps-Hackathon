@@ -1,6 +1,3 @@
-![](https://img.shields.io/badge/For%20Final%20Review-orange)
-![](https://img.shields.io/badge/Collect%20Feedback-orange)
-
 # Challenge 05 - C# - Build your first AI Agent with AI Agents Service
 
  [< Previous Challenge](./Challenge-04-csharp.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-06-csharp.md)
@@ -43,31 +40,15 @@ Understanding the agent interaction model:
 - **Runs**: Individual executions of agent processing within a thread
 - **Messages**: User inputs and agent responses within a conversation thread
 
-### AI Agent Architecture
-
-The general architecture for AI agents with file search follows this pattern:
-
-```mermaid
-graph LR
-    A[User Query] --> B[Thread]
-    B --> C[Agent<br/>with File Search]
-    C --> D[Vector Store]
-    D --> E[Documents]
-    E --> F[Document<br/>Chunks]
-    F --> G[Relevant<br/>Content]
-    G --> H[Agent Response]
-    H --> I[Thread]
-    I --> J[Response]
-    J --> A
-```
-
 ## Description
 
 This challenge is divided into two main tasks that will guide you through creating a simple Travel Policy Compliance Agent solution.
 
 ### About the Travel Policy Compliance Agent
 
-You'll build a specialized AI agent that acts as a compliance advisor for company travel policies. This agent will:
+You'll build a specialized AI agent that acts as a compliance advisor for company travel policies. 
+
+The agent will use the company travel policy document as its knowledge base to provide accurate, policy-compliant guidance to employees.
 
 **Core Capabilities:**
 
@@ -76,23 +57,6 @@ You'll build a specialized AI agent that acts as a compliance advisor for compan
 - **Booking Guidance**: Provide recommendations for compliant travel bookings
 - **Exception Handling**: Explain when and how to request policy exceptions
 
-**Agent Architecture for This Challenge:**
-
-```mermaid
-graph LR
-    A[User Query] --> B[Thread]
-    B --> C[Travel Agent<br/>with File Search]
-    C --> D[Vector Store]
-    D --> E[Travel Policy<br/>Documents]
-    E --> F[Policy Document<br/>Chunks]
-    F --> G[Relevant Policy<br/>Content]
-    G --> H[Agent Response]
-    H --> I[Thread]
-    I --> J[Response]
-    J --> A
-```
-
-The agent will use the company travel policy document as its knowledge base to provide accurate, policy-compliant guidance to employees.
 
 ### Task 1: Create and Configure the Agent in Azure AI Foundry
 
@@ -143,8 +107,6 @@ A starter project is provided [here](../Student/Resources/Challenge-05/csharp/Ag
 2. **Interactive Interface Implementation**
    - Create an interactive conversation interface
    - Handle user input and display agent responses
-   - Implement proper error handling for API failures
-   - Provide clear user instructions and feedback
 
 3. **Agent Integration**
    - Establish connection to your Azure AI agent

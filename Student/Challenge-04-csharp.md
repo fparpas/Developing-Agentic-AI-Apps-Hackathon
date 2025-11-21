@@ -1,6 +1,3 @@
-![](https://img.shields.io/badge/For%20Final%20Review-orange)
-![](https://img.shields.io/badge/Collect%20Feedback-orange)
-
 # Challenge 04 - C# - Host MCP Remote Servers on ACA or Azure Functions
 
  [< Previous Challenge](./Challenge-03-csharp.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-05-csharp.md)
@@ -66,7 +63,7 @@ This challenge consists of three main tasks that build upon each other:
 
 **What you'll do:**
 - Complete the incomplete `Program.cs` file
-- Configure MCP server with HTTP transport instead of stdio
+- Configure the MCP server with HTTP transport instead of stdio
 - Add necessary ASP.NET Core services and MCP endpoints
 - Ensure the application runs on port 8080 and handles MCP protocol requests
 
@@ -90,24 +87,20 @@ Your project starting point is located at [Resources/Challenge-04/src/WeatherRem
 **Goal:** Get your MCP server running in the cloud using predefined deployment scripts
 
 **Description:**
-Once your MCP server is working locally, it's time to deploy it to Azure so it can be accessed remotely over the internet. We've provided complete automation scripts for both Azure Container Apps and Azure Functions, along with detailed README files that walk you through the entire deployment process step-by-step.
+Once your MCP server is working locally, it's time to deploy it to Azure so it can be accessed remotely over the internet. We've provided complete automation scripts and detailed README files that walk you through the entire deployment process step-by-step.
 
 **Choose your deployment method:**
 - **Option A:** Azure Container Apps (recommended for flexibility)
-  - Script: [deploy-aca-script.ps1](./Resources/Challenge-04/deploy-aca-script.ps1)
   - Instructions: [Azure Container Apps README](./Resources/Challenge-04/README-ACA.md)
 - **Option B:** Azure Functions (recommended for simplicity)
-  - Script: [deploy-functions-script.ps1](./Resources/Challenge-04/deploy-functions-script.ps1)
   - Instructions: [Azure Functions README](./Resources/Challenge-04/README-Functions.md)
 
 **What you'll do:**
 - Choose your preferred deployment option and read the corresponding README file
-- Use the provided predefined deployment script for your chosen option
-- Run the script to automatically create and deploy all Azure resources
-- Verify your deployment is accessible via the provided URL
+- Follow the deployment instructions to create and deploy all Azure resources
 
 #### Task 3: Test with MCP Inspector
-**Goal:** Verify your remote MCP server works with real MCP clients
+Verify your remote MCP server works with real MCP clients
 
 **What you'll do:**
 - Run the official MCP Inspector tool
