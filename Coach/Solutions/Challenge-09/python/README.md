@@ -179,37 +179,6 @@ You: What's the weather forecast for Seattle?
 Agent: [Calls get_forecast tool and returns detailed weather information]
 ```
 
-*Debug output (stderr):*
-```
-[MCP] Calling tool: get_forecast
-[MCP] Tool arguments: {"latitude": 47.6062, "longitude": -122.3321}
-[MCP] Tool response received (length: 1234 chars)
-```
-
-**Check Weather Alerts:**
-```
-You: Are there any severe weather alerts for California?
-Agent: [Calls get_alerts tool and returns any active alerts]
-```
-
-*Debug output (stderr):*
-```
-[MCP] Calling tool: get_alerts
-[MCP] Tool arguments: {"state": "CA"}
-[MCP] Tool response received (length: 567 chars)
-```
-
-**Exit:**
-```
-You: exit
-Goodbye! Disconnecting from secure MCP server...
-```
-
-*Debug output (stderr):*
-```
-[MCP] Disconnecting from MCP server
-```
-
 ## How It Works
 
 ### Server Implementation
@@ -234,17 +203,6 @@ class ApiKeyAuthMiddleware:
 
 ### Client Implementation
 
-**MCP Debug Logging:**
-```python
-# ANSI color codes for orange text
-ORANGE = "\033[38;5;208m"
-RESET = "\033[0m"
-
-def mcp_debug(message: str) -> None:
-    """Print MCP debug messages to stderr in orange."""
-    print(f"{ORANGE}[MCP] {message}{RESET}", file=sys.stderr, flush=True)
-```
-
 **API Key Injection:**
 ```python
 mcp_tool = MCPStreamableHTTPTool(
@@ -252,21 +210,6 @@ mcp_tool = MCPStreamableHTTPTool(
     url=remote_server_url,
     headers={"X-API-Key": api_key}  # Automatically added to every request
 )
-```
-
-**Tool Call Tracking:**
-```python
-async for update in agent.run_stream(user_query):
-    # Log MCP tool calls with hasattr checks
-    if hasattr(update, 'tool_calls') and update.tool_calls:
-        for tool_call in update.tool_calls:
-            mcp_debug(f"Calling tool: {tool_call.function.name}")
-            mcp_debug(f"Tool arguments: {tool_call.function.arguments}")
-
-    # Log MCP tool responses
-    if hasattr(update, 'tool_call_results') and update.tool_call_results:
-        for result in update.tool_call_results:
-            mcp_debug(f"Tool response received (length: {len(str(result.content))} chars)")
 ```
 
 **Agent Integration:**
