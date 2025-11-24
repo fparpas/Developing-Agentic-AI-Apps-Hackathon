@@ -1,0 +1,17 @@
+{
+  "azure_openai": {
+    "endpoint": "<Your Azure OpenAI endpoint URL, e.g., https://your-resource.openai.azure.com>",
+    "api_key": "<Your Azure OpenAI API key>",
+    "deployment_name": "<Name of your OpenAI model deployment, e.g., gpt-4o>",
+    "model": "<Model name, e.g., gpt-4o>",
+    "embeddings_deployment_name": "<Name of your embeddings deployment, e.g., text-embedding-3-small>",
+    "embeddings_model": "<Embeddings model name, e.g., text-embedding-3-small>"
+  },
+  "azure_ai_search": {
+    "endpoint": "<Your Azure Cognitive Search endpoint URL, e.g., https://your-search-service.search.windows.net>",
+    "search_key": "<Your Azure Cognitive Search admin/query key>",
+    "index_name": "<Name of your search index>",
+    "knowledge_source_name": "<Name of your knowledge source, if used>",
+    "knowledge_agent_name": "<Name of your knowledge agent, if used>"
+  }
+}

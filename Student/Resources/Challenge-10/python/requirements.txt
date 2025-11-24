@@ -1,0 +1,9 @@
+azure-identity>=1.25.1
+azure-core>=1.36.0
+colorama>=0.4.6
+
+# Agentic retrieval is a preview feature.
+# Classes like KnowledgeAgentRetrievalClient,
+# KnowledgeAgent, SearchIndexKnowledgeSource, and related models
+# only exist in this beta version
+azure-search-documents>=11.7.0b7
