@@ -63,8 +63,40 @@ Customize your deployment:
   -ResourceGroupName "my-weathermcp-rg" `
   -Location "West US 2" `
   -ContainerAppName "my-weather-server" `
-  -ContainerAppEnvironment "my-weather-env"
+   -ContainerAppEnvironment "my-weather-env" `
+   -ProjectPath ".\csharp\MCP.Server.Remote.Weather"
 ```
+
+### Project Source Path
+The script now accepts a `-ProjectPath` parameter that points to the root of the source project to build and deploy. By default it uses:
+
+```powershell
+ProjectPath = .\csharp\MCP.Server.Remote.Weather
+```
+
+Override it if your project lives elsewhere (for example a fork or renamed directory):
+
+```powershell
+./deploy-aca-script.ps1 -ProjectPath ".\src\WeatherRemoteMCPServer"
+```
+
+**Important:** For custom container builds, ensure the `ProjectPath` directory includes a `Dockerfile` at its root. When present:
+- `az containerapp up` uses the Dockerfile to build an image
+- The image is built remotely and pushed to an Azure-managed registry (or an existing one if already configured) without requiring local Docker.
+- You can define additional OS packages, multi-stage builds, or custom startup commands in the Dockerfile.
+
+If both a `.csproj` and a `Dockerfile` exist in the same directory, the Dockerfile takes precedence. Remove or rename the Dockerfile if you prefer the automatic source build.
+
+Example custom path with Dockerfile:
+```powershell
+./deploy-aca-script.ps1 -ProjectPath .\containers\WeatherRemoteMCPServer
+```
+Where `containers/WeatherRemoteMCPServer/Dockerfile` contains your custom build instructions.
+
+Minimum requirements for `ProjectPath`:
+1. Either a `.csproj` (for source build) OR a `Dockerfile` (for container build)
+2. Any project dependencies referenced by the Dockerfile must reside under that path
+3. If using Dockerfile, expose the correct port (`8080`) in the final stage
 
 ## 📦 What the Script Does
 
@@ -157,8 +189,8 @@ az containerapp show --name weathermcp-server --resource-group rg-weathermcp-dem
 To update the deployed application with new code:
 
 ```powershell
-# Navigate to the project directory
-cd "<add your-project-path-here>"
+# Navigate to the project directory (default shown; adjust if you overrode -ProjectPath)
+cd ".\csharp\MCP.Server.Remote.Weather"
 
 # Deploy updates
 az containerapp up --name weathermcp-server --resource-group rg-weathermcp-demo --source .

@@ -4,22 +4,25 @@
 # This version uses 'az containerapp up' which automatically handles EVERYTHING:
 # - Creates resource group (if needed)
 # - Creates container app environment (if needed) 
-# - Detects .NET project and builds it in the cloud
+# - Builds a custom container image if a Dockerfile exists at ProjectPath
 # - Deploys to Container Apps
-# NO Docker, NO Dockerfile, NO manual resource creation required!
+# No local Docker engine required; cloud build handles both source and Dockerfile scenarios.
 
 param(
     [Parameter(Mandatory = $false)]
-    [string]$ResourceGroupName = "AgenticAI",
+    [string]$ResourceGroupName = "rg-weathermcp-demo1",
     
     [Parameter(Mandatory = $false)]
-    [string]$Location = "swedencentral",
+    [string]$Location = "eastus",
     
     [Parameter(Mandatory = $false)]
     [string]$ContainerAppName = "weathermcp-server",
     
     [Parameter(Mandatory = $false)]
-    [string]$ContainerAppEnvironment = "weathermcp-env"
+    [string]$ContainerAppEnvironment = "weathermcp-env",
+    
+    [Parameter(Mandatory = $false)]
+    [string]$ProjectPath = ".\csharp\MCP.Server.Remote.Weather"
 )
 
 # Set error action preference
@@ -47,8 +50,7 @@ catch {
     exit 1
 }
 
-# Variables
-$ProjectPath = ".\csharp\MCP.Server.Remote.Weather"
+# ProjectPath now provided as a parameter (see param block). If overriding, pass -ProjectPath "<path>".
 
 try {
     # Deploy using source-to-cloud (creates everything automatically)
@@ -113,4 +115,4 @@ catch {
 }
 
 Write-Host "`n🎉 WeatherRemoteMCPServer has been successfully deployed to Azure Container Apps!" -ForegroundColor Green
-Write-Host "💡 This deployment used source-to-cloud build - no Docker required!" -ForegroundColor Cyan
+Write-Host "💡 Deployment used source-to-cloud build (or Dockerfile if present) - no local Docker required!" -ForegroundColor Cyan

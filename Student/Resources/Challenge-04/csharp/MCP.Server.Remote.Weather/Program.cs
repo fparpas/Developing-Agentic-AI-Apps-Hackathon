@@ -17,10 +17,12 @@ builder.Services.AddMcpServer()
     .WithToolsFromAssembly();
 
 // Configure HttpClientFactory for weather.gov API
-builder.Services.AddHttpClient("WeatherApi", client =>
+// Configure HttpClient for weather.gov API
+builder.Services.AddSingleton(_ =>
 {
-    client.BaseAddress = new Uri("https://api.weather.gov");
+    var client = new HttpClient() { BaseAddress = new Uri("https://api.weather.gov") };
     client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("weather-tool", "1.0"));
+    return client;
 });
 
 
