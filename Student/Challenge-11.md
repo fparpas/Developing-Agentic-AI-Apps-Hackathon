@@ -1,15 +1,12 @@
-![](https://img.shields.io/badge/For%20Final%20Review-orange)
-![](https://img.shields.io/badge/Collect%20Feedback-orange)
-
 # Challenge 11 - Optional - Secure access to MCP servers in API Management
 
-[< Previous Challenge](./Challenge-10-csharp.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-12.md)
+< Previous Challenge ([C#](./Challenge-10-csharp.md) - [Python](./Challenge-10-python.md)) - **[Home](../README.md)** - [Next Challenge >](./Challenge-12.md)
 
 ## Introduction
 
-In the previous challenges, you've built MCP servers and clients, implemented security with API keys, and deployed them remotely. While these implementations provide basic security, enterprise scenarios require more sophisticated security patterns including centralized authentication, authorization policies, rate limiting, and comprehensive monitoring. Azure API Management provides a powerful gateway layer that can secure, govern, and monitor access to your MCP servers at scale.
+In previous challenges, you have built MCP servers and clients, implemented security with API keys, and deployed them remotely. While those implementations provide basic protection, enterprise scenarios require more sophisticated patterns, including centralized authentication, authorization policies, rate limiting, and comprehensive monitoring. Azure API Management provides a powerful gateway layer that can secure, govern, and monitor access to your MCP servers at scale.
 
-In this challenge, you'll learn how to use Azure API Management to secure access to MCP servers, implementing both **inbound security** (protecting your MCP server from unauthorized clients) and **outbound security** (securely calling external APIs from your MCP server tools). This enterprise-grade approach provides centralized security management, detailed analytics, and robust protection for your agentic AI applications.
+In this challenge, you will use Azure API Management to secure access to MCP servers by implementing **inbound security** (protecting your MCP server from unauthorized clients). This enterprise-grade approach provides centralized security management, detailed analytics, and robust protection for your agentic AI applications.
 
 ## Concepts
 
@@ -22,12 +19,14 @@ The Model Context Protocol (MCP) is an open standard that connects AI models and
 Azure API Management supports exposing MCP servers in two primary ways:
 
 #### 1. Existing MCP Server (Proxy Mode)
+
 - Expose MCP-compatible servers hosted externally through API Management
-- Add governance layer to existing MCP implementations
-- Support for servers built with LangChain, LangServe, Azure Logic Apps, Azure Functions
+- Add a governance layer to existing MCP implementations
+- Support servers built with LangChain, LangServe, Azure Logic Apps, Azure Functions, and more
 - Centralize security, monitoring, and access control for distributed MCP servers
 
-#### 2. REST API as MCP Server (will cover this in next challenges)
+#### 2. REST API as MCP Server (covered in upcoming challenges)
+
 - Expose any REST API managed in API Management as an MCP server
 - API operations automatically become MCP tools
 - Transform existing RESTful endpoints into agent-compatible tools
@@ -53,22 +52,6 @@ graph TB
     D -->|Outbound Calls| E[External APIs]
     B -->|Analytics| F[Monitoring & Logging]   
 ```
-
-### Inbound vs Outbound Security
-
-**Inbound Security** protects your MCP server from unauthorized access:
-
-- Client authentication (subscription keys, OAuth tokens)
-- Request validation and rate limiting
-- IP filtering and CORS policies
-- Request transformation and sanitization
-
-**Outbound Security** secures calls made by your MCP server to external services:
-
-- Credential management for backend APIs
-- Token injection and rotation
-- Secure storage of API keys and secrets
-- Authentication to downstream services
 
 ### Authentication Methods
 
@@ -96,13 +79,12 @@ Policies are XML-based configurations that modify request/response behavior:
 - **On-Error**: Applied when errors occur during MCP tool execution
 
 #### Common MCP Governance Patterns
-- **Rate Limiting**: Prevent abuse with `rate-limit-by-key` policies based on client IP or user identity
-- **Authentication**: Validate API keys, OAuth tokens, or subscription keys
-- **IP Filtering**: Restrict access based on client IP addresses
-- **Request Validation**: Ensure proper request format and size limits
-- **Response Caching**: Cache tool responses to improve performance
 
-> **Important**: Do not access the response body using `context.Response.Body` variable within MCP server policies, as this triggers response buffering which interferes with the streaming behavior required by MCP servers.
+- **Rate limiting**: Prevent abuse with `rate-limit-by-key` policies based on client IP or user identity
+- **Authentication**: Validate API keys, OAuth tokens, or subscription keys
+- **IP filtering**: Restrict access based on client IP addresses
+- **Request validation**: Ensure proper request format and size limits
+- **Response caching**: Cache tool responses to improve performance
 
 ## Description
 
@@ -145,46 +127,46 @@ Expose and govern an existing MCP server through API Management.
 
 Apply comprehensive governance policies specifically designed for MCP servers.
 
-1. **Create MCP Policy to Authenticate with API Key**:
+1. **Create MCP Policy to Authenticate with an API Key**:
 
-   Navigate to your MCP server's **Policies** section and add the following policy to require an API key (subscription key) for authentication and forward it to your backend MCP server:
+   Navigate to the MCP server's **Policies** section and add the following policy to require an API key (subscription key) for authentication and forward it to the backend MCP server:
 
    ```xml
    <policies>
-       <inbound>
-           <base />
-           <!-- Require API key via subscription key header -->
-           <check-header name="Ocp-Apim-Subscription-Key" failed-check-httpcode="401" failed-check-error-message="API key (subscription key) required" ignore-case="true" />
-           
-           <!-- Forward API key to backend if needed -->
-           <set-header name="X-API-Key" exists-action="override">
-               <value>@(context.Request.Headers.GetValueOrDefault("Ocp-Apim-Subscription-Key"))</value>
-           </set-header>
-       </inbound>
+     <inbound>
+       <base />
+       <!-- Require API key via subscription key header -->
+       <check-header name="Ocp-Apim-Subscription-Key" failed-check-httpcode="401" failed-check-error-message="API key (subscription key) required" ignore-case="true" />
+       <!-- Forward API key to backend if needed -->
+       <set-header name="X-API-Key" exists-action="override">
+         <value>@(context.Request.Headers.GetValueOrDefault("Ocp-Apim-Subscription-Key"))</value>
+       </set-header>
+     </inbound>
    </policies>
    ```
 
-   This policy ensures that every request to your MCP server must include a valid API key (subscription key), and securely passes it to your backend MCP server for further validation if required.
+   This policy ensures every request to the MCP server includes a valid API key (subscription key) and securely passes it to the backend MCP server for further validation if required.
 
 2. **Optional: Implement OAuth 2.0 with Entra ID**:
-   For enterprise scenarios, replace subscription key with OAuth:
+
+   For enterprise scenarios, replace the subscription key with OAuth:
+
    ```xml
    <policies>
-       <inbound>
-           <validate-azure-ad-token tenant-id="your-entra-tenant-id" 
-                                   header-name="Authorization" 
-                                   failed-validation-httpcode="401" 
-                                   failed-validation-error-message="Unauthorized. Access token is missing or invalid.">
-               <client-application-ids>
-                   <application-id>your-client-application-id</application-id>
-               </client-application-ids>
-           </validate-azure-ad-token>
-           
-           <!-- Forward token to backend -->
-           <set-header name="Authorization" exists-action="override">
-               <value>@(context.Request.Headers.GetValueOrDefault("Authorization"))</value>
-           </set-header>
-       </inbound>
+     <inbound>
+       <validate-azure-ad-token tenant-id="your-entra-tenant-id"
+                   header-name="Authorization"
+                   failed-validation-httpcode="401"
+                   failed-validation-error-message="Unauthorized. Access token is missing or invalid.">
+         <client-application-ids>
+           <application-id>your-client-application-id</application-id>
+         </client-application-ids>
+       </validate-azure-ad-token>
+       <!-- Forward token to backend -->
+       <set-header name="Authorization" exists-action="override">
+         <value>@(context.Request.Headers.GetValueOrDefault("Authorization"))</value>
+       </set-header>
+     </inbound>
    </policies>
    ```
 
@@ -193,6 +175,7 @@ Apply comprehensive governance policies specifically designed for MCP servers.
 Configure your MCP client to work with the secured API Management gateway.
 
 1. **Update MCP Client for Subscription Key Authentication**:
+
    ```csharp
    var clientTransport = new SseClientTransport(new SseClientTransportOptions()
    {
@@ -205,7 +188,7 @@ Configure your MCP client to work with the secured API Management gateway.
    ```
 
 2. **For OAuth 2.0 Authentication** (if implemented):
-   
+
    ```csharp
    // Acquire token from Entra ID
    var app = ConfidentialClientApplicationBuilder
@@ -213,9 +196,9 @@ Configure your MCP client to work with the secured API Management gateway.
        .WithClientSecret(clientSecret)
        .WithAuthority(new Uri($"https://login.microsoftonline.com/{tenantId}"))
        .Build();
-   
+
    var result = await app.AcquireTokenForClient(new[] { scope }).ExecuteAsync();
-   
+
    var clientTransport = new SseClientTransport(new SseClientTransportOptions()
    {
        Endpoint = new Uri("https://<your-apim-name>.azure-api.net/weather-mcp/sse"),
@@ -227,8 +210,9 @@ Configure your MCP client to work with the secured API Management gateway.
    ```
 
 3. **Visual Studio Code MCP Configuration**:
-   Update your VS Code settings to use the secured endpoint with proper authentication:
-   
+
+   Update VS Code settings to use the secured endpoint with authentication:
+
    ```json
    {
      "mcp": {
