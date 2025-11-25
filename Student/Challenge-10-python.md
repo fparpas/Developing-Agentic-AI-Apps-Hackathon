@@ -5,8 +5,6 @@
 [![](https://img.shields.io/badge/C%20Sharp-lightgray)](Challenge-10-csharp.md)
 [![](https://img.shields.io/badge/Python-blue)](Challenge-10-python.md)
 
-![](https://img.shields.io/badge/For%20Final%20Review-orange)
-![](https://img.shields.io/badge/Collect%20Feedback-orange)
 
 ## Introduction
 
@@ -76,7 +74,7 @@ Agentic retrieval enables enterprise scenarios such as:
 ## Description
 In this challenge, you'll complete a partially implemented agentic RAG system that demonstrates how AI agents can intelligently search through a knowledge base about "Earth at Night" using NASA data. The system showcases advanced retrieval capabilities in which the agent decides what to search for and how to synthesize the results.
 
-You'll work with the [starter project](./Resources/Challenge-10/AgenticRAG). The conversational interface is already implemented; your objective is to complete the core agentic retrieval workflow powered by Azure AI Search.
+You'll work with the [starter project](./Resources/Challenge-10/python). The conversational interface is already implemented; your objective is to complete the core agentic retrieval workflow powered by Azure AI Search.
 
 ### Task 1: Set Up Azure Resources
 

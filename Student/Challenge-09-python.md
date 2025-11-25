@@ -1,4 +1,4 @@
-# Challenge 09 - Python - Secure your MCP remote server using an API key
+# Challenge 09 - Python - Secure your remote MCP server with an API Key
 
 [< Previous Challenge](./Challenge-08-python.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-10-python.md)
 

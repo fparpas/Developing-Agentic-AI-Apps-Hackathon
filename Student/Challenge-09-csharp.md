@@ -1,7 +1,4 @@
-![](https://img.shields.io/badge/For%20Final%20Review-orange)
-![](https://img.shields.io/badge/Collect%20Feedback-orange)
-
-# Challenge 09 - C# - Secure your remote MCP server with an API Key
+# Challenge 09 - C# - Secure Your Remote MCP Server with an API Key
 
 [< Previous Challenge](./Challenge-08-csharp.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-10-csharp.md)
 
@@ -10,9 +7,9 @@
 
 ## Introduction
 
-Previously, you worked with MCP servers and clients in both local and remote environments, but these setups lacked authentication and authorization. While this approach might suffice for development or trusted local scenarios, it is not suitable for production. When deploying remote MCP servers accessible over HTTP/HTTPS, it is essential to implement robust authentication for all clients. Exposing an unsecured MCP server to the internet can result in significant security risks (abuse of tools, data exfiltration, quota exhaustion, malicious chaining, etc.).
+Previously, you worked with MCP servers and clients in local and remote environments without authentication or authorization. While that may suffice for local development or trusted scenarios, it is not suitable for production. When deploying remote MCP servers over HTTP/HTTPS, you must implement robust authentication for all clients. Exposing an unsecured MCP server to the internet creates significant security risks (abuse of tools, data exfiltration, quota exhaustion, malicious chaining, etc.).
 
-In this challenge, you will secure your MCP Weather Server by introducing API key authentication. This gives you a simple, explicit credential mechanism while preparing the code structure so you can later upgrade to standards‑based authorization (OAuth 2.1 / OIDC, signed tokens, per‑principal policies) with minimal refactoring.
+In this challenge, you will secure the existing MCP Weather server by introducing API key authentication. This provides a simple, explicit credential mechanism and prepares the code structure so you can later upgrade to standards‑based authorization (OAuth 2.1 / OIDC, signed tokens, per‑principal policies) with minimal refactoring.
 
 ## Concepts
 
@@ -20,42 +17,42 @@ In this challenge, you will secure your MCP Weather Server by introducing API ke
 
 API keys are a simple and effective method for authenticating clients to your MCP server. They provide:
 
-- **Client Identification**: Each client gets a unique key to identify requests
-- **Access Control**: Keys can be revoked or have different permission levels
-- **Usage Tracking**: Monitor which clients are making requests
-- **Rate Limiting**: Control request frequency per client
+- **Client identification**: Each client receives a unique key used to identify requests.
+- **Access control**: Keys can be revoked or assigned distinct permission levels.
+- **Usage tracking**: Monitor which clients initiate requests.
+- **Rate limiting**: Control request frequency per client.
 
 ### MCP Security Considerations
 When securing MCP servers, consider:
-- **Transport Security**: Use HTTPS for encrypted communication
-- **Authentication**: Verify client identity before processing requests
-- **Authorization**: Control which tools/resources clients can access
-- **Input Validation**: Sanitize all inputs to prevent injection attacks
-- **Audit Logging**: Track all requests for security monitoring
-- **Rate Limiting**: Prevent abuse and DoS attacks
+
+- **Transport security**: Use HTTPS for encrypted communication.
+- **Authentication**: Verify client identity before processing requests.
+- **Authorization**: Control which tools/resources clients can access.
+- **Input validation**: Sanitize all inputs to prevent injection attacks.
+- **Audit logging**: Track requests for security monitoring.
+- **Rate limiting**: Prevent abuse and denial‑of‑service (DoS) attacks.
 
 
-#### MCP Server Authorization (High Level)
+#### MCP Server Authorization (High‑Level Overview)
 
 The Model Context Protocol includes an authorization model aligned with OAuth concepts for HTTP transports. This challenge deliberately starts simpler (static API key) so you can focus on the mechanics of securing endpoints. Your handler, routing, and middleware ordering should make it trivial to swap in a standards‑compliant token validator later. See the specs: [MCP Authorization Standards Compliance](https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization#standards-compliance).
 
 ## Description
-In this challenge, you will upgrade your existing Weather MCP Server to enable secure remote access using API key authentication. You will deploy the server to a remote cloud environment and implement proper security measures to protect it.
 
-You will upgrade your existing (previous challenge) Weather MCP Server to require an API key for every MCP request. The work includes:
+In this challenge, you will upgrade the existing Weather MCP server so it requires an API key for every MCP request and supports secure remote access over HTTP. The work includes:
 
-1. Converting (or confirming) the server is exposed via HTTP (remote capable) and not only local process transport.
+1. Confirming the server is exposed via HTTP (remote‑capable) and not only local process transport.
 2. Adding a custom authentication handler that validates an API key from a header.
-3. Registering the authentication + authorization middleware in the correct ASP.NET Core order.
+3. Registering the authentication and authorization middleware in the correct ASP.NET Core order.
 4. Requiring authorization for the MCP endpoint route.
-5. Updating your MCP client to send the header.
+5. Updating your MCP client to send the API key header.
 
 
-> ℹ️ While API keys are a simple way to secure your server, it is generally more secure to authenticate clients using an identity provider such as Microsoft Entra ID (formerly Azure AD) with OAuth 2.0 or OpenID Connect flows. These modern authentication methods provide stronger security, support for user and application identities, token expiration, and advanced access controls. For production scenarios, consider integrating with an identity provider instead of relying solely on API keys. Refer to the solution in the coaches directory for an example of implementing OAuth 2.0 authentication with Entra ID.
+> ℹ️ While API keys are a simple way to secure your server, it is generally more secure to authenticate clients using an identity provider such as Microsoft Entra ID (formerly Azure AD) with OAuth 2.0 or OpenID Connect flows. These modern methods provide stronger security, user and application identities, token expiration, and advanced access controls. For production scenarios, consider integrating with an identity provider instead of relying solely on API keys. Refer to the solution in the `Coach/` directory for an example of implementing OAuth 2.0 authentication with Entra ID.
 
-### Task 1: Convert MCP Server to remote MCP Server
+### Task 1: Convert MCP Server to Remote MCP Server
 
-Ensure that your MCP server is converted into remote MCP server that can handle HTTP requests:
+Ensure that your MCP server runs remotely over HTTP and can handle incoming requests.
 
 ### Task 2: Implement API Key Authentication Handler
 
@@ -99,9 +96,9 @@ public class ApiKeyAuthenticationSchemeOptions : AuthenticationSchemeOptions
 /// - Treats the raw key value as the authenticated principal's name.
 /// - Does not differentiate scopes/roles or persist usage metrics.
 ///
-/// Hard-coded secrets MUST NOT be used in production. Replace <see cref="ValidateApiKey"/> with
+/// Hardcoded secrets MUST NOT be used in production. Replace <see cref="ValidateApiKey"/> with
 /// a call to a secure key store or validation service. Consider hashing stored keys and comparing
-/// constant-time to prevent timing attacks. Avoid logging full keys; if logging is necessary, log only a prefix.
+/// in constant time to reduce timing attack risk. Avoid logging full keys; if logging is necessary, log only a short prefix.
 /// </remarks>
 public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthenticationSchemeOptions>
 {
@@ -200,7 +197,7 @@ builder.Services.AddAuthentication(options =>
 })
 .AddScheme<ApiKeyAuthenticationSchemeOptions, ApiKeyAuthenticationHandler>("ApiKey", options =>
 {
-    options.ApiKeyHeaderName = "X-API-KEY";
+    options.ApiKeyHeaderName = "X-API-Key";
 });
 
 builder.Services.AddAuthorization();
@@ -220,9 +217,9 @@ app.MapMcp().RequireAuthorization();
 app.Run();
 ```
 
-### Task 4: Update the MCP Client to send the API Key
+### Task 4: Update the MCP Client to Send the API Key
 
-Modify your MCP client created in a previous challenge to work with the MCP remote secured server
+Modify the MCP client from a previous challenge to include the API key when calling the secured remote server.
 
 
 ```csharp
@@ -235,27 +232,27 @@ Modify your MCP client created in a previous challenge to work with the MCP remo
                     }
                 });
 ```
-### Task 5: Verify secure communication between MCP Client and Server
 
-To complete this challenge, make sure your MCP client is configured to include the API key in the request headers when communicating with the remote, secured MCP server. After updating your client, test the connection by sending requests to the server:
+### Task 5: Verify Secure Communication Between MCP Client and Server
 
-- If the API key is missing or incorrect, the server should respond with an authentication error (HTTP 401 Unauthorized).
-- If the API key is valid, your client should receive successful responses from the protected MCP endpoints.
+Ensure your MCP client includes the API key in request headers when communicating with the secured remote MCP server. Test the connection by sending requests:
 
-Verify that only requests with the correct API key are processed, confirming that your authentication mechanism is working as intended. This demonstrates secure communication between your MCP client and the remote server.
+- If the API key is missing or incorrect, the server should respond with HTTP 401 (Unauthorized).
+- If the API key is valid, the client should receive successful responses from protected MCP endpoints.
+
+Verify that only requests with the correct API key are processed. This confirms your authentication mechanism works as intended and demonstrates secure communication between the MCP client and the remote server.
 
 ## Success Criteria
-- ✅ Requests without API keys are rejected (authentication enforced)
-- ✅ Only valid API keys can access protected endpoints (authorization verified)
-- ✅ API key authentication system is implemented and functional
-- ✅ All MCP endpoints require valid authentication
-- ✅ Security headers are applied to HTTP responses
-- ✅ MCP client successfully connects to the remote secured server
+
+- ✅ Requests without an API key are rejected (authentication enforced).
+- ✅ Only valid API keys can access protected endpoints (authorization verified).
+- ✅ API key authentication system is implemented and functional.
+- ✅ All MCP endpoints require valid authentication.
+- ✅ MCP client successfully connects to the secured remote server.
 
 ## Learning Resources
 
 - [ASP.NET Core Web API Security](https://docs.microsoft.com/en-us/aspnet/core/security/)
-- [Custom Authentication in ASP.NET Core](https://docs.microsoft.com/en-us/aspnet/core/security/authentication/custom)
 - [API Security Best Practices](https://owasp.org/www-project-api-security/)
 - [Azure Key Vault for Secrets Management](https://docs.microsoft.com/en-us/azure/key-vault/)
 - [HTTP Security Headers](https://owasp.org/www-project-secure-headers/)
@@ -263,5 +260,4 @@ Verify that only requests with the correct API key are processed, confirming tha
 - [Model Context Protocol Security Guidelines](https://modelcontextprotocol.io/docs/security)
 - [HTTPS Enforcement in ASP.NET Core](https://docs.microsoft.com/en-us/aspnet/core/security/enforcing-ssl)
 - [Rate Limiting in ASP.NET Core](https://docs.microsoft.com/en-us/aspnet/core/performance/rate-limit)
-- [API Versioning Best Practices](https://docs.microsoft.com/en-us/aspnet/core/web-api/advanced/versioning)
  
