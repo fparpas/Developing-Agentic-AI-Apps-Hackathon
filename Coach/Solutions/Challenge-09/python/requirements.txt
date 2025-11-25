@@ -1,0 +1,29 @@
+# Secure Weather MCP Server and Client - Challenge 09 Solution
+
+# Server Dependencies
+# -------------------
+
+# FastAPI web framework for HTTP server
+fastapi>=0.104.0
+
+# ASGI server for running FastAPI
+uvicorn[standard]>=0.24.0
+
+# MCP SDK for server functionality
+mcp[cli]>=1.2.0
+
+# HTTP client for National Weather Service API
+httpx>=0.24.0
+
+# Starlette for middleware (included with FastAPI)
+starlette>=0.27.0
+
+# Environment variable management
+python-dotenv>=1.0.0
+
+# Client Dependencies
+# -------------------
+
+# Microsoft Agent Framework for client agent capabilities
+agent-framework>=0.1.0
+azure-ai-agents>=1.2.0b5
