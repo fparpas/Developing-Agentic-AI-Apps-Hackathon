@@ -1,14 +1,35 @@
-"""Travel Multi-Agent Client (Python)
+"""Travel Multi-Agent Client (Python) - Challenge 08
 
-Using Microsoft Agent Framework Python SDK. The coordinator chats with the user,
-then hands work to specialists that optionally call MCP tools backed by the Amadeus API.
+CHALLENGE OBJECTIVES:
+- Understand different agent orchestration patterns and when to use each
+- Implement dynamic agent handoff based on conversation context
+- Manage shared conversation state across multiple specialized agents
+- Integrate persistent agents (policy checker) with ephemeral chat agents
+
+ARCHITECTURE OVERVIEW:
+The C# Microsoft Agent Framework provides AgentWorkflowBuilder with four orchestration patterns:
+  1. Sequential: Agents execute in a fixed order (pipeline)
+  2. Concurrent: All agents run in parallel (broadcast)
+  3. Handoff: Coordinator dynamically delegates to specialists based on context
+  4. Agents-as-Tools: One orchestrator calls specialists as callable functions
 
 In C#, AgentWorkflowBuilder.CreateHandoffBuilderWith(...).WithHandoff(...) is part of
-Microsoft’s Agents/Workflow layer, which sits on top of the same SDK but adds orchestration
+Microsoft's Agents/Workflow layer, which sits on top of the same SDK but adds orchestration
 primitives, event streams, etc. The Python preview SDK currently exposes the raw building
 blocks (chat client + agents + threads + tools) but does not yet surface the workflow
 builder APIs, so we reproduce the pattern manually.
 
+YOUR TASK:
+Complete the TravelMultiAgentClient class to:
+1. Initialize all specialist agents with proper tools and instructions
+2. Implement the handoff workflow loop with agent switching logic
+3. Parse HANDOFF: markers from agent responses to determine next agent
+4. Build context-aware prompts that include conversation history
+5. Maintain conversation state across agent handoffs
+6. Integrate with the Azure AI Foundry policy agent for compliance checking
+
+The agent specifications, helper utilities, and scaffolding are provided. Focus on
+understanding the orchestration architecture and implementing the core workflow logic.
 """
 
 # Only needed for Python versions < 3.11
@@ -76,7 +97,19 @@ class AgentSpec:
 
 
 def build_agent_specs(current_date: str, travel_tool: MCPStdioTool) -> List[AgentSpec]:
-    """Return the ordered agent specs used throughout the workflow."""
+    """Return the ordered agent specs used throughout the workflow.
+
+    ORCHESTRATION PATTERNS NOTE:
+    In C#, Microsoft Agent Framework provides AgentWorkflowBuilder with:
+    - Sequential workflow: AgentWorkflowBuilder.BuildSequential(agents)
+    - Concurrent workflow: AgentWorkflowBuilder.BuildConcurrent(agents)
+    - Handoff workflow: AgentWorkflowBuilder.CreateHandoffBuilderWith(coord).WithHandoff(...)
+    - Agents-as-Tools: agent.AsAIFunction() to wrap agents as callable tools
+
+    The Python SDK exposes ChatAgent, threads, and tools as primitives.
+    This implementation demonstrates the Handoff pattern by manually coordinating
+    agent transitions based on HANDOFF: markers in agent responses.
+    """
 
     return [
         AgentSpec(
@@ -250,46 +283,52 @@ class ConversationTurn:
 
 class TravelMultiAgentClient:
     def __init__(self) -> None:
-        self.exit_stack = AsyncExitStack()
-        self.agents: Dict[str, ChatAgent] = {}
-        self.agent_threads: Dict[str, Any] = {}
-        self.agent_labels: Dict[str, str] = {}
-        self.current_agent_key = "coordinator"
-        self.pending_agent: Optional[str] = None
-        self.pending_prompt: Optional[str] = None
-        self.last_user_message: str = ""
-        self.transcript: List[ConversationTurn] = []
-        self.trip_notes: List[str] = []
-        self.policy_available = policy_agent_configured()
+        # TODO: Initialize instance variables for managing the multi-agent workflow:
+        #
+        # 1. self.exit_stack = AsyncExitStack() - for resource management
+        # 2. self.agents: Dict[str, ChatAgent] = {} - store ChatAgent instances by key
+        # 3. self.agent_threads: Dict[str, Any] = {} - maintain separate threads per agent
+        # 4. self.agent_labels: Dict[str, str] = {} - display names for each agent
+        # 5. self.current_agent_key = "coordinator" - track which agent is active
+        # 6. self.pending_agent: Optional[str] = None - queue next agent for auto-handoff
+        # 7. self.pending_prompt: Optional[str] = None - prompt for pending agent
+        # 8. self.last_user_message: str = "" - cache latest user input
+        # 9. self.transcript: List[ConversationTurn] = [] - conversation history
+        # 10. self.trip_notes: List[str] = [] - collect specialist recommendations
+        # 11. self.policy_available = policy_agent_configured() - check if policy agent exists
+        pass
 
     async def initialize(self) -> None:
-        settings = AzureOpenAISettings.from_env()
-        chat_client = AzureOpenAIResponsesClient(**settings.to_client_kwargs())
-
-        server_path = Path(os.getenv("TRAVEL_MCP_SERVER_PATH", "travel_mcp_server/server.py"))
-        if not server_path.exists():
-            raise FileNotFoundError(
-                f"Travel MCP server not found at {server_path}. Set TRAVEL_MCP_SERVER_PATH or copy the server folder."
-            )
-
-        mcp_tool = MCPStdioTool(name="TravelMCP", command=sys.executable, args=[str(server_path.resolve())])
-        today = datetime.utcnow().strftime("%Y-%m-%d")
-        specs = build_agent_specs(today, mcp_tool)
-
-        for spec in specs:
-            agent = await self.exit_stack.enter_async_context(
-                ChatAgent(chat_client=chat_client, name=spec.name, instructions=spec.instructions, tools=spec.tools)
-            )
-            self.agents[spec.key] = agent
-            self.agent_threads[spec.key] = agent.get_new_thread()
-            self.agent_labels[spec.key] = spec.display_name or spec.name
-
-        self.current_agent_key = "coordinator"
-        print("[OK] Agents ready. Coordinator is the entry point.\n")
-        if self.policy_available:
-            print("[OK] Travel policy agent configured. Use the 'policy' command to invoke it.\n")
-        else:
-            print("[INFO] Travel policy agent not configured (optional).\n")
+        # TODO: Complete the agent initialization workflow:
+        #
+        # STEP 1: Load Azure OpenAI configuration
+        #   - Use AzureOpenAISettings.from_env() to load settings from environment
+        #   - Create AzureOpenAIResponsesClient using settings.to_client_kwargs()
+        #
+        # STEP 2: Set up the Travel MCP Server connection
+        #   - Get server path from TRAVEL_MCP_SERVER_PATH env var (default: "travel_mcp_server/server.py")
+        #   - Validate the server file exists
+        #   - Create MCPStdioTool with name="TravelMCP", command=sys.executable, args=[server_path]
+        #
+        # STEP 3: Build agent specifications
+        #   - Get current date as string (YYYY-MM-DD format)
+        #   - Call build_agent_specs(current_date, mcp_tool) to get agent definitions
+        #
+        # STEP 4: Create and register all agents
+        #   - For each AgentSpec in the list:
+        #     a) Create ChatAgent using await self.exit_stack.enter_async_context()
+        #        Pass: chat_client, name=spec.name, instructions=spec.instructions, tools=spec.tools
+        #     b) Store agent in self.agents[spec.key]
+        #     c) Get a new thread: self.agent_threads[spec.key] = agent.get_new_thread()
+        #     d) Store display name: self.agent_labels[spec.key] = spec.display_name or spec.name
+        #
+        # STEP 5: Set initial state
+        #   - Set self.current_agent_key = "coordinator"
+        #   - Print initialization success message
+        #   - Check self.policy_available and print appropriate message
+        #
+        # HINT: Use async context manager pattern to ensure proper resource cleanup
+        pass
 
     def record_turn(self, speaker: str, content: str) -> None:
         content = content.strip()
@@ -315,17 +354,18 @@ class TravelMultiAgentClient:
         return "\n".join(f"{turn.speaker}: {turn.content}" for turn in recent)
 
     def build_prompt(self, agent_key: str, latest_input: str) -> str:
-        context = self.render_context()
-        pieces = []
-        if context:
-            pieces.append("Conversation so far:\n" + context)
-        pieces.append("Latest user request:\n" + latest_input)
-        if agent_key != "coordinator":
-            pieces.append(
-                "If you are done, place `HANDOFF:Coordinator` on its own line so the"
-                " coordinator resumes the conversation."
-            )
-        return "\n\n".join(pieces)
+        # TODO: Build a context-aware prompt for the agent:
+        #
+        # 1. Get recent conversation context using self.render_context()
+        # 2. Create a list of prompt pieces:
+        #    - If context exists, add "Conversation so far:\n" + context
+        #    - Add "Latest user request:\n" + latest_input
+        #    - For non-coordinator agents, add handoff instruction:
+        #      "If you are done, place `HANDOFF:Coordinator` on its own line so the coordinator resumes the conversation."
+        # 3. Join all pieces with "\n\n" separator and return
+        #
+        # This ensures each agent has conversation context to maintain continuity
+        pass
 
     def build_policy_summary(self) -> str:
         if self.trip_notes:
@@ -333,25 +373,26 @@ class TravelMultiAgentClient:
         return self.render_context(limit=8)
 
     def parse_handoff(self, response_text: str) -> Optional[str]:
-        for line in response_text.splitlines():
-            stripped = line.strip()
-            upper_line = stripped.upper()
-            index = upper_line.find(HANDOFF_PREFIX)
-            if index == -1:
-                continue
-            target_part = stripped[index + len(HANDOFF_PREFIX) :]
-            target = target_part.strip(" *`_-\t").lower()
-            mapping = {
-                "coordinator": "coordinator",
-                "flight": "flight",
-                "hotel": "hotel",
-                "activity": "activity",
-                "transfer": "transfer",
-                "reference": "reference",
-            }
-            if target in mapping:
-                return mapping[target]
-        return None
+        # TODO: Parse agent responses for HANDOFF: markers to determine next agent
+        #
+        # The handoff workflow relies on agents explicitly stating which agent should
+        # respond next by including a line like "HANDOFF:Flight" or "HANDOFF:Coordinator"
+        #
+        # Implementation steps:
+        # 1. Split response_text into individual lines
+        # 2. For each line:
+        #    a) Strip whitespace and convert to uppercase for comparison
+        #    b) Check if line contains HANDOFF_PREFIX ("HANDOFF:")
+        #    c) If found, extract the text after the colon
+        #    d) Clean the target name (remove special chars, convert to lowercase)
+        #    e) Map to valid agent keys using a dictionary:
+        #       {"coordinator": "coordinator", "flight": "flight", "hotel": "hotel",
+        #        "activity": "activity", "transfer": "transfer", "reference": "reference"}
+        #    f) If target matches a valid agent, return the mapped key
+        # 3. If no valid handoff found, return None
+        #
+        # HINT: Use str.find() or "in" operator to locate HANDOFF_PREFIX
+        pass
 
     async def run(self) -> None:
         print("=" * 70)
@@ -361,79 +402,38 @@ class TravelMultiAgentClient:
 
         while True:
             try:
-                if self.pending_agent:
-                    agent_key = self.pending_agent
-                    user_input = self.pending_prompt or self.last_user_message or "Continue assisting the user."
-                    self.pending_agent = None
-                    self.pending_prompt = None
-                    auto_mode = True
-                else:
-                    agent_key = self.current_agent_key
-                    label = self.agent_labels.get(agent_key, agent_key.title())
-                    user_input = input(f"You [{label}]: ").strip()
-                    auto_mode = False
-                    if not user_input:
-                        continue
+                # TODO: Implement the handoff workflow pattern
+                #
+                # This is the core orchestration loop that coordinates multiple agents.
+                #
+                # KEY STEPS:
+                # 1. Check if there's a pending agent handoff (self.pending_agent)
+                #    - If yes, use that agent automatically and clear the pending state
+                #    - If no, prompt the user for input
+                #
+                # 2. Handle special commands: "exit", "summary", "policy"
+                #    - exit: break the loop
+                #    - summary: print self.trip_notes if available
+                #    - policy: call run_policy_check() with conversation summary
+                #
+                # 3. Get the active agent and its thread from your dictionaries
+                #
+                # 4. Build the prompt using self.build_prompt(agent_key, user_input)
+                #
+                # 5. Stream the agent's response:
+                #    - Use: async for update in agent.run_stream(prompt, thread=thread)
+                #    - Print each chunk and accumulate the full response
+                #
+                # 6. Record the conversation turn and capture notes for the summary
+                #
+                # 7. Parse for handoff using self.parse_handoff(response_text)
+                #    - If handoff found, update self.current_agent_key and self.pending_agent
+                #    - Print a handoff message to show which agent is next
+                #
+                # HINT: Look at the C# Program.cs StartInteractiveChat(Workflow workflow) method
+                # for reference on handling the workflow pattern.
 
-                    lowered = user_input.lower()
-                    if lowered in {"exit", "quit"}:
-                        print("\nThanks for planning with the travel assistant!")
-                        break
-                    if lowered == "summary":
-                        if self.trip_notes:
-                            print("\n[Trip Summary]\n" + "\n".join(self.trip_notes) + "\n")
-                        else:
-                            print("\n[Trip Summary] No specialist notes yet.\n")
-                        continue
-                    if lowered == "policy":
-                        conversation_summary = self.build_policy_summary()
-                        if not conversation_summary:
-                            print("\nAdd some trip details before running a policy check.\n")
-                            continue
-                        if not policy_agent_configured():
-                            self.policy_available = False
-                            print("\nTravel policy agent not configured.\n")
-                            continue
-                        self.policy_available = True
-                        print("\n[Policy] Checking itinerary...\n")
-                        result = await run_policy_check(conversation_summary)
-                        print(result + "\n")
-                        continue
-
-                    self.last_user_message = user_input
-                    self.record_turn("User", user_input)
-
-                label = self.agent_labels.get(agent_key, agent_key.title())
-                agent = self.agents[agent_key]
-                prompt = self.build_prompt(agent_key, user_input)
-                thread = self.agent_threads[agent_key]
-
-                if not auto_mode:
-                    print()
-                print(f"{label}: ", end="", flush=True)
-                response_text = ""
-                async for update in agent.run_stream(prompt, thread=thread):
-                    chunk = update.text or ""
-                    print(chunk, end="", flush=True)
-                    response_text += chunk
-                print("\n")
-
-                self.record_turn(label, response_text)
-                self.capture_trip_note(agent_key, response_text)
-
-                handoff_target = self.parse_handoff(response_text)
-                if handoff_target:
-                    if handoff_target == "coordinator":
-                        self.current_agent_key = "coordinator"
-                        print("[Handoff → Coordinator]\n")
-                    else:
-                        self.current_agent_key = handoff_target
-                        self.pending_agent = handoff_target
-                        self.pending_prompt = response_text or self.last_user_message
-                        next_label = self.agent_labels.get(handoff_target, handoff_target.title())
-                        print(f"[Handoff → {next_label}]\n")
-                else:
-                    self.current_agent_key = "coordinator"
+                pass
 
             except KeyboardInterrupt:
                 print("\nSession interrupted. Goodbye!\n")

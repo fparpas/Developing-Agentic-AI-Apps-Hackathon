@@ -1,22 +1,23 @@
 """
-Remote MCP Server for Azure Deployment - Challenge 04 Solution
+Remote MCP Server for Azure Deployment - Challenge 04
 
-This module implements an MCP server using FastAPI for HTTP transport,
-making it suitable for deployment on Azure Container Apps or Azure Functions.
+This module implements an MCP server that currently uses stdio transport
+for local testing. Your challenge is to modify it to use HTTP transport
+for remote deployment on Azure.
 
-The server is containerized and runs as a web service, allowing remote
-clients to access weather tools via HTTP instead of stdio.
+TODO: Convert this server from stdio to HTTP transport for Azure deployment.
+      - Add FastAPI integration for HTTP endpoints
+      - Configure for remote access via HTTP
+      - Add health check endpoint for Azure Container Apps
+      - Ensure the server can be containerized and deployed
 """
 
 from typing import Any
 import httpx
-from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
 from mcp.server.fastmcp import FastMCP
-from mcp.server import ServerOptions
 
-# Initialize FastMCP server with FastAPI
+# Initialize FastMCP server
 mcp = FastMCP("weather")
 
 # Constants for the National Weather Service API
@@ -119,46 +120,23 @@ Forecast: {period['detailedForecast']}
     return "\n---\n".join(forecasts)
 
 
-# Create FastAPI application
-app = FastAPI(title="Weather MCP Server", version="1.0.0")
+# TODO: Add FastAPI integration for HTTP transport
+#       1. Import FastAPI and create an app instance
+#       2. Add health check endpoint at /health for Azure monitoring
+#       3. Add root endpoint at / with server information
+#       4. Integrate MCP with FastAPI for HTTP communication
+#       5. Configure uvicorn to run on 0.0.0.0:8000
 
 
-@app.get("/health")
-async def health_check():
-    """Health check endpoint for Azure deployment."""
-    return {"status": "healthy", "service": "weather-mcp-server"}
+def main():
+    """Initialize and run the MCP server.
 
-
-@app.get("/")
-async def root():
-    """Root endpoint providing server information."""
-    return {
-        "name": "Weather MCP Server",
-        "version": "1.0.0",
-        "description": "MCP server providing weather forecasts and alerts",
-        "tools": ["get_forecast", "get_alerts"],
-        "documentation": "/docs"
-    }
-
-
-# Integrate MCP with FastAPI
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """Lifespan context manager for FastAPI."""
-    yield
-
-
-app.router.lifespan_context = lifespan
+    Currently uses stdio transport for local testing.
+    TODO: Modify to support HTTP transport for remote Azure deployment.
+    """
+    # Run with stdio transport for local testing
+    mcp.run(transport='stdio')
 
 
 if __name__ == "__main__":
-    import uvicorn
-
-    # Run the server on port 8000 (Azure will expose it on port 80)
-    # Use 0.0.0.0 to accept connections from any interface
-    uvicorn.run(
-        app,
-        host="0.0.0.0",
-        port=8000,
-        log_level="info"
-    )
+    main()
