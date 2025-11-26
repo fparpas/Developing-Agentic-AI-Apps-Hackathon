@@ -204,3 +204,4 @@ Try queries like:
 - [Azure OpenAI Service Documentation](https://docs.microsoft.com/en-us/azure/cognitive-services/openai/)
 - [Azure OpenAI .NET SDK](https://github.com/Azure/azure-sdk-for-net/tree/main/sdk/openai/Azure.AI.OpenAI)
 - [MCP Architecture](https://modelcontextprotocol.io/legacy/concepts/architecture)
+- [Deep Dive: Understanding MCP Client-Server Communication with Agent and LLM](https://medium.com/@jamestang/deep-dive-understanding-mcp-client-server-communication-with-agent-and-llm-aa4782a65991)
