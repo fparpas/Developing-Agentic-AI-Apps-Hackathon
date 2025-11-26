@@ -137,7 +137,6 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from mcp.server.fastmcp import FastMCP
-from mcp.server import ServerOptions
 
 # TODO: Initialize FastMCP server with FastAPI
 # ❌ Remove the comment below and complete the initialization
