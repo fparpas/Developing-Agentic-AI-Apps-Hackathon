@@ -329,3 +329,4 @@ The Inspector opens in your browser (or prints a local URL). Keep the terminal o
 - [GitHub Copilot in VS Code](https://code.visualstudio.com/docs/editor/github-copilot)
 - [Weather.gov API](https://www.weather.gov/documentation/services-web-api)
 - [MCP Inspector](https://modelcontextprotocol.io/legacy/tools/inspector)
+- [Deep Dive: Understanding MCP Client-Server Communication with Agent and LLM](https://medium.com/@jamestang/deep-dive-understanding-mcp-client-server-communication-with-agent-and-llm-aa4782a65991)
