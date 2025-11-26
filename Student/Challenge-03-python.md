@@ -279,7 +279,7 @@ that you need to pass is the path to the weather MCP server from Challenge-02.
 The client will start the MCP server automatically.
 
 ```bash
-python mcp_weather_client.py weather.py
+python mcp_weather_client.py ../../Challenge-02/python/weather.py
 ```
 
 Expected output:
