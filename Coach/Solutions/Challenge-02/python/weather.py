@@ -15,6 +15,7 @@ Desktop or VS Code Copilot Chat to discover and invoke the tools.
 from typing import Any
 import httpx
 from mcp.server.fastmcp import FastMCP
+import sys
 
 # Initialize FastMCP server - automatically handles stdio transport
 # The name "weather" identifies this server to MCP hosts
@@ -174,6 +175,7 @@ def main():
     JSON-RPC messages. The server will automatically discover and register
     the tools decorated with @mcp.tool().
     """
+    print('[INFO] MCP server is up.', file=sys.stderr)
     mcp.run(transport='stdio')
 
 
