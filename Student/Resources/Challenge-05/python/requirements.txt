@@ -1,0 +1,4 @@
+# Challenge 05: Travel Policy Compliance Agent
+azure-ai-projects>=0.1.0
+azure-identity>=1.14.0
+python-dotenv>=1.0.0

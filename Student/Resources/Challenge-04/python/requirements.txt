@@ -1,0 +1,14 @@
+# MCP Remote Server Requirements - Challenge 04
+# Currently configured for local testing with stdio transport
+
+# MCP SDK
+mcp[cli]>=1.2.0
+
+# HTTP Client for weather API calls
+httpx>=0.24.0
+
+# TODO: Add dependencies needed for HTTP transport and Azure deployment:
+#       - fastapi>=0.104.0
+#       - uvicorn[standard]>=0.24.0
+#       - azure-identity>=1.14.0 (for Azure deployment)
+#       - azure-functions>=1.18.0 (only if deploying to Azure Functions)
