@@ -14,7 +14,6 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from mcp.server.fastmcp import FastMCP
-from mcp.server import ServerOptions
 
 # Initialize FastMCP server with FastAPI
 mcp = FastMCP("weather")
