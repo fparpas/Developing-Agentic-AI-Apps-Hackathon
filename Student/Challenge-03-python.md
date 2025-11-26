@@ -19,7 +19,7 @@ The MCP client is responsible for:
 - **Tool orchestration**: Calling tools on behalf of an AI assistant and handling responses
 - **Session management**: Managing the lifecycle of connections and conversations
 
-### MCP Function Calling 
+### MCP Function Calling
 
 ### What is Function Calling?
 
@@ -78,7 +78,7 @@ Create a `requirements.txt` file in your project:
 # Python 3.10+ required
 
 # Microsoft Agent Framework (includes pre-release Azure AI Agents)
-agent-framework>=1.0.0b251114
+agent-framework>=0.1.0
 azure-ai-agents>=1.2.0b5
 
 # Model Context Protocol SDK
