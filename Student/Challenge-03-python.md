@@ -430,3 +430,4 @@ async with ChatAgent(
 - [Agent Framework Python Samples](https://github.com/microsoft/agent-framework/tree/main/python/samples)
 - [OpenAI API Documentation](https://platform.openai.com/docs)
 - [MCP Architecture](https://modelcontextprotocol.io/legacy/concepts/architecture)
+- [Deep Dive: Understanding MCP Client-Server Communication with Agent and LLM](https://medium.com/@jamestang/deep-dive-understanding-mcp-client-server-communication-with-agent-and-llm-aa4782a65991)
