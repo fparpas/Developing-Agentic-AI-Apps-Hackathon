@@ -86,6 +86,7 @@ Create a file named `weather.py` in your project directory with the following co
 from typing import Any
 import httpx
 from mcp.server.fastmcp import FastMCP
+import sys
 
 # Initialize FastMCP server - this automatically handles stdio transport
 mcp = FastMCP("weather")
@@ -227,6 +228,7 @@ def main():
     This starts the server listening on stdio, which allows MCP hosts
     (like Claude Desktop or VS Code) to communicate with it.
     """
+    print('[INFO] MCP server is up.', file=sys.stderr)
     mcp.run(transport='stdio')
 
 
