@@ -259,7 +259,7 @@ Option A: Visual Studio Code (GitHub Copilot Chat)
 			"type": "stdio",
 			"command": "/absolute/path/to/.venv/bin/python",
 			"args": [
-				"/absolute/path/to/.venv/weather.py"
+				"/absolute/path/to/weather.py"
 			]
 		}
 	}
@@ -277,24 +277,16 @@ Option B: Claude Desktop
 {
   "mcpServers": {
     "weather": {
-      "command": "python",
+      "command": "/absolute/path/to/.venv/bin/python",
       "args": ["/absolute/path/to/weather.py"]
     }
   }
 }
 ```
 
-### Task 7: Use raw JSON or MCP Inspector for testing and debugging Model Context Protocol servers
+### Task 7: Use MCP Inspector for testing and debugging Model Context Protocol servers
 
-You can manually send a JSON message to the MCP server to do basic testing. Run the server and paste the following message to stdin.
-
-```json
-{ "jsonrpc": "2.0", "id": 1, "method": "initialize", "params": { "protocolVersion": "2024-11-05", "capabilities": {}}}
-```
-
-The high-ceremony way to test the server is to use MCP Inspector.
-
-The [MCP Inspector](https://modelcontextprotocol.io/legacy/tools/inspector) is an interactive developer tool for testing and debugging MCP servers. It lets you start/attach servers, call tools with JSON inputs, inspect requests/responses, and view logs.
+[MCP Inspector](https://modelcontextprotocol.io/legacy/tools/inspector) is an interactive developer tool for testing and debugging MCP servers. It lets you start/attach servers, call tools with JSON inputs, inspect requests/responses, and view logs.
 
 1. Prerequisites
     - Node.js 18+ installed
@@ -309,7 +301,7 @@ The Inspector opens in your browser (or prints a local URL). Keep the terminal o
 3. Configure a server via the UI
      - In the Inspector, add the MCP server
      - Choose `stdio`
-     - Command: `.venv/bin/python` (path to python binary from your venv)
+     - Command: `/absolute/path/to/.venv/bin/python` (path to python binary from your venv)
      - Args: `/absolute/path/to/weather.py`
      - Use the UI to:
          - List tools (`get_forecast`, `get_alerts`)
