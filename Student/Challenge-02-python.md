@@ -291,9 +291,9 @@ The Inspector opens in your browser (or prints a local URL). Keep the terminal o
 
 3. Configure a server via the UI
      - In the Inspector, add the MCP server
-     - Choose `Stdio`
-     - Command: `python`
-     - Args: `/ABSOLUTE/PATH/TO/weather.py`
+     - Choose `stdio`
+     - Command: `.venv/bin/python` (path to python binary from your venv)
+     - Args: `/absolute/path/to/weather.py`
      - Use the UI to:
          - List tools (`get_forecast`, `get_alerts`)
          - Invoke a tool and provide JSON input, for example:
