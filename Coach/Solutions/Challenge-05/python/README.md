@@ -74,11 +74,11 @@ Advisor: Exceptions require approval from the Travel Department...
 
 ## Success Criteria Met
 
-✅ AI Agent built with Azure AI Agent Service
-✅ File search capability for policy documents
-✅ Answers travel policy questions accurately
-✅ Maintains conversation context
-✅ Professional guidance on compliance
+- ✅ AI Agent built with Azure AI Agent Service
+- ✅ File search capability for policy documents
+- ✅ Answers travel policy questions accurately
+- ✅ Maintains conversation context
+- ✅ Professional guidance on compliance
 
 ## Learning Resources
 

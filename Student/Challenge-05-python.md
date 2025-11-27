@@ -47,7 +47,7 @@ This challenge is divided into two main tasks that will guide you through creati
 
 ### About the Travel Policy Compliance Agent
 
-You'll build a specialized AI agent that acts as a compliance advisor for company travel policies. 
+You'll build a specialized AI agent that acts as a compliance advisor for company travel policies.
 
 The agent will use the company travel policy document as its knowledge base to provide accurate, policy-compliant guidance to employees.
 
@@ -57,7 +57,6 @@ The agent will use the company travel policy document as its knowledge base to p
 - **Expense Validation**: Check if expenses comply with policy limits
 - **Booking Guidance**: Provide recommendations for compliant travel bookings
 - **Exception Handling**: Explain when and how to request policy exceptions
-
 
 ### Task 1: Create and Configure the Agent in Azure AI Foundry
 
