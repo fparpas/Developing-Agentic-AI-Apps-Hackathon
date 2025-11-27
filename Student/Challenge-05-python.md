@@ -178,28 +178,23 @@ async def run_agent_conversation():
             content=[{"type": "text", "text": user_input}]
         )
 
-        # Create a run to process the message
-        run = agents_client.runs.create(thread_id=thread.id, agent_id=agent_id)
+        # Stream the agent's response in real-time
+        print("Agent: ", end="", flush=True)
 
-        # Poll until run completes
-        while run.status in ["queued", "in_progress"]:
-            await asyncio.sleep(1)
-            run = agents_client.runs.get(thread_id=thread.id, run_id=run.id)
+        with agents_client.runs.stream(
+            thread_id=thread.id,
+            agent_id=agent_id
+        ) as stream:
+            # The stream yields 3-tuples: (event_type, event_data, func_return)
+            for event_type, event_data, _ in stream:
+                if event_type == "thread.message.delta":
+                    # Extract text from delta content
+                    if hasattr(event_data, 'delta') and hasattr(event_data.delta, 'content'):
+                        for content_part in event_data.delta.content:
+                            if hasattr(content_part, 'text') and hasattr(content_part.text, 'value'):
+                                print(content_part.text.value, end="", flush=True)
 
-        if run.status != "completed":
-            print(f"Agent: Error - Run failed with status: {run.status}")
-            continue
-
-        # Get and display agent response
-        messages = list(agents_client.messages.list(thread_id=thread.id))
-
-        # Find the last assistant message
-        for msg in reversed(messages):
-            if msg.role == "assistant":
-                for content in msg.content:
-                    if hasattr(content, 'text'):
-                        print(f"Agent: {content.text.value}\n")
-                break
+        print()  # New line after response
 
 # Main execution
 if __name__ == "__main__":
