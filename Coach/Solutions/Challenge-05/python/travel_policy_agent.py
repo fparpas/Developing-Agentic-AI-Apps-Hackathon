@@ -51,7 +51,7 @@ async def run_interactive_session(agents_client, agent, thread):
 
 
 async def process_query(user_message, agents_client, agent, thread):
-    """Process a single user query."""
+    """Process a single user query with streaming."""
 
     agents_client.messages.create(
         thread_id=thread.id,
@@ -59,30 +59,23 @@ async def process_query(user_message, agents_client, agent, thread):
         content=[{"type": "text", "text": user_message}]
     )
 
-    run = agents_client.runs.create(
+    # Use streaming to get real-time responses
+    print("Assistant: ", end="", flush=True)
+
+    with agents_client.runs.stream(
         thread_id=thread.id,
         agent_id=agent.id
-    )
+    ) as stream:
+        # The stream yields 3-tuples
+        for event_type, event_data, _ in stream:
+            if event_type == "thread.message.delta":
+                # Extract text from delta content
+                if hasattr(event_data, 'delta') and hasattr(event_data.delta, 'content'):
+                    for content_part in event_data.delta.content:
+                        if hasattr(content_part, 'text') and hasattr(content_part.text, 'value'):
+                            print(content_part.text.value, end="", flush=True)
 
-    # Poll until run completes
-    while run.status in ["queued", "in_progress"]:
-        await asyncio.sleep(0.5)
-        run = agents_client.runs.get(thread_id=thread.id, run_id=run.id)
-
-    if run.status != "completed":
-        raise Exception(f"Run failed or was canceled: {run.status}")
-
-    # Get messages
-    messages = agents_client.messages.list(thread_id=thread.id, order="asc")
-
-    # Display messages
-    for message in messages:
-        print(f"{message.created_at} - Thread History - {message.role}: ", end="")
-        for content in message.content:
-            if hasattr(content, 'text'):
-                print(content.text.value)
-            elif hasattr(content, 'image_file'):
-                print(f"<image from ID: {content.image_file.file_id}>")
+    print()  # Extra newline for readability
 
 
 async def main():
