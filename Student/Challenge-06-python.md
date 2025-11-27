@@ -60,7 +60,7 @@ All agents are derived from a common base class, AIAgent, which provides a consi
 | OpenAI ChatCompletion       | An agent that uses the OpenAI ChatCompletion service.               | No                                     | Yes                                   |
 | OpenAI Responses            | An agent that uses the OpenAI Responses service.                    | Yes                                    | Yes                                   |
 | OpenAI Assistants           | An agent that uses the OpenAI Assistants service.                   | Yes                                    | No                                    |
-| Any other ChatClient        | You can also use any other Microsoft.Extensions.AI.IChatClient implementation to create an agent. | Varies                                 | Varies                                |
+| Any other ChatClient        | Any class inheriting from BaseChatClient, like AzureOpenAIResponsesClient and AzureOpenAIChatCompletionClient | Varies                                 | Varies                                |
 
 ### Integration with Model Context Protocol (MCP)
 
