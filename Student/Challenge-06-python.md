@@ -158,7 +158,47 @@ async def create_agent_with_tools():
     return agent
 ```
 
-Now, when you interact with your agent, you can ask for the current time and the agent will call this tool to provide an accurate response.
+#### Chat with your agent
+
+To interact with your agent, add a main function that handles the conversation loop:
+
+```python
+async def main():
+    """Main entry point for chatting with the agent."""
+    agent = await create_agent_with_tools()
+
+    print("Chat with TimeAgent (type 'exit' to quit)")
+    print("-" * 50)
+
+    while True:
+        user_input = input("\nYou: ").strip()
+
+        if user_input.lower() in ("exit", "quit"):
+            print("Bu-bye!")
+            break
+
+        if not user_input:
+            continue
+
+        # Stream response from agent
+        print("\nAgent: ", end="", flush=True)
+        async for update in agent.run_stream(user_input):
+            if update.text:
+                print(update.text, end="", flush=True)
+        print()
+
+if __name__ == "__main__":
+    import asyncio
+    asyncio.run(main())
+```
+
+Now, when you run your script and interact with your agent, you can ask for the current time and the agent will call the tool to provide an accurate response.
+
+**Example interaction:**
+```
+You: What's the current time?
+Agent: The current time in UTC is 2025-11-27T14:30:45.123456
+```
 
 ### Task 2: Integrate with Agent Service
 
