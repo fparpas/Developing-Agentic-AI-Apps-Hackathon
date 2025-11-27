@@ -12,16 +12,12 @@ This is the Python solution for Challenge 05. This project implements an AI agen
 
 ## Architecture
 
-```
-User Question
-     ↓
-Travel Policy Agent (Azure AI Service)
-     ↓
-File Search (Vector Store)
-     ↓
-Policy Documents (Retrieved Chunks)
-     ↓
-Agent Response (With Policy Context)
+```mermaid
+flowchart TD
+     A[User Question] --> B[Travel Policy Agent<br/>Azure AI Service]
+     B --> C[File Search<br/>Vector Store]
+     C --> D[Policy Documents<br/>Retrieved Chunks]
+     D --> E[Agent Response<br/>With Policy Context]
 ```
 
 ## Setup
