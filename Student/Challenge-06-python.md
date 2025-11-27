@@ -121,6 +121,10 @@ from agent_framework.clients import AzureOpenAIResponsesClient
 from azure.ai.inference import AsyncAzureOpenAIClient
 import os
 
+# Consider storing secrets in an .env file and loading
+# them using python-dotenv and load_dotenv()
+# See https://pypi.org/project/python-dotenv/
+
 async def create_agent_with_tools():
     """Create an agent with the current time tool registered."""
 
@@ -131,7 +135,9 @@ async def create_agent_with_tools():
     )
 
     # Create the chat client
-    chat_client = AzureOpenAIResponsesClient(client=azure_openai_client, model="gpt-4o-mini")
+    # AZURE_OPENAI_MODEL should be the name of your model deployment on Microsoft Foundry/Azure OpenAI
+    # i.e. "gpt-4.1-mini"
+    chat_client = AzureOpenAIResponsesClient(client=azure_openai_client, model=os.getenv("AZURE_OPENAI_MODEL"))
 
     # Define the current time tool as a Function
     current_time_function = Function(
