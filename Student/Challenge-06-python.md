@@ -125,6 +125,8 @@ def get_current_time_utc() -> str:
 >
 > class TimeArgs(BaseModel):
 >     timezone: Annotated[str, Field(description="The timezone name")]
+>     # Tip: You can just use 'pass' here for functions with no arguments.
+>     # input_model is a required parameter in AIFunction.
 >
 > time_function = AIFunction(
 >     name="get_time_for_timezone",
