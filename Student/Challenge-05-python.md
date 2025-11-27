@@ -119,7 +119,7 @@ Use this code as a foundation for your application:
 `requirements.txt`:
 
 ```plaintxt
-azure-ai-projects>=1.1.0b4
+azure-ai-projects>=0.1.0
 azure-identity>=1.25.1
 python-dotenv>=1.0.0
 ```
