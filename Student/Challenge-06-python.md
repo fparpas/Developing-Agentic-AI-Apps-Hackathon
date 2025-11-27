@@ -108,7 +108,8 @@ def get_current_time_utc() -> str:
 current_time_function = Function(
     name="get_current_time_utc",
     description="Returns the current system time in UTC",
-    parameters=[],  # No parameters needed
+    parameters=[],
+    # handler expects FunctionResult type
     handler=lambda: FunctionResult(get_current_time_utc())
 )
 ```
@@ -144,7 +145,8 @@ async def create_agent_with_tools():
         name="get_current_time_utc",
         description="Returns the current system time in UTC",
         parameters=[],
-        handler=get_current_time_utc
+        # handler expects FunctionResult type
+        handler=lambda: FunctionResult(get_current_time_utc())
     )
 
     # Create the agent with the tool registered
@@ -238,7 +240,7 @@ async def integrate_mcp_tools_with_agent(agent, mcp_session):
         async def tool_handler(tool=mcp_tool, session=mcp_session, **kwargs):
             """Wrapper to call MCP tool through the session."""
             result = await session.call_tool(tool.name, arguments=kwargs)
-            return result
+            return FunctionResult(result)
 
         function = Function(
             name=mcp_tool.name,
