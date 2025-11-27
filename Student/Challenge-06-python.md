@@ -98,27 +98,48 @@ Add a method to retrieve the current time and register it as a tool in your agen
 
 ```python
 from datetime import datetime
-from agent_framework import Function, FunctionParameter, FunctionResult
+from agent_framework import AIFunction, ai_function
 
+# Method 1: Using AIFunction directly
 def get_current_time_utc() -> str:
     """Returns the current system time in UTC."""
     return f"The current time in UTC is {datetime.utcnow().isoformat()}"
 
-# Create a Function object to register with the agent
-current_time_function = Function(
+current_time_function = AIFunction(
     name="get_current_time_utc",
     description="Returns the current system time in UTC",
-    parameters=[],
-    # handler expects FunctionResult type
-    handler=lambda: FunctionResult(get_current_time_utc())
+    func=get_current_time_utc
 )
+
+# Method 2: Using the @ai_function decorator (simpler)
+@ai_function
+def get_current_time_utc() -> str:
+    """Returns the current system time in UTC."""
+    return f"The current time in UTC is {datetime.utcnow().isoformat()}"
 ```
+
+> **Note**: For functions with parameters, you need to define an `input_model` using Pydantic:
+> ```python
+> from typing import Annotated
+> from pydantic import BaseModel, Field
+>
+> class TimeArgs(BaseModel):
+>     timezone: Annotated[str, Field(description="The timezone name")]
+>
+> time_function = AIFunction(
+>     name="get_time_for_timezone",
+>     description="Get time for a specific timezone",
+>     func=lambda timezone: f"Time in {timezone}: ...",
+>     input_model=TimeArgs
+> )
+> ```
 
 #### Create an agent and register the Current Time Tool
 
 ```python
-from agent_framework import ChatAgent
+from agent_framework import ChatAgent, AIFunction
 from agent_framework.azure import AzureOpenAIResponsesClient
+from datetime import datetime
 import os
 
 # Consider storing secrets in an .env file and loading
@@ -138,19 +159,21 @@ async def create_agent_with_tools():
         api_version=os.getenv("AZURE_OPENAI_API_VERSION", "latest")
     )
 
-    # Define the current time tool as a Function
-    current_time_function = Function(
+    def get_current_time_utc() -> str:
+        """Returns the current system time in UTC."""
+        return f"The current time in UTC is {datetime.utcnow().isoformat()}"
+
+    # Define the current time tool as an AIFunction
+    current_time_function = AIFunction(
         name="get_current_time_utc",
         description="Returns the current system time in UTC",
-        parameters=[],
-        # handler expects FunctionResult type
-        handler=lambda: FunctionResult(get_current_time_utc())
+        func=get_current_time_utc
     )
 
     # Create the agent with the tool registered
     agent = ChatAgent(
+        chat_client=chat_client,
         name="TimeAgent",
-        client=chat_client,
         instructions="You are a helpful assistant. When the user asks for the current time, use the get_current_time_utc tool to provide an accurate response.",
         tools=[current_time_function]
     )
@@ -216,7 +239,9 @@ async def get_agent_from_service():
 
     # Initialize the Azure AI Project client
     endpoint = os.getenv("AZURE_AI_PROJECT_ENDPOINT")
-    project_client = AIProjectClient(endpoint=endpoint, credential=DefaultAzureCredential())
+    project_client = AIProjectClient(
+        endpoint=endpoint,
+        credential=DefaultAzureCredential())
 
     # Get the agents client
     agents_client = project_client.agents
@@ -260,36 +285,28 @@ async def create_mcp_client():
 After creating the MCP client, you will get the list of tools and add them to Microsoft Agent Framework:
 
 ```python
-async def integrate_mcp_tools_with_agent(agent, mcp_session):
-    """Integrate MCP tools with the AI agent."""
+from agent_framework import MCPStdioTool
 
-    # Get the list of available tools from the MCP server
-    tools_response = await mcp_session.list_tools()
-    mcp_tools = tools_response.tools if hasattr(tools_response, 'tools') else tools_response
+async def integrate_mcp_tools_with_agent(agent, server_script_path: str):
+    """Integrate MCP tools with the AI agent using MCPStdioTool."""
 
-    # Display available MCP tools
-    print("Available MCP Tools:")
-    for tool in mcp_tools:
-        print(f"- {tool.name}: {tool.description}")
+    # Create MCP tool for the weather server
+    # MCPStdioTool automatically exposes all tools from the MCP server
+    mcp_tool = MCPStdioTool(
+        name="WeatherMCP",
+        command="python",
+        args=[server_script_path]
+    )
 
-    # Convert MCP tools to Agent Framework Function objects
-    agent_functions = []
-    for mcp_tool in mcp_tools:
-        async def tool_handler(tool=mcp_tool, session=mcp_session, **kwargs):
-            """Wrapper to call MCP tool through the session."""
-            result = await session.call_tool(tool.name, arguments=kwargs)
-            return FunctionResult(result)
+    # Add the MCP tool to the agent
+    # The MCPStdioTool will handle all the tool discovery and invocation
+    if not hasattr(agent, 'tools') or agent.tools is None:
+        agent.tools = []
 
-        function = Function(
-            name=mcp_tool.name,
-            description=mcp_tool.description,
-            parameters=mcp_tool.inputSchema.get("properties", {}) if hasattr(mcp_tool, 'inputSchema') else {},
-            handler=tool_handler
-        )
-        agent_functions.append(function)
+    agent.tools.append(mcp_tool)
 
-    # Register MCP tools with the agent
-    agent.tools.extend(agent_functions)
+    print(f"MCP tool integrated: {mcp_tool.name}")
+    print("All MCP server tools are now available to the agent.")
 
     return agent
 ```
