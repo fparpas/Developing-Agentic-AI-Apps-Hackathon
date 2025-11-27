@@ -129,7 +129,18 @@ import asyncio
 import os
 import sys
 from azure.ai.projects import AIProjectClient
+from azure.ai.agents.models import AgentEventHandler, MessageDeltaChunk
 from azure.identity import DefaultAzureCredential
+
+
+class StreamingEventHandler(AgentEventHandler):
+    """Custom event handler to stream agent responses in real-time."""
+
+    def on_message_delta(self, delta: MessageDeltaChunk) -> None:
+        """Handle streaming text deltas from the agent."""
+        if delta.text:
+            print(delta.text, end="", flush=True)
+
 
 async def run_agent_conversation():
     """Run an interactive conversation with the travel policy agent."""
@@ -178,21 +189,15 @@ async def run_agent_conversation():
             content=[{"type": "text", "text": user_input}]
         )
 
-        # Stream the agent's response in real-time
+        # Stream the agent's response in real-time using custom event handler
         print("Agent: ", end="", flush=True)
 
         with agents_client.runs.stream(
             thread_id=thread.id,
-            agent_id=agent_id
+            agent_id=agent_id,
+            event_handler=StreamingEventHandler()
         ) as stream:
-            # The stream yields 3-tuples: (event_type, event_data, func_return)
-            for event_type, event_data, _ in stream:
-                if event_type == "thread.message.delta":
-                    # Extract text from delta content
-                    if hasattr(event_data, 'delta') and hasattr(event_data.delta, 'content'):
-                        for content_part in event_data.delta.content:
-                            if hasattr(content_part, 'text') and hasattr(content_part.text, 'value'):
-                                print(content_part.text.value, end="", flush=True)
+            stream.until_done()
 
         print()  # New line after response
 

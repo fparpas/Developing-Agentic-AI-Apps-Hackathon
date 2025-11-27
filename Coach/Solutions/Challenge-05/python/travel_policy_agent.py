@@ -3,10 +3,20 @@
 import asyncio
 import os
 from azure.ai.projects import AIProjectClient
+from azure.ai.agents.models import AgentEventHandler, MessageDeltaChunk
 from azure.identity import DefaultAzureCredential
 from dotenv import load_dotenv
 
 load_dotenv()
+
+class StreamingEventHandler(AgentEventHandler):
+    """Custom event handler to stream agent responses in real-time."""
+
+    def on_message_delta(self, delta: MessageDeltaChunk) -> None:
+        """Handle streaming text deltas from the agent."""
+        # MessageDeltaChunk has a convenient .text property that extracts the text value
+        if delta.text:
+            print(delta.text, end="", flush=True)
 
 
 async def run_agent_conversation(project_endpoint, agent_id):
@@ -59,21 +69,16 @@ async def process_query(user_message, agents_client, agent, thread):
         content=[{"type": "text", "text": user_message}]
     )
 
-    # Use streaming to get real-time responses
+    # Use streaming with custom event handler for real-time responses
     print("Assistant: ", end="", flush=True)
 
     with agents_client.runs.stream(
         thread_id=thread.id,
-        agent_id=agent.id
+        agent_id=agent.id,
+        event_handler=StreamingEventHandler()
     ) as stream:
-        # The stream yields 3-tuples
-        for event_type, event_data, _ in stream:
-            if event_type == "thread.message.delta":
-                # Extract text from delta content
-                if hasattr(event_data, 'delta') and hasattr(event_data.delta, 'content'):
-                    for content_part in event_data.delta.content:
-                        if hasattr(content_part, 'text') and hasattr(content_part.text, 'value'):
-                            print(content_part.text.value, end="", flush=True)
+        # Simply iterate - the event handler handles printing
+        stream.until_done()
 
     print()  # Extra newline for readability
 
