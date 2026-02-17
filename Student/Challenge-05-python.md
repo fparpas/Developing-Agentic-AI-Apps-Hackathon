@@ -47,7 +47,7 @@ This challenge is divided into two main tasks that will guide you through creati
 
 ### About the Travel Policy Compliance Agent
 
-You'll build a specialized AI agent that acts as a compliance advisor for company travel policies. 
+You'll build a specialized AI agent that acts as a compliance advisor for company travel policies.
 
 The agent will use the company travel policy document as its knowledge base to provide accurate, policy-compliant guidance to employees.
 
@@ -57,7 +57,6 @@ The agent will use the company travel policy document as its knowledge base to p
 - **Expense Validation**: Check if expenses comply with policy limits
 - **Booking Guidance**: Provide recommendations for compliant travel bookings
 - **Exception Handling**: Explain when and how to request policy exceptions
-
 
 ### Task 1: Create and Configure the Agent in Azure AI Foundry
 
@@ -120,7 +119,7 @@ Use this code as a foundation for your application:
 `requirements.txt`:
 
 ```plaintxt
-azure-ai-projects>=1.1.0b4
+azure-ai-projects>=0.1.0
 azure-identity>=1.25.1
 python-dotenv>=1.0.0
 ```
@@ -130,7 +129,18 @@ import asyncio
 import os
 import sys
 from azure.ai.projects import AIProjectClient
+from azure.ai.agents.models import AgentEventHandler, MessageDeltaChunk
 from azure.identity import DefaultAzureCredential
+
+
+class StreamingEventHandler(AgentEventHandler):
+    """Custom event handler to stream agent responses in real-time."""
+
+    def on_message_delta(self, delta: MessageDeltaChunk) -> None:
+        """Handle streaming text deltas from the agent."""
+        if delta.text:
+            print(delta.text, end="", flush=True)
+
 
 async def run_agent_conversation():
     """Run an interactive conversation with the travel policy agent."""
@@ -179,28 +189,17 @@ async def run_agent_conversation():
             content=[{"type": "text", "text": user_input}]
         )
 
-        # Create a run to process the message
-        run = agents_client.runs.create(thread_id=thread.id, agent_id=agent_id)
+        # Stream the agent's response in real-time using custom event handler
+        print("Agent: ", end="", flush=True)
 
-        # Poll until run completes
-        while run.status in ["queued", "in_progress"]:
-            await asyncio.sleep(1)
-            run = agents_client.runs.get(thread_id=thread.id, run_id=run.id)
+        with agents_client.runs.stream(
+            thread_id=thread.id,
+            agent_id=agent_id,
+            event_handler=StreamingEventHandler()
+        ) as stream:
+            stream.until_done()
 
-        if run.status != "completed":
-            print(f"Agent: Error - Run failed with status: {run.status}")
-            continue
-
-        # Get and display agent response
-        messages = list(agents_client.messages.list(thread_id=thread.id))
-
-        # Find the last assistant message
-        for msg in reversed(messages):
-            if msg.role == "assistant":
-                for content in msg.content:
-                    if hasattr(content, 'text'):
-                        print(f"Agent: {content.text.value}\n")
-                break
+        print()  # New line after response
 
 # Main execution
 if __name__ == "__main__":

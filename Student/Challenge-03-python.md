@@ -279,7 +279,7 @@ that you need to pass is the path to the weather MCP server from Challenge-02.
 The client will start the MCP server automatically.
 
 ```bash
-python mcp_weather_client.py weather.py
+python mcp_weather_client.py ../../Challenge-02/python/weather.py
 ```
 
 Expected output:
@@ -430,3 +430,4 @@ async with ChatAgent(
 - [Agent Framework Python Samples](https://github.com/microsoft/agent-framework/tree/main/python/samples)
 - [OpenAI API Documentation](https://platform.openai.com/docs)
 - [MCP Architecture](https://modelcontextprotocol.io/legacy/concepts/architecture)
+- [Deep Dive: Understanding MCP Client-Server Communication with Agent and LLM](https://medium.com/@jamestang/deep-dive-understanding-mcp-client-server-communication-with-agent-and-llm-aa4782a65991)

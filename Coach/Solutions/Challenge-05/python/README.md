@@ -12,16 +12,12 @@ This is the Python solution for Challenge 05. This project implements an AI agen
 
 ## Architecture
 
-```
-User Question
-     ↓
-Travel Policy Agent (Azure AI Service)
-     ↓
-File Search (Vector Store)
-     ↓
-Policy Documents (Retrieved Chunks)
-     ↓
-Agent Response (With Policy Context)
+```mermaid
+flowchart TD
+     A[User Question] --> B[Travel Policy Agent<br/>Azure AI Service]
+     B --> C[File Search<br/>Vector Store]
+     C --> D[Policy Documents<br/>Retrieved Chunks]
+     D --> E[Agent Response<br/>With Policy Context]
 ```
 
 ## Setup
@@ -78,11 +74,11 @@ Advisor: Exceptions require approval from the Travel Department...
 
 ## Success Criteria Met
 
-✅ AI Agent built with Azure AI Agent Service
-✅ File search capability for policy documents
-✅ Answers travel policy questions accurately
-✅ Maintains conversation context
-✅ Professional guidance on compliance
+- ✅ AI Agent built with Azure AI Agent Service
+- ✅ File search capability for policy documents
+- ✅ Answers travel policy questions accurately
+- ✅ Maintains conversation context
+- ✅ Professional guidance on compliance
 
 ## Learning Resources
 

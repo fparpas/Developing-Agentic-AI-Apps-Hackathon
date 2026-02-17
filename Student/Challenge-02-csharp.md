@@ -1,7 +1,7 @@
 # Challenge 02 - C# - Build your first MCP server
 
  [< Previous Challenge](./Challenge-01.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-03-csharp.md)
- 
+
 [![](https://img.shields.io/badge/C%20Sharp-blue)](Challenge-02-csharp.md)
 [![](https://img.shields.io/badge/Python-lightgray)](Challenge-02-python.md)
 
@@ -210,12 +210,10 @@ The Inspector opens in your browser (or prints a local URL). Keep the terminal o
 
 3. Configure a server via the UI
      - In the Inspector, add the MCP server
-     - Choose `Stdio`
+     - Choose `stdio`
      - Command: `dotnet`
-     - Args:
-         - `run`
-         - `--project`
-         - `ABSOLUTE_PATH\\WeatherMcpServer\\WeatherMcpServer.csproj`
+     - Args: `run --project "<ABSOLUTE_PATH>\WeatherMcpServer\WeatherMcpServer.csproj"`
+
      - Use the UI to:
          - List tools (`get_forecast`, `get_alerts`)
          - Invoke a tool and provide JSON input, for example:
@@ -242,3 +240,4 @@ The Inspector opens in your browser (or prints a local URL). Keep the terminal o
 - [GitHub Copilot in VS Code](https://code.visualstudio.com/docs/editor/github-copilot)
 - [Weather.gov API](https://www.weather.gov/documentation/services-web-api)
 - [MCP Inspector](https://modelcontextprotocol.io/legacy/tools/inspector)
+- [Deep Dive: Understanding MCP Client-Server Communication with Agent and LLM](https://medium.com/@jamestang/deep-dive-understanding-mcp-client-server-communication-with-agent-and-llm-aa4782a65991)

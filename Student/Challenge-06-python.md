@@ -60,7 +60,7 @@ All agents are derived from a common base class, AIAgent, which provides a consi
 | OpenAI ChatCompletion       | An agent that uses the OpenAI ChatCompletion service.               | No                                     | Yes                                   |
 | OpenAI Responses            | An agent that uses the OpenAI Responses service.                    | Yes                                    | Yes                                   |
 | OpenAI Assistants           | An agent that uses the OpenAI Assistants service.                   | Yes                                    | No                                    |
-| Any other ChatClient        | You can also use any other Microsoft.Extensions.AI.IChatClient implementation to create an agent. | Varies                                 | Varies                                |
+| Any other ChatClient        | Any class inheriting from BaseChatClient, like AzureOpenAIResponsesClient and AzureOpenAIChatCompletionClient | Varies                                 | Varies                                |
 
 ### Integration with Model Context Protocol (MCP)
 
@@ -98,53 +98,84 @@ Add a method to retrieve the current time and register it as a tool in your agen
 
 ```python
 from datetime import datetime
-from agent_framework import Function, FunctionParameter, FunctionResult
+from agent_framework import AIFunction, ai_function
 
+# Method 1: Using AIFunction directly
 def get_current_time_utc() -> str:
     """Returns the current system time in UTC."""
     return f"The current time in UTC is {datetime.utcnow().isoformat()}"
 
-# Create a Function object to register with the agent
-current_time_function = Function(
+current_time_function = AIFunction(
     name="get_current_time_utc",
     description="Returns the current system time in UTC",
-    parameters=[],  # No parameters needed
-    handler=lambda: FunctionResult(get_current_time_utc())
+    func=get_current_time_utc
 )
+
+# Method 2: Using the @ai_function decorator (simpler)
+@ai_function
+def get_current_time_utc() -> str:
+    """Returns the current system time in UTC."""
+    return f"The current time in UTC is {datetime.utcnow().isoformat()}"
 ```
+
+> **Note**: For functions with parameters, you need to define an `input_model` using Pydantic:
+> ```python
+> from typing import Annotated
+> from pydantic import BaseModel, Field
+>
+> class TimeArgs(BaseModel):
+>     timezone: Annotated[str, Field(description="The timezone name")]
+>     # Tip: You can just use 'pass' here for functions with no arguments.
+>     # input_model is a required parameter in AIFunction.
+>
+> time_function = AIFunction(
+>     name="get_time_for_timezone",
+>     description="Get time for a specific timezone",
+>     func=lambda timezone: f"Time in {timezone}: ...",
+>     input_model=TimeArgs
+> )
+> ```
 
 #### Create an agent and register the Current Time Tool
 
 ```python
-from agent_framework import ChatAgent
-from agent_framework.clients import AzureOpenAIResponsesClient
-from azure.ai.inference import AsyncAzureOpenAIClient
+from agent_framework import ChatAgent, AIFunction
+from agent_framework.azure import AzureOpenAIResponsesClient
+from datetime import datetime
 import os
+
+# Consider storing secrets in an .env file and loading
+# them using python-dotenv and load_dotenv()
+# See https://pypi.org/project/python-dotenv/
 
 async def create_agent_with_tools():
     """Create an agent with the current time tool registered."""
 
-    # Initialize the Azure OpenAI client
-    azure_openai_client = AsyncAzureOpenAIClient(
+    # Create the chat client
+    # AZURE_OPENAI_DEPLOYMENT_NAME should be the name of your model deployment on Microsoft Foundry/Azure OpenAI
+    # i.e. "gpt-4o-mini"
+    chat_client = AzureOpenAIResponsesClient(
         endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
-        credential=os.getenv("AZURE_OPENAI_API_KEY")
+        api_key=os.getenv("AZURE_OPENAI_API_KEY"),
+        deployment_name=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"),
+        api_version=os.getenv("AZURE_OPENAI_API_VERSION", "latest")
     )
 
-    # Create the chat client
-    chat_client = AzureOpenAIResponsesClient(client=azure_openai_client, model="gpt-4o-mini")
+    def get_current_time_utc() -> str:
+        """Returns the current system time in UTC."""
+        return f"The current time in UTC is {datetime.utcnow().isoformat()}"
 
-    # Define the current time tool as a Function
-    current_time_function = Function(
+    # Define the current time tool as an AIFunction
+    current_time_function = AIFunction(
         name="get_current_time_utc",
         description="Returns the current system time in UTC",
-        parameters=[],
-        handler=get_current_time_utc
+        func=get_current_time_utc
     )
 
     # Create the agent with the tool registered
     agent = ChatAgent(
+        chat_client=chat_client,
         name="TimeAgent",
-        client=chat_client,
         instructions="You are a helpful assistant. When the user asks for the current time, use the get_current_time_utc tool to provide an accurate response.",
         tools=[current_time_function]
     )
@@ -152,7 +183,47 @@ async def create_agent_with_tools():
     return agent
 ```
 
-Now, when you interact with your agent, you can ask for the current time and the agent will call this tool to provide an accurate response.
+#### Chat with your agent
+
+To interact with your agent, add a main function that handles the conversation loop:
+
+```python
+async def main():
+    """Main entry point for chatting with the agent."""
+    agent = await create_agent_with_tools()
+
+    print("Chat with TimeAgent (type 'exit' to quit)")
+    print("-" * 50)
+
+    while True:
+        user_input = input("\nYou: ").strip()
+
+        if user_input.lower() in ("exit", "quit"):
+            print("Bu-bye!")
+            break
+
+        if not user_input:
+            continue
+
+        # Stream response from agent
+        print("\nAgent: ", end="", flush=True)
+        async for update in agent.run_stream(user_input):
+            if update.text:
+                print(update.text, end="", flush=True)
+        print()
+
+if __name__ == "__main__":
+    import asyncio
+    asyncio.run(main())
+```
+
+Now, when you run your script and interact with your agent, you can ask for the current time and the agent will call the tool to provide an accurate response.
+
+**Example interaction:**
+```
+You: What's the current time?
+Agent: The current time in UTC is 2025-11-27T14:30:45.123456
+```
 
 ### Task 2: Integrate with Agent Service
 
@@ -170,7 +241,9 @@ async def get_agent_from_service():
 
     # Initialize the Azure AI Project client
     endpoint = os.getenv("AZURE_AI_PROJECT_ENDPOINT")
-    project_client = AIProjectClient(endpoint=endpoint, credential=DefaultAzureCredential())
+    project_client = AIProjectClient(
+        endpoint=endpoint,
+        credential=DefaultAzureCredential())
 
     # Get the agents client
     agents_client = project_client.agents
@@ -186,64 +259,30 @@ async def get_agent_from_service():
 
 In this task you will integrate the Weather MCP Remote server completed in the previous challenge and add it as tools in Microsoft Agent Framework.
 
-Initialize the MCP client with the following code:
 
 ```python
-from mcp import ClientSession
-from mcp.client.sse import SseClientTransport
-import os
-import asyncio
+from agent_framework import MCPStdioTool
 
-async def create_mcp_client():
-    """Create and connect to an MCP server via SSE transport."""
+async def integrate_mcp_tools_with_agent(agent, server_script_path: str):
+    """Integrate MCP tools with the AI agent using MCPStdioTool."""
 
-    # Define the MCP server endpoint
-    mcp_server_url = os.getenv("MCP_SERVER_URL", "http://localhost:8000")
+    # Create MCP tool for the weather server
+    # MCPStdioTool automatically exposes all tools from the MCP server
+    mcp_tool = MCPStdioTool(
+        name="WeatherMCP",
+        command="python",
+        args=[server_script_path]
+    )
 
-    # Create SSE transport for HTTP-based connection
-    transport = SseClientTransport(mcp_server_url)
+    # Add the MCP tool to the agent
+    # The MCPStdioTool will handle all the tool discovery and invocation
+    if not hasattr(agent, 'tools') or agent.tools is None:
+        agent.tools = []
 
-    # Create MCP client session
-    async with ClientSession(transport) as session:
-        # Initialize the connection
-        await session.initialize()
+    agent.tools.append(mcp_tool)
 
-        return session
-```
-
-After creating the MCP client, you will get the list of tools and add them to Microsoft Agent Framework:
-
-```python
-async def integrate_mcp_tools_with_agent(agent, mcp_session):
-    """Integrate MCP tools with the AI agent."""
-
-    # Get the list of available tools from the MCP server
-    tools_response = await mcp_session.list_tools()
-    mcp_tools = tools_response.tools if hasattr(tools_response, 'tools') else tools_response
-
-    # Display available MCP tools
-    print("Available MCP Tools:")
-    for tool in mcp_tools:
-        print(f"- {tool.name}: {tool.description}")
-
-    # Convert MCP tools to Agent Framework Function objects
-    agent_functions = []
-    for mcp_tool in mcp_tools:
-        async def tool_handler(tool=mcp_tool, session=mcp_session, **kwargs):
-            """Wrapper to call MCP tool through the session."""
-            result = await session.call_tool(tool.name, arguments=kwargs)
-            return result
-
-        function = Function(
-            name=mcp_tool.name,
-            description=mcp_tool.description,
-            parameters=mcp_tool.inputSchema.get("properties", {}) if hasattr(mcp_tool, 'inputSchema') else {},
-            handler=tool_handler
-        )
-        agent_functions.append(function)
-
-    # Register MCP tools with the agent
-    agent.tools.extend(agent_functions)
+    print(f"MCP tool integrated: {mcp_tool.name}")
+    print("All MCP server tools are now available to the agent.")
 
     return agent
 ```

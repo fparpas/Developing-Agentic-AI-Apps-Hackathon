@@ -11,7 +11,7 @@ import sys
 from contextlib import AsyncExitStack
 from datetime import datetime
 
-from agent_framework import ChatAgent, MCPStdioTool
+from agent_framework import ChatAgent, MCPStdioTool, AIFunction
 from agent_framework.azure import AzureOpenAIResponsesClient
 from dotenv import load_dotenv
 
@@ -83,13 +83,32 @@ class MCPIntegratedAgent:
         if not deployment_name:
             raise ValueError("AZURE_OPENAI_DEPLOYMENT_NAME not set")
 
+        # Create the chat client
+        chat_client = AzureOpenAIResponsesClient(
+            endpoint=endpoint,
+            api_key=api_key,
+            deployment_name=deployment_name,
+            api_version=api_version
+        )
 
-        # TODO:
-        # Implement your code here to create an AI agent and register the
-        # TimeTools.get_current_time_in_utc function as a tool.
+        # Create an AIFunction from the TimeTools method
+        time_function = AIFunction(
+            name="get_current_time_in_utc",
+            description="Returns the current system time in UTC",
+            func=TimeTools.get_current_time_in_utc
+        )
 
+        # Create the agent with the time tool
+        self.agent = await self.exit_stack.enter_async_context(
+            ChatAgent(
+                chat_client=chat_client,
+                name=agent_name,
+                instructions=instructions,
+                tools=[time_function]
+            )
+        )
 
-        raise NotImplementedError("Method not implemented")
+        print(f"{agent_name} initialized with time tool\n")
 
     async def create_weather_agent_and_register_mcp_tools(self, agent_name: str, instructions: str, server_script_path: str):
         """
@@ -108,13 +127,33 @@ class MCPIntegratedAgent:
         if not deployment_name:
             raise ValueError("AZURE_OPENAI_DEPLOYMENT_NAME not set")
 
+        # Create the chat client
+        chat_client = AzureOpenAIResponsesClient(
+            endpoint=endpoint,
+            api_key=api_key,
+            deployment_name=deployment_name,
+            api_version=api_version
+        )
 
-        # TODO:
-        # Implement your code here to create an AI agent
-        # and register the MCP Weather tools.
+        # Create MCP tool for the weather server
+        # MCPStdioTool automatically exposes all tools from the MCP server
+        mcp_tool = MCPStdioTool(
+            name="WeatherMCP",
+            command="python",
+            args=[server_script_path]
+        )
 
+        # Create the agent with the MCP tool
+        self.agent = await self.exit_stack.enter_async_context(
+            ChatAgent(
+                chat_client=chat_client,
+                name=agent_name,
+                instructions=instructions,
+                tools=[mcp_tool]
+            )
+        )
 
-        raise NotImplementedError("Method not implemented")
+        print(f"{agent_name} initialized with MCP weather tools\n")
 
     async def run_interactive_session(self, agent_name: str = "JokeAgent"):
         """Run interactive session with agent."""

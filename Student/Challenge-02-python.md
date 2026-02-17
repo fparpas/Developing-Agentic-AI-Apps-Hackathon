@@ -86,6 +86,7 @@ Create a file named `weather.py` in your project directory with the following co
 from typing import Any
 import httpx
 from mcp.server.fastmcp import FastMCP
+import sys
 
 # Initialize FastMCP server - this automatically handles stdio transport
 mcp = FastMCP("weather")
@@ -227,6 +228,7 @@ def main():
     This starts the server listening on stdio, which allows MCP hosts
     (like Claude Desktop or VS Code) to communicate with it.
     """
+    print('[INFO] MCP server is up.', file=sys.stderr)
     mcp.run(transport='stdio')
 
 
@@ -247,14 +249,23 @@ This starts the server and listens for incoming requests on standard input/outpu
 ### Task 6: Connect to an MCP host
 
 Option A: Visual Studio Code (GitHub Copilot Chat)
-- Follow the VS Code MCP [guide:](https://code.visualstudio.com/docs/copilot/customization/mcp-servers#_use-mcp-tools-in-agent-mode)
-- Add a server entry that invokes:
-    - command: `python`
-    - args: `["-m", "weather"]` or the path to your script
-    - transport: `stdio`
-- Alternatively, if using `uv`:
-    - command: `uv`
-    - args: `["run", "--directory", "/absolute/path/to/weather_mcp_server", "weather.py"]`
+- Create a `.vscode/mcp.json` file in your workspace.
+- Add a server entry:
+
+```json
+{
+	"servers": {
+		"Challenge-02-stdio-MCP-Server": {
+			"type": "stdio",
+			"command": "/absolute/path/to/.venv/bin/python",
+			"args": [
+				"/absolute/path/to/weather.py"
+			]
+		}
+	}
+}
+```
+
 - Reload VS Code. In Copilot Chat, use `/tools` to see your server and try:
     - `get_forecast` with latitude/longitude (e.g., 47.6062, -122.3321)
     - `get_alerts` with a two-letter state (e.g., WA)
@@ -266,7 +277,7 @@ Option B: Claude Desktop
 {
   "mcpServers": {
     "weather": {
-      "command": "python",
+      "command": "/absolute/path/to/.venv/bin/python",
       "args": ["/absolute/path/to/weather.py"]
     }
   }
@@ -275,7 +286,7 @@ Option B: Claude Desktop
 
 ### Task 7: Use MCP Inspector for testing and debugging Model Context Protocol servers
 
-The [MCP Inspector](https://modelcontextprotocol.io/legacy/tools/inspector) is an interactive developer tool for testing and debugging MCP servers. It lets you start/attach servers, call tools with JSON inputs, inspect requests/responses, and view logs.
+[MCP Inspector](https://modelcontextprotocol.io/legacy/tools/inspector) is an interactive developer tool for testing and debugging MCP servers. It lets you start/attach servers, call tools with JSON inputs, inspect requests/responses, and view logs.
 
 1. Prerequisites
     - Node.js 18+ installed
@@ -289,9 +300,9 @@ The Inspector opens in your browser (or prints a local URL). Keep the terminal o
 
 3. Configure a server via the UI
      - In the Inspector, add the MCP server
-     - Choose `Stdio`
-     - Command: `python`
-     - Args: `/ABSOLUTE/PATH/TO/weather.py`
+     - Choose `stdio`
+     - Command: `/absolute/path/to/.venv/bin/python` (path to python binary from your venv)
+     - Args: `/absolute/path/to/weather.py`
      - Use the UI to:
          - List tools (`get_forecast`, `get_alerts`)
          - Invoke a tool and provide JSON input, for example:
@@ -318,3 +329,4 @@ The Inspector opens in your browser (or prints a local URL). Keep the terminal o
 - [GitHub Copilot in VS Code](https://code.visualstudio.com/docs/editor/github-copilot)
 - [Weather.gov API](https://www.weather.gov/documentation/services-web-api)
 - [MCP Inspector](https://modelcontextprotocol.io/legacy/tools/inspector)
+- [Deep Dive: Understanding MCP Client-Server Communication with Agent and LLM](https://medium.com/@jamestang/deep-dive-understanding-mcp-client-server-communication-with-agent-and-llm-aa4782a65991)

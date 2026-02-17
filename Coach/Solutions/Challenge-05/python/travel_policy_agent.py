@@ -3,10 +3,20 @@
 import asyncio
 import os
 from azure.ai.projects import AIProjectClient
+from azure.ai.agents.models import AgentEventHandler, MessageDeltaChunk
 from azure.identity import DefaultAzureCredential
 from dotenv import load_dotenv
 
 load_dotenv()
+
+class StreamingEventHandler(AgentEventHandler):
+    """Custom event handler to stream agent responses in real-time."""
+
+    def on_message_delta(self, delta: MessageDeltaChunk) -> None:
+        """Handle streaming text deltas from the agent."""
+        # MessageDeltaChunk has a convenient .text property that extracts the text value
+        if delta.text:
+            print(delta.text, end="", flush=True)
 
 
 async def run_agent_conversation(project_endpoint, agent_id):
@@ -51,7 +61,7 @@ async def run_interactive_session(agents_client, agent, thread):
 
 
 async def process_query(user_message, agents_client, agent, thread):
-    """Process a single user query."""
+    """Process a single user query with streaming."""
 
     agents_client.messages.create(
         thread_id=thread.id,
@@ -59,30 +69,18 @@ async def process_query(user_message, agents_client, agent, thread):
         content=[{"type": "text", "text": user_message}]
     )
 
-    run = agents_client.runs.create(
+    # Use streaming with custom event handler for real-time responses
+    print("Assistant: ", end="", flush=True)
+
+    with agents_client.runs.stream(
         thread_id=thread.id,
-        agent_id=agent.id
-    )
+        agent_id=agent.id,
+        event_handler=StreamingEventHandler()
+    ) as stream:
+        # Simply iterate - the event handler handles printing
+        stream.until_done()
 
-    # Poll until run completes
-    while run.status in ["queued", "in_progress"]:
-        await asyncio.sleep(0.5)
-        run = agents_client.runs.get(thread_id=thread.id, run_id=run.id)
-
-    if run.status != "completed":
-        raise Exception(f"Run failed or was canceled: {run.status}")
-
-    # Get messages
-    messages = agents_client.messages.list(thread_id=thread.id, order="asc")
-
-    # Display messages
-    for message in messages:
-        print(f"{message.created_at} - Thread History - {message.role}: ", end="")
-        for content in message.content:
-            if hasattr(content, 'text'):
-                print(content.text.value)
-            elif hasattr(content, 'image_file'):
-                print(f"<image from ID: {content.image_file.file_id}>")
+    print()  # Extra newline for readability
 
 
 async def main():

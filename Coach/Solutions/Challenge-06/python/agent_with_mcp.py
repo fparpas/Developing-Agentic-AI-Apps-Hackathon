@@ -9,12 +9,22 @@ import asyncio
 import os
 import sys
 from contextlib import AsyncExitStack
+from datetime import datetime
 
-from agent_framework import ChatAgent, MCPStdioTool
+from agent_framework import ChatAgent, MCPStdioTool, AIFunction
 from agent_framework.azure import AzureOpenAIResponsesClient
 from dotenv import load_dotenv
 
 load_dotenv()
+
+
+class TimeTools:
+    """Tools for providing time information."""
+
+    @staticmethod
+    def get_current_time_in_utc() -> str:
+        """Returns the current system time in UTC."""
+        return f"The current time in UTC is {datetime.utcnow()}"
 
 
 class MCPIntegratedAgent:
@@ -25,9 +35,8 @@ class MCPIntegratedAgent:
         self.agent = None
         self.exit_stack = AsyncExitStack()
 
-    async def initialize_agent_with_mcp(self, server_script_path: str):
-        """Initialize agent with MCP tool integration."""
-        # Initialize Azure OpenAI client with API key
+    async def create_simple_agent(self, agent_name: str, description: str, instructions: str):
+        """Create a simple agent without any tools."""
         endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
         api_key = os.getenv("AZURE_OPENAI_API_KEY")
         deployment_name = os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME")
@@ -47,37 +56,135 @@ class MCPIntegratedAgent:
             api_version=api_version
         )
 
+        self.agent = await self.exit_stack.enter_async_context(
+            ChatAgent(
+                chat_client=chat_client,
+                name=agent_name,
+                instructions=instructions
+            )
+        )
+
+        print(f"{agent_name} initialized\n")
+
+    async def create_time_agent_and_register_tools(self, agent_name: str, instructions: str):
+        """
+        TASK 1: Create AI Time Agent and register Function tools.
+        Complete this method to create the Time agent and register the TimeTools.get_current_time_in_utc function as a tool.
+        """
+        endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+        api_key = os.getenv("AZURE_OPENAI_API_KEY")
+        deployment_name = os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME")
+        api_version = os.getenv("AZURE_OPENAI_API_VERSION", "latest")
+
+        if not endpoint:
+            raise ValueError("AZURE_OPENAI_ENDPOINT not set")
+        if not api_key:
+            raise ValueError("AZURE_OPENAI_API_KEY not set")
+        if not deployment_name:
+            raise ValueError("AZURE_OPENAI_DEPLOYMENT_NAME not set")
+
+        # Create the chat client
+        chat_client = AzureOpenAIResponsesClient(
+            endpoint=endpoint,
+            api_key=api_key,
+            deployment_name=deployment_name,
+            api_version=api_version
+        )
+
+        # Create an AIFunction from the TimeTools method
+        time_function = AIFunction(
+            name="get_current_time_in_utc",
+            description="Returns the current system time in UTC",
+            func=TimeTools.get_current_time_in_utc
+        )
+
+        # Create the agent with the time tool
+        self.agent = await self.exit_stack.enter_async_context(
+            ChatAgent(
+                chat_client=chat_client,
+                name=agent_name,
+                instructions=instructions,
+                tools=[time_function]
+            )
+        )
+
+        print(f"{agent_name} initialized with time tool\n")
+
+    async def create_weather_agent_and_register_mcp_tools(self, agent_name: str, instructions: str, server_script_path: str):
+        """
+        TASK 2: Create AI Weather Agent and register MCP Weather tools.
+        Complete this method to create the Weather agent and register the MCP Weather tools.
+        """
+        endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+        api_key = os.getenv("AZURE_OPENAI_API_KEY")
+        deployment_name = os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME")
+        api_version = os.getenv("AZURE_OPENAI_API_VERSION", "latest")
+
+        if not endpoint:
+            raise ValueError("AZURE_OPENAI_ENDPOINT not set")
+        if not api_key:
+            raise ValueError("AZURE_OPENAI_API_KEY not set")
+        if not deployment_name:
+            raise ValueError("AZURE_OPENAI_DEPLOYMENT_NAME not set")
+
+        # Create the chat client
+        chat_client = AzureOpenAIResponsesClient(
+            endpoint=endpoint,
+            api_key=api_key,
+            deployment_name=deployment_name,
+            api_version=api_version
+        )
+
         # Create MCP tool for the weather server
+        # MCPStdioTool automatically exposes all tools from the MCP server
         mcp_tool = MCPStdioTool(
             name="WeatherMCP",
             command="python",
             args=[server_script_path]
         )
 
-        # Create agent with MCP tools
-        instructions = """You are a helpful weather assistant with access to weather tools.
-Use the available tools to answer questions accurately and provide detailed information."""
-
+        # Create the agent with the MCP tool
         self.agent = await self.exit_stack.enter_async_context(
             ChatAgent(
                 chat_client=chat_client,
-                name="WeatherAgent",
+                name=agent_name,
                 instructions=instructions,
                 tools=[mcp_tool]
             )
         )
 
-        print("Agent initialized with MCP tool integration\n")
+        print(f"{agent_name} initialized with MCP weather tools\n")
 
-    async def run_interactive_session(self, server_script_path: str):
-        """Run interactive session with MCP-integrated agent."""
-        print("Initializing MCP-Integrated Agent...")
-        await self.initialize_agent_with_mcp(server_script_path)
+    async def run_interactive_session(self, agent_name: str = "JokeAgent"):
+        """Run interactive session with agent."""
+        print("Initializing Agent...")
+
+        # Create a simple joke-telling agent
+        await self.create_simple_agent(
+            agent_name="JokeAgent",
+            description="A simple joke telling agent",
+            instructions="You are a funny assistant that tells jokes."
+        )
+
+        # TASK 1: Create time agent
+        await self.create_time_agent_and_register_tools(
+            agent_name="TimeAgent",
+            instructions="You are a helpful assistant that can provide time information using the available tools."
+        )
+
+        # TASK 2: Create weather agent with MCP tools
+        server_path = sys.argv[1] if len(sys.argv) > 1 else None
+        if server_path:
+            await self.create_weather_agent_and_register_mcp_tools(
+                agent_name="WeatherAgent",
+                instructions="You are a helpful assistant that can provide weather information using the available tools.",
+                server_script_path=server_path
+            )
 
         print("=" * 60)
-        print("MCP-Integrated Weather Agent")
+        print(f"Interactive Session for Agent: {self.agent.name if self.agent else 'Unknown'}")
         print("=" * 60)
-        print("Ask weather questions. Type 'exit' to quit.\n")
+        print("Type 'exit' to quit.\n")
 
         while True:
             try:
@@ -96,11 +203,6 @@ Use the available tools to answer questions accurately and provide detailed info
                         print(update.text, end="", flush=True)
                 print()
 
-                # Non-streaming version (commented out):
-                # response = await self.agent.run(query)
-                # print(response)
-                # print()
-
             except KeyboardInterrupt:
                 print("\n\nAgent: Session ended.")
                 break
@@ -114,15 +216,9 @@ Use the available tools to answer questions accurately and provide detailed info
 
 async def main():
     """Main entry point."""
-    if len(sys.argv) < 2:
-        print("Usage: python agent_with_mcp.py <path_to_mcp_server>")
-        sys.exit(1)
-
-    server_path = sys.argv[1]
-
     agent = MCPIntegratedAgent()
     try:
-        await agent.run_interactive_session(server_path)
+        await agent.run_interactive_session()
     except Exception as e:
         print(f"\nError: {str(e)}")
         sys.exit(1)
