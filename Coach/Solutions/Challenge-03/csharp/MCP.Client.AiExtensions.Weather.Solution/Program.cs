@@ -11,7 +11,6 @@ class Program
 {
     public static AzureOpenAIClient openAIClient = null;
     public static IClientTransport clientTransport = null;
-    public static IMcpClient mcpClient = null;
 
     public static async Task Main(string[] args)
     {
@@ -33,8 +32,6 @@ class Program
             var deploymentName = configuration["AzureOpenAI:DeploymentName"] ?? "Enter value here if not set in app.settings";
 
             //Load MCP settings
-            var useLocalMCP = configuration.GetValue<bool>("MCPServer:UseLocalMCP", true);
-            var remoteMCP = configuration.GetValue<string>("MCPServer:RemoteMCP:Endpoint", "Enter value here if not set in app.settings");
             var localMCPName = configuration.GetValue<string>("MCPServer:LocalMCP:Name", "Enter value here if not set in app.settings");
             var localMCPCommand = configuration.GetValue<string>("MCPServer:LocalMCP:Command", "Enter value here if not set in app.settings");
             var localMCPArguments = configuration.GetSection("MCPServer:LocalMCP:Arguments").Get<string[]>() ?? Array.Empty<string>();
@@ -49,50 +46,26 @@ class Program
             }
 
             //Validate MCP settings
-            if (useLocalMCP)
-            {
-                if (string.IsNullOrEmpty(localMCPName) || string.IsNullOrEmpty(localMCPCommand) || localMCPArguments.Length == 0)
+            if (string.IsNullOrEmpty(localMCPName) || string.IsNullOrEmpty(localMCPCommand) || localMCPArguments.Length == 0)
                 {
                     Console.WriteLine("Warning: Local MCP configuration is incomplete. Please update appsettings.json");
                     Console.WriteLine("You can also embed the settings directly into the code above.");
 
                     throw new InvalidOperationException("Local MCP configuration is missing. Please check appsettings.json");
                 }
-            }
-            else
-            {
-                if (string.IsNullOrEmpty(remoteMCP))
-                {
-                    Console.WriteLine("Warning: Remote MCP configuration is incomplete. Please update appsettings.json");
-                    Console.WriteLine("You can also embed the settings directly into the code above.");
-
-                    throw new InvalidOperationException("Remote MCP configuration is missing. Please check appsettings.json");
-                }
-            }
             #endregion
 
             #region Initialize Azure OpenAI and MCP Client and get MCP tools
 
-            if (useLocalMCP)
-            {
-                clientTransport = new StdioClientTransport(new()
+            clientTransport = new StdioClientTransport(new()
                 {
                     Name = localMCPName,
                     Command = localMCPCommand,
                     Arguments = localMCPArguments,
                 });
-            }
-            else
-            {
-                // Make sure that Weather MCP server is running
-                clientTransport = new SseClientTransport(new()
-                {
-                    Endpoint = new Uri(remoteMCP)
-                });
-            }
 
             //Initialize MCP client
-            mcpClient = await McpClientFactory.CreateAsync(clientTransport!);
+            await using var mcpClient =  await McpClient.CreateAsync(clientTransport);
 
             //Load MCP tools from server
             var tools = await mcpClient.ListToolsAsync();

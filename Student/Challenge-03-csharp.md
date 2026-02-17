@@ -85,7 +85,7 @@ dotnet add package Microsoft.Extensions.AI.OpenAI --prerelease
 
 **Prerequisites:**
 1. Create an Azure OpenAI resource in the Azure portal
-2. Deploy a GPT-4 model in your Azure OpenAI resource
+2. Deploy one of the latest Azure Open AI GPT models in your Azure OpenAI resource
 3. Note down your endpoint URL, API key, and deployment name
 
 **Note:** You can find these values in your Azure OpenAI resource:
@@ -98,7 +98,7 @@ Add environment variable to retrieve configuration values for your project:
 ```env
 AZURE_OPENAI_ENDPOINT=https://your-resource-name.openai.azure.com/
 AZURE_OPENAI_API_KEY=your_azure_openai_api_key_here
-AZURE_OPENAI_DEPLOYMENT_NAME=your_gpt4_deployment_name
+AZURE_OPENAI_DEPLOYMENT_NAME=your_gpt_deployment_name
 ```
 
 > ℹ️ Storing configuration values like API endpoints in environment variables keeps them separate from your source code, making your application more flexible. For sensitive information such as API keys, it's best to use a secure storage solution.
@@ -108,7 +108,7 @@ AZURE_OPENAI_DEPLOYMENT_NAME=your_gpt4_deployment_name
 // Initialize Azure OpenAI client
 var endpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT") ?? "<Add your endpoint>";
 var apiKey = Environment.GetEnvironmentVariable("AZURE_OPENAI_API_KEY") ?? "<Add your API key>";
-var deploymentName = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT_NAME") ?? "gpt-4";
+var deploymentName = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT_NAME") ?? "<Add your model deployment name>";
 
 ```
 
@@ -124,7 +124,7 @@ var clientTransport = new StdioClientTransport(new()
     Arguments = ["run", "--project", "<add the weather MCP server project path>"]
 });
 
-await using var mcpClient = await McpClientFactory.CreateAsync(clientTransport);
+await using var mcpClient =  await McpClient.CreateAsync(clientTransport);
 
 var tools = await mcpClient.ListToolsAsync();
 foreach (var tool in tools)
