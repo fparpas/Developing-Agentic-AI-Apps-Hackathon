@@ -4,7 +4,7 @@
  
 ## Introduction
 
-In this challenge, you'll set up GitHub Copilot in Visual Studio Code and explore its powerful features, including Ask, Edit, Plan and Agent modes. You'll also learn how to leverage Model Context Protocol (MCP) servers to enhance your development workflow with AI‑powered assistance for building intelligent applications.
+In this challenge, you'll set up GitHub Copilot in Visual Studio Code and explore its powerful features, including Code completions, Ask, Agent, and Plan modes. You'll also learn how to leverage Model Context Protocol (MCP) servers to enhance your development workflow with AI‑powered assistance for building intelligent applications.
 
 ## Concepts
 
@@ -12,10 +12,13 @@ In this challenge, you'll set up GitHub Copilot in Visual Studio Code and explor
 
 GitHub Copilot is an AI‑powered coding assistant that acts as your pair programming partner. It helps you write code faster and with less effort by providing context‑aware suggestions, generating boilerplate code, and even creating entire functions or classes based on comments or existing code.
 
+GitHub Copilot adds multi-agent development capabilities to Visual Studio Code. Plan your approach, then let AI agents implement and verify code changes across your project. 
+
+
 #### Key Features
 
 - Code completions: Context‑aware inline suggestions and next‑edit predictions
-- Natural language chat: Ask, explain, and apply multi‑file changes with prompts
+- Natural language chat: Ask, explain, and apply changes with prompts
 - Autonomous coding (Agent and Plan Mode): Plan and execute multi‑step tasks with tools and terminal access
 - Smart actions: AI‑enhanced commit messages, PR descriptions, renames, fixes, and semantic search
 
@@ -27,16 +30,8 @@ Copilot provides inline suggestions as you type, ranging from single‑line comp
 **2. Chat Mode (Ask)**
 Chat in Visual Studio Code lets you use natural language to interact with large language models (LLMs) for help with your code. Ask Mode is optimized for questions about your codebase, coding techniques, and general technology concepts. It is particularly useful for understanding unfamiliar code, brainstorming ideas, and getting guidance on implementation tasks.
 
-**3. Edit Mode**
-Use Edit Mode when you want granular control over the changes Copilot proposes. You choose which files Copilot may modify, provide iterative context, and decide whether to accept suggested edits after each turn.
-
-Edit Mode is best suited for cases where:
-
-- You want to make a quick, specific update to a defined set of files
-- You want full control over the number of LLM requests Copilot uses
-
-**4. Agent Mode**
-Use Agent Mode when you have a specific task and want Copilot to autonomously edit your code. Copilot determines which files to change, proposes code edits and terminal commands, and iterates to remediate issues until the task is complete.
+**3. Agent Mode**
+Agent Mode allows you to delegate complex tasks to AI agents that can interact with your codebase, terminal, and external tools. You can use agent commands (e.g., `@workspace`, `@vscode`, `@terminal`) to instruct the agent to perform specific actions like creating files, running tests, or modifying code across multiple files. Agent Mode is ideal for tasks that require multiple steps, cross‑file changes, or integration with external services.
 
 Agent Mode is best suited for cases where:
 
@@ -44,7 +39,7 @@ Agent Mode is best suited for cases where:
 - You want Copilot to determine the necessary steps to complete the task
 - The task requires integration with external applications (e.g., an MCP server)
 
-**5. Plan Mode**
+**4. Plan Mode**
 Use Plan Mode when you want Copilot to generate a structured, multi‑step plan before any code changes are made. Copilot analyzes your high‑level goal, enumerates actionable steps (e.g., create files, refactor code, add tests), and waits for your approval before executing edits or running commands.
 
 Plan Mode is best suited for cases where:
@@ -86,10 +81,6 @@ Demonstrate Copilot's different modes by completing a simple coding task: create
 #### Chat Mode (Ask)
 - Open Copilot Chat and ask:  
   *"Can you show me how to write a function in C# that adds two numbers?"*
-
-#### Edit Mode
-- Write a basic function with a placeholder body, select it, and prompt:  
-  *"Implement this function to return the sum of the two arguments."*
 
 #### Agent Mode
 - In Copilot Chat, use an agent command such as:  
@@ -133,7 +124,6 @@ Using Playwright, interact in Copilot Chat to automate Google Maps and obtain dr
 
 - ✅ GitHub Copilot configured in VS Code
 - ✅ Inline code suggestions demonstrated
-- ✅ Edit Mode used to refactor existing code with specific instructions
 - ✅ Interaction with @workspace, @vscode, and @terminal agents demonstrated
 - ✅ Appropriate use cases for each Copilot mode explained
 - ✅ Plan Mode used to generate and review a task plan before execution
