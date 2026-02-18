@@ -129,7 +129,7 @@ Verify your remote MCP server works with real MCP clients
 
 ### MCP Documentation
 - [Model Context Protocol Specification](https://modelcontextprotocol.io/)
-- [MCP .NET SDK Documentation](https://github.com/microsoft/mcp-dotnet)
+- [MCP .NET SDK Documentation](https://github.com/modelcontextprotocol/csharp-sdk)
 
 ### Azure Services
 - [Azure Container Apps Documentation](https://docs.microsoft.com/azure/container-apps/)

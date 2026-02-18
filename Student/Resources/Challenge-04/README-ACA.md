@@ -174,16 +174,6 @@ Once deployment completes, you'll see:
 curl https://your-app-url.azurecontainerapps.io
 ```
 
-### View Application Logs
-```bash
-az containerapp logs show --name weathermcp-server --resource-group rg-weathermcp-demo --follow
-```
-
-### Check App Status
-```bash
-az containerapp show --name weathermcp-server --resource-group rg-weathermcp-demo
-```
-
 ## 🔄 Updating Your Application
 
 To update the deployed application with new code:
@@ -194,31 +184,6 @@ cd ".\csharp\MCP.Server.Remote.Weather"
 
 # Deploy updates
 az containerapp up --name weathermcp-server --resource-group rg-weathermcp-demo --source .
-```
-
-## 📊 Monitoring & Management
-
-### View Real-time Logs
-```bash
-az containerapp logs show --name weathermcp-server --resource-group rg-weathermcp-demo --follow
-```
-
-### Scale the Application
-```bash
-# Manual scaling
-az containerapp update --name weathermcp-server --resource-group rg-weathermcp-demo --min-replicas 2 --max-replicas 5
-
-# Update resources
-az containerapp update --name weathermcp-server --resource-group rg-weathermcp-demo --cpu 0.5 --memory 1.0Gi
-```
-
-### Check Application Metrics
-```bash
-# View app details
-az containerapp show --name weathermcp-server --resource-group rg-weathermcp-demo
-
-# List all revisions
-az containerapp revision list --name weathermcp-server --resource-group rg-weathermcp-demo
 ```
 
 ## 🧹 Cleanup
@@ -235,87 +200,6 @@ Or remove just the container app:
 # Delete only the container app
 az containerapp delete --name weathermcp-server --resource-group rg-weathermcp-demo --yes
 ```
-
-## ❗ Troubleshooting
-
-### Common Issues
-
-#### 1. "Please run 'az login' to setup account"
-**Solution:**
-```powershell
-az login
-az account set --subscription "your-subscription-id"
-```
-
-#### 2. "Insufficient permissions"
-**Solution:** Ensure your account has Contributor role:
-```powershell
-# Check your permissions
-az role assignment list --assignee your-email@domain.com
-
-# Your admin needs to grant Contributor role
-az role assignment create --assignee your-email@domain.com --role Contributor
-```
-
-#### 3. "Container Apps extension not found"
-**Solution:** The script handles this automatically, but you can manually install:
-```powershell
-az extension add --name containerapp --upgrade
-```
-
-#### 4. "Region not supported"
-**Solution:** Use a different Azure region:
-```powershell
-.\deploy-aca-script.ps1 -Location "West US 2"
-```
-
-#### 5. "Resource name already exists"
-**Solution:** Use different names:
-```powershell
-.\deploy-aca-script.ps1 -ResourceGroupName "my-unique-rg" -ContainerAppName "my-unique-app"
-```
-
-### Getting Help
-
-#### View Detailed Logs
-```bash
-az containerapp logs show --name weathermcp-server --resource-group rg-weathermcp-demo --follow
-```
-
-#### Check Resource Status
-```bash
-# Container App status
-az containerapp show --name weathermcp-server --resource-group rg-weathermcp-demo --query "properties.provisioningState"
-
-# Environment status  
-az containerapp env show --name weathermcp-env --resource-group rg-weathermcp-demo --query "properties.provisioningState"
-```
-
-#### Debugging Failed Deployments
-```bash
-# Check recent operations
-az group deployment operation list --resource-group rg-weathermcp-demo
-
-# View activity log
-az monitor activity-log list --resource-group rg-weathermcp-demo --max-events 10
-```
-
-## 💰 Cost Considerations
-
-Azure Container Apps pricing is based on:
-- **vCPU-seconds** and **GiB-seconds** consumed
-- **HTTP requests** processed
-- **Storage** used
-
-**Estimated monthly cost** for default configuration:
-- **Small usage:** $5-15/month
-- **Medium usage:** $15-50/month
-- **Production usage:** $50-200/month
-
-💡 **Cost Optimization Tips:**
-- Use `--min-replicas 0` for development (app sleeps when not used)
-- Monitor usage in Azure portal
-- Set up cost alerts
 
 ## 🔐 Security Best Practices
 
@@ -338,24 +222,3 @@ For production deployments, consider:
 - [Container Apps Pricing](https://azure.microsoft.com/pricing/details/container-apps/)
 - [Model Context Protocol Documentation](https://modelcontextprotocol.io/)
 
-## 🆘 Support
-
-If you encounter issues:
-1. Check the **Troubleshooting** section above
-2. Review Azure Container Apps documentation
-3. Check Azure status page for service issues
-4. Contact Azure support if needed
-
----
-
-## 🎯 Summary
-
-This deployment script provides the **easiest way** to get your MCP server running in Azure:
-
-✅ **No Docker required** - builds in Azure cloud  
-✅ **No manual setup** - handles all Azure resources  
-✅ **Production ready** - includes scaling and monitoring  
-✅ **Cost effective** - optimized resource allocation  
-✅ **Secure** - follows Azure best practices  
-
-**Just run `.\deploy-aca-script.ps1` and you're live in Azure! 🚀**
