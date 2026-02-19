@@ -6,6 +6,7 @@ namespace TravelMcpServer.Tools;
 
 /// <summary>
 /// MCP tools for tours and activities search using Amadeus APIs
+/// https://github.com/amadeus4dev/amadeus-open-api-specification/tree/main/spec/json
 /// </summary>
 [McpServerToolType]
 [Description("Tours and activities search and discovery services")]
