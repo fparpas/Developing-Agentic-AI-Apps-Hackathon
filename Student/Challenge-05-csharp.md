@@ -224,13 +224,8 @@ Agent: "The travel policy requires you to book accommodations at approved corpor
 
 ## Learning Resources
 
-### Azure AI Agents Service Documentation
-
 - [Azure AI Agents Service Overview](https://learn.microsoft.com/en-us/azure/ai-foundry/agents/overview)
 - [Azure AI Agents Service Concepts](https://learn.microsoft.com/en-us/azure/ai-foundry/agents/concepts/threads-runs-messages)
 - [File Search with AI Agents](https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/tools/file-search)
-
-### Sample Code and Tutorials
-
-- [Azure AI Foundry Samples - C#](https://github.com/azure-ai-foundry/foundry-samples/tree/main/samples/microsoft/csharp/getting-started-agents)
-- [Azure AI Foundry Samples - Python](https://github.com/azure-ai-foundry/foundry-samples/tree/main/samples/microsoft/python/getting-started-agents)
+- [Microsoft Foundry (classic) Quickstart](https://learn.microsoft.com/en-us/azure/ai-foundry/quickstarts/get-started-code?view=foundry-classic&tabs=csharp)
+- [Microsoft Foundry (new) Quickstart](https://learn.microsoft.com/en-us/azure/ai-foundry/quickstarts/get-started-code?view=foundry&preserve-view=true&tabs=python)
