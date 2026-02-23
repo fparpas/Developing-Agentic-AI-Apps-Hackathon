@@ -91,7 +91,7 @@ class MCPIntegratedAgent:
             api_version=api_version
         )
 
-        # Create an AIFunction from the TimeTools method
+        # Create a FunctionTool from the TimeTools method
         time_function = FunctionTool(
             name="get_current_time_in_utc",
             description="Returns the current system time in UTC",
