@@ -185,12 +185,6 @@ class MCPIntegratedAgent:
         #         server_script_path=server_path
         #     )
 
-
-        print("=" * 60)
-        print(f"Interactive Session for Agent: {self.agent.name if self.agent else 'Unknown'}")
-        print("=" * 60)
-        print("Type 'exit' to quit.\n")
-
         while True:
             try:
                 query = input("You: ").strip()
