@@ -1,19 +1,19 @@
-# Semantic Kernel with MCP Integration
+# Microsoft Agent Framework with MCP Integration
 
-This project demonstrates how to integrate Microsoft Semantic Kernel with Model Context Protocol (MCP) tools, creating a powerful AI agent that can leverage external tools and services.
+This project demonstrates how to integrate Microsoft Agent Framework with Model Context Protocol (MCP) tools, creating a powerful AI agent that can leverage external tools and services.
 
 ## Overview
 
 This console application combines the power of:
-- **Microsoft Semantic Kernel**: A lightweight SDK for AI orchestration with .NET
+- **Microsoft Agent Framework**: A lightweight SDK for AI orchestration with .NET
 - **Model Context Protocol (MCP)**: A standardized protocol for connecting AI assistants to external tools and data sources
 - **Azure OpenAI**: For natural language processing and AI capabilities
 
 ## Features
 
-- ✅ Semantic Kernel integration with Azure OpenAI
+- ✅ Microsoft Agent Framework integration with Azure OpenAI
 - ✅ Dynamic MCP tool discovery and registration
-- ✅ Automatic tool invocation through Semantic Kernel
+- ✅ Automatic tool invocation through Microsoft Agent Framework
 - ✅ Interactive chat interface
 - ✅ Support for both local and remote MCP servers
 - ✅ Comprehensive logging and error handling
@@ -47,7 +47,7 @@ Update the `appsettings.json` file with your Azure OpenAI credentials and MCP se
       ]
     },
     "RemoteMCP": {
-      "Endpoint": "http://localhost:5000/sse"
+      "Endpoint": "http://localhost:5000"
     }
   }
 }
@@ -59,7 +59,7 @@ Update the `appsettings.json` file with your Azure OpenAI credentials and MCP se
 
 1. **Clone and navigate to the project directory**:
    ```bash
-   cd Coach/Solutions/Challenge-06/SemanticKernelWithMCP
+   cd Coach/Solutions/Challenge-06/MAF.AgentWithMCP
    ```
 
 2. **Restore NuGet packages**:
@@ -93,25 +93,25 @@ You: exit
 ### Key Components
 
 1. **Program.cs**: Main application entry point and orchestration
-2. **Kernel Configuration**: Sets up Semantic Kernel with Azure OpenAI
+2. **Agent Configuration**: Sets up Microsoft Agent Framework with Azure OpenAI
 3. **MCP Client Integration**: Connects to MCP servers and discovers tools
-4. **Function Registration**: Converts MCP tools to Semantic Kernel functions
+4. **Function Registration**: Converts MCP tools to Microsoft Agent Framework functions
 5. **Interactive Chat Loop**: Handles user interactions and tool invocations
 
 ### MCP Integration Flow
 
 1. **Initialize MCP Client**: Connect to local or remote MCP server
 2. **Discover Tools**: Query available tools from MCP server
-3. **Register Functions**: Convert MCP tools to Semantic Kernel functions
-4. **Auto-Invoke**: Let Semantic Kernel automatically call tools when needed
+3. **Register Functions**: Convert MCP tools to Microsoft Agent Framework functions
+4. **Auto-Invoke**: Let Microsoft Agent Framework automatically call tools when needed
 5. **Return Results**: Process and display results to the user
 
 ## Project Structure
 
 ```
-SemanticKernelWithMCP/
+MAF.AgentWithMCP/
 ├── Program.cs                    # Main application logic
-├── SemanticKernelWithMCP.csproj  # Project configuration and dependencies
+├── MAF.AgentWithMCP.csproj       # Project configuration and dependencies
 ├── appsettings.json              # Configuration (production)
 ├── appsettings.Development.json  # Configuration (development)
 └── README.md                     # This documentation
@@ -119,18 +119,24 @@ SemanticKernelWithMCP/
 
 ## Key Dependencies
 
-- **Microsoft.SemanticKernel**: Core SK functionality
-- **Microsoft.SemanticKernel.Connectors.AzureOpenAI**: Azure OpenAI integration
-- **ModelContextProtocol.Client**: MCP client library
+- **Microsoft.Agents.AI**: Core Microsoft Agent Framework functionality
+- **Microsoft.Agents.AI.OpenAI**: OpenAI integration for Microsoft Agent Framework
+- **Azure.AI.Projects**: Azure AI Projects client library
+- **Azure.AI.Projects.OpenAI**: Azure AI Projects OpenAI integration
+- **Azure.AI.OpenAI**: Azure OpenAI client library
+- **Azure.Identity**: Azure authentication
+- **ModelContextProtocol**: MCP client library
 - **Microsoft.Extensions.Configuration**: Configuration management
+- **Microsoft.Extensions.DependencyInjection**: Dependency injection infrastructure
 - **Microsoft.Extensions.Logging**: Logging infrastructure
+- **System.Text.Json**: JSON serialization/deserialization
 
 ## MCP Tool Integration
 
 The application automatically:
 
 1. **Discovers** all available tools from the connected MCP server
-2. **Registers** each MCP tool as a Semantic Kernel function
+2. **Registers** each MCP tool as a Microsoft Agent Framework function
 3. **Enables** automatic tool invocation based on user queries
 4. **Handles** tool execution and result processing
 
@@ -161,7 +167,7 @@ Configured with structured logging to help with debugging and monitoring:
 To add more functionality:
 
 1. **Add new MCP servers**: Update configuration to connect to additional MCP servers
-2. **Custom functions**: Register additional Semantic Kernel functions alongside MCP tools
+2. **Custom functions**: Register additional Microsoft Agent Framework functions alongside MCP tools
 3. **Advanced prompts**: Implement more sophisticated prompt engineering
 4. **Memory integration**: Add conversation memory and context management
 
@@ -179,10 +185,10 @@ Set `"LogLevel": { "Default": "Debug" }` in configuration for verbose logging.
 
 ## Learning Resources
 
-- [Microsoft Semantic Kernel Documentation](https://learn.microsoft.com/en-us/semantic-kernel/)
+- [Microsoft Agent Framework Documentation](https://learn.microsoft.com/en-us/azure/ai-services/agents/)
 - [Model Context Protocol Specification](https://modelcontextprotocol.io/docs)
 - [Azure OpenAI Service Documentation](https://learn.microsoft.com/en-us/azure/ai-services/openai/)
 
 ---
 
-This application demonstrates the powerful combination of Semantic Kernel's AI orchestration capabilities with the extensibility of Model Context Protocol tools, creating a flexible and scalable AI agent architecture.
+This application demonstrates the powerful combination of Microsoft Agent Framework's AI orchestration capabilities with the extensibility of Model Context Protocol tools, creating a flexible and scalable AI agent architecture.
