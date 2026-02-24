@@ -1,5 +1,6 @@
 using Azure.AI.Agents.Persistent;
 using Azure.AI.OpenAI;
+using Azure.AI.Projects;
 using Azure.Core;
 using Azure.Identity;
 using Microsoft.Agents.AI;
@@ -9,18 +10,19 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Client;
 using OpenAI;
+using OpenAI.Chat;
 using System.ClientModel;
 using System.ComponentModel;
 using System.Text.Json;
 
-
-namespace SemanticKernelWithMCP;
+#pragma warning disable OPENAI001
 
 class Program
 {
     private static IConfiguration _configuration;
     private static IClientTransport? _clientTransport;
-    private static IMcpClient? _mcpClient;
+
+    private static McpClient? _mcpClient;
 
     static async Task Main(string[] args)
     {
@@ -38,13 +40,17 @@ class Program
             // Create AI Weather Agent and register MCP Weather tools. 
             var weatherAgent = await CreateWeatherAIAgentAndRegisterMCPTools("WeatherAgent", "You are a helpful assistant that can provide weather information using the available tools.");
 
-            // Create AI Agent Service Agent
-            var agentServiceAgent = await CreateAIAgentServiceAgent("AgentServiceAgent", "You are a helpful assistant that can provide agent service information using the available tools.");
+            // Get Classic Foundry Agent Service Agent 
+            var agentServiceClassicFoundry = await GetAIAgentServiceAgent_ClassicFoundry();
 
+            // Get New Foundry Agent Service Agent
+            var agentServiceNewFoundry = await GetAIAgentServiceAgent_NewFoundry();
+            
             // Start interactive chat
             // await StartInteractiveChat(timeAgent);
             // await StartInteractiveChat(weatherAgent);
-            await StartInteractiveChat(agentServiceAgent);
+            //await StartInteractiveChat(agentServiceClassicFoundry);
+            await StartInteractiveChat(agentServiceNewFoundry);
         }
         catch (Exception ex)
         {
@@ -54,8 +60,7 @@ class Program
         }
         finally
         {
-            // Cleanup
-            await _mcpClient.DisposeAsync();
+           
         }
     }
 
@@ -69,17 +74,15 @@ class Program
             .Build();
     }
 
-
-    private static async Task<IMcpClient> InitializeMcpClient()
+  private static async Task<McpClient> InitializeMcpClient()
     {
         var mcpServerUrl = _configuration["MCPServer:RemoteMCP:Endpoint"] ?? throw new InvalidOperationException("Remote MCP endpoint is required");
 
-        _mcpClient = await McpClientFactory.CreateAsync(
-           new SseClientTransport(
-               new SseClientTransportOptions
+        _mcpClient = await McpClient.CreateAsync(
+           new HttpClientTransport(
+               new HttpClientTransportOptions()
                {
-                   Endpoint = new Uri(mcpServerUrl),
-                   ConnectionTimeout = TimeSpan.FromMinutes(5) // Increase MCP connection timeout to 5 minutes
+                   Endpoint = new Uri(mcpServerUrl)
                }
            )
         );
@@ -93,6 +96,12 @@ class Program
         var apiKey = _configuration["AzureOpenAI:ApiKey"] ?? throw new InvalidOperationException("Azure OpenAI API key is required");
         var deploymentName = _configuration["AzureOpenAI:DeploymentName"] ?? throw new InvalidOperationException("Azure OpenAI deployment name is required");
 
+
+        if (_mcpClient == null) 
+        {
+            throw new InvalidOperationException("MCP client is not initialized.");
+        }
+        
         var mcpTools = await _mcpClient.ListToolsAsync();
         Console.WriteLine($"Found {mcpTools.Count} MCP tools");
 
@@ -106,7 +115,7 @@ class Program
             new Uri(endpoint),
             new ApiKeyCredential(apiKey))
             .GetChatClient(deploymentName)
-            .CreateAIAgent(
+            .AsAIAgent(
                 instructions: instructions,
                 name: agentName,
                 tools: [.. mcpTools.Cast<AITool>().ToList(), AIFunctionFactory.Create(TimeTools.GetCurrentTimeInUTC)]
@@ -126,7 +135,7 @@ class Program
             new Uri(endpoint),
             new ApiKeyCredential(apiKey))
             .GetChatClient(deploymentName)
-            .CreateAIAgent(
+            .AsAIAgent(
                 instructions: instructions,
                 name: agentName,
                 tools: [AIFunctionFactory.Create(TimeTools.GetCurrentTimeInUTC)]
@@ -135,29 +144,46 @@ class Program
         return agent;
     }  
 
-    private static async Task<AIAgent> CreateAIAgentServiceAgent(string agentName, string instructions)
+    private static async Task<AIAgent> GetAIAgentServiceAgent_ClassicFoundry()
     {
         var endpoint = _configuration["AzureOpenAI:Endpoint"] ?? throw new InvalidOperationException("Azure OpenAI endpoint is required");
         var apiKey = _configuration["AzureOpenAI:ApiKey"] ?? throw new InvalidOperationException("Azure OpenAI API key is required");
         var deploymentName = _configuration["AzureOpenAI:DeploymentName"] ?? throw new InvalidOperationException("Azure OpenAI deployment name is required");
 
         var agentServiceEndpoint = _configuration["AgentService:Endpoint"] ?? throw new InvalidOperationException("Azure OpenAI agent service endpoint is required");
-        var agentServiceId = _configuration["AgentService:AgentId"] ?? throw new InvalidOperationException("Azure OpenAI agent service identity is required");
+        var agentId = _configuration["AgentService:AgentId_ClassicFoundry"] ?? throw new InvalidOperationException("Azure OpenAI agent service identity is required");
 
         var persistentAgentsClient = new PersistentAgentsClient(agentServiceEndpoint, new DefaultAzureCredential());
 
         // Retrieve the agent that was just created as an AIAgent using its ID
-        AIAgent agent = await persistentAgentsClient.GetAIAgentAsync(agentServiceId);
+        var persistentAgent = persistentAgentsClient.AsIChatClient(agentId).AsAIAgent();
 
-        return agent;
+        return persistentAgent;
     } 
+
+        private static async Task<AIAgent> GetAIAgentServiceAgent_NewFoundry()
+        {
+            var endpoint = _configuration["AzureOpenAI:Endpoint"] ?? throw new InvalidOperationException("Azure OpenAI endpoint is required");
+            var apiKey = _configuration["AzureOpenAI:ApiKey"] ?? throw new InvalidOperationException("Azure OpenAI API key is required");
+            var deploymentName = _configuration["AzureOpenAI:DeploymentName"] ?? throw new InvalidOperationException("Azure OpenAI deployment name is required");
+
+            var agentServiceEndpoint = _configuration["AgentService:Endpoint"] ?? throw new InvalidOperationException("Azure OpenAI agent service endpoint is required");
+            var agentNameNewFoundry = _configuration["AgentService:AgentName_NewFoundry"] ?? throw new InvalidOperationException("Azure OpenAI agent service identity is required");
+
+        AIProjectClient projectClient = new(endpoint: new Uri(agentServiceEndpoint), tokenProvider: new DefaultAzureCredential());
+
+            var foundryAgent = await projectClient.Agents.GetAgentAsync(agentNameNewFoundry);
+            AIAgent aiAgent = projectClient.AsAIAgent(foundryAgent);  
+            return aiAgent; 
+        } 
+
     private static async Task StartInteractiveChat(AIAgent aIAgent)
     {
         Console.WriteLine("\n=== Agent Framework with MCP Tools ===");
         Console.WriteLine("You can ask questions and I'll use the available MCP tools to help you.");
         Console.WriteLine("Type 'exit' to quit.\n");
 
-        AgentThread agentThread = aIAgent.GetNewThread();
+        AgentSession session = await aIAgent.CreateSessionAsync();
 
         while (true)
         {
@@ -179,8 +205,8 @@ class Program
                 Console.Write("Assistant: ");
                 Console.ResetColor();
 
-                // Run agent with user input and agent thread
-                var response = await aIAgent.RunAsync(userInput, agentThread);
+                // Run agent with user input and agent session
+                var response = await aIAgent.RunAsync(userInput, session);
 
                 Console.WriteLine(response);
             }
