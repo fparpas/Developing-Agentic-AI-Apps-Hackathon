@@ -78,7 +78,13 @@ Create a `requirements.txt` file in your project:
 # Python 3.10+ required
 
 # Microsoft Agent Framework (includes pre-release Azure AI Agents)
-agent-framework>=0.1.0
+agent-framework>=1.0.0rc1
+
+# opentelemetry-semantic-conventions-ai 0.4.14 removed SpanAttributes.LLM_SYSTEM,
+# but agent-framework 1.0.0rc1 still references it. Downgrading to 0.4.13 fixes it.
+opentelemetry-semantic-conventions-ai==0.4.13
+
+# Foundry AI Agents Service SDK
 azure-ai-agents>=1.2.0b5
 
 # Model Context Protocol SDK
@@ -99,8 +105,10 @@ uv venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
 # Install the Agent Framework and dependencies
-uv pip install -r requirements.txt
+uv pip install -r requirements.txt --pre
 ```
+
+Make sure you install the requirements.txt with `--pre`, otherwise some prerelease dependencies will fail installation.
 
 **Or using standard `pip`:**
 ```bash
@@ -111,8 +119,10 @@ python -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
 # Install the Agent Framework and dependencies
-pip install -r requirements.txt
+pip install -r requirements.txt --pre
 ```
+
+Make sure you install the requirements.txt with `--pre`, otherwise some prerelease dependencies will fail installation.
 
 ### Task 2: Configure Azure OpenAI and environment variables
 
@@ -152,7 +162,7 @@ using MCPStdioTool for easy tool discovery and execution from MCP servers.
 import asyncio
 import os
 import sys
-from agent_framework import ChatAgent
+from agent_framework import Agent
 from agent_framework.azure import AzureOpenAIResponsesClient
 from agent_framework import MCPStdioTool
 from dotenv import load_dotenv
@@ -160,13 +170,11 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-
 async def main():
     """Main entry point for the MCP weather client agent."""
     if len(sys.argv) < 2:
-        print("Usage: python mcp_weather_client.py <path_to_weather_server.py>")
-        print("\nExample:")
-        print("  python mcp_weather_client.py ../../Challenge-02/python/weather.py")
+        print("\nUsage:\npython mcp_weather_client.py <path_to_weather_server.py>\n")
+        print("Example:\npython mcp_weather_client.py ../../Challenge-02/python/weather.py\n")
         sys.exit(1)
 
     server_path = sys.argv[1]
@@ -213,10 +221,14 @@ async def main():
     )
 
     # Create agent with MCP tools
-    async with ChatAgent(
-        chat_client=chat_client,
+    async with Agent(
+        client=chat_client,
         name="WeatherAgent",
-        instructions="You are a helpful weather assistant. Use the available MCP tools to answer weather questions accurately.",
+        instructions="""
+        You are a helpful weather assistant.
+        Use the available MCP tools to answer weather questions accurately.
+        Output plain text only, do not emit Markdown.
+        """,
         tools=[mcp_tool]
     ) as agent:
         print("\n" + "=" * 60)
@@ -236,8 +248,8 @@ async def main():
                 if not user_input:
                     continue
 
-                print("Agent: ", end="", flush=True)
                 response = await agent.run(user_input)
+                print("\nAgent: ", end="", flush=True)
                 print(response)
                 print()
 
@@ -266,7 +278,7 @@ mcp_weather_client/
 - ✅ A Python agent application using the Microsoft Agent Framework that can connect to MCP servers via stdio
 - ✅ Agent can connect to and discover tools from connected MCP servers
 - ✅ Interactive interface for user queries
-- ✅ Integration with Azure OpenAI chat client for natural language processing
+- ✅ Integration with Microsoft Foundry for calling LLMs using Responses API
 - ✅ Agent can reason about which tools to use based on user queries
 - ✅ Agent can execute tool calls on MCP servers and return results
 - ✅ User can ask weather-related questions and get natural language responses
@@ -312,6 +324,8 @@ Try queries like:
 - "Give me the forecast for Seattle"
 - "Tell me about weather alerts in Texas"
 
+> **Note:** The `api.weather.gov` API only provides weather data for locations within the United States. Queries for international locations will not return results (404 Not Found).
+
 ## Implementation Architecture
 
 ### Client Agent Flow
@@ -320,7 +334,7 @@ The agent follows this flow when processing user queries:
 
 1. User submits a natural language query
 2. Agent receives the query and analyzes available tools
-3. Azure OpenAI LLM decides which tools to use
+3. Microsoft Foundry LLM decides which tools to use
 4. MCPStdioTool executes tool calls on the MCP server
 5. Results are processed by the agent
 6. Natural language response is generated
@@ -333,16 +347,16 @@ The agent follows this flow when processing user queries:
 - Automatically discovers and manages tools from the MCP server
 - Seamlessly integrates MCP tools with the Agent Framework
 
-**ChatAgent Integration**
-- Uses Microsoft Agent Framework ChatAgent for agent orchestration
-- Integrates with Azure OpenAI for language understanding
+**Agent Integration**
+- Uses Microsoft Agent Framework `Agent` type for agent orchestration
+- Integrates with Microsoft Foundry for calling LLMs
 - Processes user queries and generates responses
 - Automatically manages tool selection and execution
 
 **Error Handling**
 - Environment variable validation with clear error messages
 - Server file existence checking
-- Interactive error recovery with try-except blocks
+- Error recovery with try-except blocks
 - Graceful handling of interrupt signals (Ctrl+C)
 
 ## Extending the Client
@@ -352,10 +366,10 @@ The agent follows this flow when processing user queries:
 Switch between providers by using different chat clients:
 
 ```python
-# Azure OpenAI (current implementation)
+# Azure OpenAI Responses API (current implementation)
 from agent_framework.azure import AzureOpenAIResponsesClient
 
-# OpenAI
+# OpenAI Responses API
 from agent_framework.openai import OpenAIResponsesClient
 
 # Anthropic
@@ -409,7 +423,6 @@ async with ChatAgent(
 **Connection Issues**
 - MCPStdioTool will automatically start the server, so you don't need to run it separately
 - Check that Python 3.10+ is being used
-- Verify the server script is executable and valid
 
 **Import Errors**
 - Reinstall dependencies: `pip install -r requirements.txt`
