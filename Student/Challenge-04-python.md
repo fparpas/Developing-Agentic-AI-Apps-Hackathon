@@ -96,55 +96,58 @@ The `weather_remote_server.py` file is partially complete. You'll need to:
 
 `requirements.txt`:
 ```plaintext
+# FastAPI + MCP Remote Server Requirements
+# For deployment on Azure Container Apps or Azure Functions
+
+# Web Framework
+fastapi>=0.133.0
+uvicorn[standard]>=0.41.0
+
 # MCP SDK
-mcp[cli]>=1.2.0
+mcp[cli]>=1.26.0
 
 # HTTP Client
-httpx>=0.24.0
+httpx>=0.28.1
 
 # For Azure deployment
-azure-identity>=1.14.0
-azure-functions>=1.18.0  # Only needed for Azure Functions deployment
+azure-identity>=1.25.2
+azure-functions>=1.24.0  # Only needed for Azure Functions deployment
 ```
 
 Here's the incomplete `weather_remote_server.py` that you need to complete:
 
 ```python
 """
-Remote MCP Server for Azure Deployment - Challenge 04
+Remote MCP Server for Azure Deployment - Challenge 04 Solution
 
-This is the same MCP server code from Challenge 02, however...
+This module implements an MCP server using FastAPI for HTTP transport,
+making it suitable for deployment on Azure Container Apps or Azure Functions.
 
-THE CODE REQUIRES YOUR ATTENTION
-
-The server should be containerized and run as a web service, allowing remote
-clients to access weather tools via HTTP instead of stdio, but that's something
-that you'll have to change.
-
-Take a look at the HEALTHCHECK line in the Dockerfile. Uncomment after implementing
-the /health endpoint.
+The server is containerized and runs as a web service, allowing remote
+clients to access weather tools via HTTP instead of stdio.
 """
 
 from typing import Any
 import httpx
-from mcp.server.fastmcp import FastMCP
-import sys
+import uvicorn
+from contextlib import asynccontextmanager
 
-# Initialize FastMCP server - automatically handles stdio transport
-# The name "weather" identifies this server to MCP hosts
+from fastapi import FastAPI
+from mcp.server.fastmcp import FastMCP
+
+# Initialize FastMCP server with FastAPI
 mcp = FastMCP("weather")
 
 # Constants for the National Weather Service API
 NWS_API_BASE = "https://api.weather.gov"
-USER_AGENT = "weather-tool/1.0"
+USER_AGENT = "weather-app/1.0"
 
 
 async def make_nws_request(url: str) -> dict[str, Any] | None:
     """Make a request to the NWS API with proper error handling.
 
     This helper function handles HTTP requests to the National Weather Service
-    API with appropriate headers, timeout, and error handling. It's used by
-    both weather tools to fetch real-time data.
+    API with appropriate headers, timeout, and error handling.
 
     Args:
         url: The full URL to request from the NWS API
@@ -162,23 +165,11 @@ async def make_nws_request(url: str) -> dict[str, Any] | None:
             response.raise_for_status()
             return response.json()
         except Exception:
-            # Return None on any error - the calling function will handle it
             return None
 
 
 def format_alert(feature: dict) -> str:
-    """Format an alert feature into a readable string.
-
-    Takes a GeoJSON feature from the NWS API and extracts key
-    alert information (event, area, severity, description, and
-    instructions) for display to the user.
-
-    Args:
-        feature: A GeoJSON feature object from the NWS alerts API
-
-    Returns:
-        A formatted string containing the alert information
-    """
+    """Format an alert feature into a readable string."""
     props = feature["properties"]
     return f"""
 Event: {props.get('event', 'Unknown')}
@@ -193,31 +184,18 @@ Instructions: {props.get('instruction', 'No specific instructions provided')}
 async def get_alerts(state: str) -> str:
     """Get weather alerts for a US state.
 
-    This tool queries the National Weather Service API for active severe weather
-    alerts affecting the specified US state. It returns formatted information
-    about each alert including the event type, affected area, severity level,
-    and recommended instructions.
-
     Args:
-        state: Two-letter US state code (e.g., CA, NY, WA, TX, OH)
-
-    Returns:
-        A formatted string containing all active alerts for the state,
-        or a message indicating no alerts are present
+        state: Two-letter US state code (e.g., CA, NY, WA, TX)
     """
-    # Construct URL to fetch alerts for the specified state
     url = f"{NWS_API_BASE}/alerts/active/area/{state}"
     data = await make_nws_request(url)
 
-    # Handle API errors or missing data
     if not data or "features" not in data:
         return "Unable to fetch alerts or no alerts found."
 
-    # Return appropriate message if no active alerts exist
     if not data["features"]:
         return "No active alerts for this state."
 
-    # Format each alert and join them with a separator for readability
     alerts = [format_alert(feature) for feature in data["features"]]
     return "\n---\n".join(alerts)
 
@@ -226,48 +204,28 @@ async def get_alerts(state: str) -> str:
 async def get_forecast(latitude: float, longitude: float) -> str:
     """Get weather forecast for a location.
 
-    This tool retrieves a detailed weather forecast for a specific geographic
-    location using the National Weather Service API. It returns the next 5
-    forecast periods with temperature, wind conditions, and detailed forecast
-    text.
-
-    The NWS API works in two steps:
-    1. Get the forecast grid endpoint for the given coordinates
-    2. Fetch the detailed forecast from that endpoint
-
     Args:
-        latitude: Latitude of the location (e.g., 47.6062 for Seattle)
-        longitude: Longitude of the location (e.g., -122.3321 for Seattle)
-
-    Returns:
-        A formatted string containing the next 5 forecast periods,
-        or an error message if the forecast cannot be retrieved
+        latitude: Latitude of the location
+        longitude: Longitude of the location
     """
-    # Step 1: Get the forecast grid endpoint for the given coordinates
-    # The NWS API requires us to first look up the forecast URL for a location
     points_url = f"{NWS_API_BASE}/points/{latitude},{longitude}"
     points_data = await make_nws_request(points_url)
 
-    # Handle errors fetching point data
     if not points_data:
         return "Unable to fetch forecast data for this location."
 
-    # Extract the forecast URL from the points response
     try:
         forecast_url = points_data["properties"]["forecast"]
     except KeyError:
         return "Unable to determine forecast URL for this location."
 
-    # Step 2: Fetch the actual forecast data using the URL from step 1
     forecast_data = await make_nws_request(forecast_url)
     if not forecast_data:
         return "Unable to fetch detailed forecast."
 
-    # Format the forecast periods into readable text
     periods = forecast_data["properties"]["periods"]
     forecasts = []
 
-    # Show the next 5 forecast periods to avoid overwhelming the user
     for period in periods[:5]:
         forecast = f"""
 {period['name']}:
@@ -279,44 +237,54 @@ Forecast: {period['detailedForecast']}
 
     return "\n---\n".join(forecasts)
 
+# Create the MCP Streamable HTTP sub-application
+mcp_app = mcp.streamable_http_app()
 
-def main():
-    """Initialize and run the MCP server.
+@asynccontextmanager
+async def lifespan(app):
+    """Run the MCP server's lifespan within FastAPI's lifespan."""
+    async with mcp_app.router.lifespan_context(mcp_app):
+        yield
 
-    This function starts the server listening on stdio, which allows MCP hosts
-    (like Claude Desktop or VS Code Copilot Chat) to communicate with it via
-    JSON-RPC messages. The server will automatically discover and register
-    the tools decorated with @mcp.tool().
-    """
-    print('[INFO] MCP server is up.', file=sys.stderr)
-    mcp.run(transport='stdio')
-
+# Create FastAPI application
+app = FastAPI(title="Weather MCP Server", version="1.0.0", lifespan=lifespan)
 
 # TODO: Implement health check endpoint
-# ❌ Create a GET endpoint at "/health"
+# ❌ Create a GET /health endpoint
 #
 # @app.get("/health")
 # async def health_check():
-#   Return: dict with {"status": "healthy", "service": "weather-mcp-server"}
+#   Return: dictionary with {"status": "healthy", "service": "weather-mcp-server"}
 
 
 # TODO (Optional): Implement root information endpoint
-# ❌ Create a GET endpoint at "/"
+# ❌ Create a GET / endpoint
 #
 # @app.get("/")
 # async def root():
-#   Return: dict with server information including:
+#   Return: dictionary with server information including:
 #     - name: "Weather MCP Server"
-#     - version: "0.0.0.1"
+#     - version: "1.0.0"
 #     - description: "MCP server providing weather forecasts and alerts"
 #     - tools: list of available tools ["get_forecast", "get_alerts"]
 #     - health_check: "/health"
 
+# Mount the MCP Streamable HTTP transport at /mcp
+app.mount("/", mcp_app)
 
 if __name__ == "__main__":
-    main()
-
+    print("\nStarting Weather MCP Server on port 8000...\n")
+    # uvicorn runs the server on port 8000 (Azure will expose it on port 80)
+    # Use 0.0.0.0 to accept connections from any interface, not just localhost
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=8000,
+        log_level="info"
+    )
 ```
+
+If you get stuck, you can refer to the solution in the Coach directory.
 
 ### Hint for Port Configuration
 
@@ -366,13 +334,11 @@ Once your MCP server is working locally, it's time to deploy it to Azure so it c
 - Verify your deployment is accessible via the provided URL
 
 # Task 3: Test with MCP Inspector
-Verify your remote MCP server works with real MCP clients
+Verify your remote MCP server works with real MCP clients (using Streamable HTTP transport)
 
 **What you'll do:**
-- Run MCP Inspector tool
-- Connect to your deployed Azure server using HTTP transport
-- Test the available weather tools
-- Demonstrate successful remote tool execution
+- Run MCP Inspector tool. Connect to `/mcp` endpoint via Streamable HTTP transport, then under Tools, test with these latitude/longitude coordinates for New York: 40.7128, -74.0060.
+- Connect to your deployed Azure server over HTTP, make a GET request to / and /health
 
 ## Success Criteria
 
@@ -384,9 +350,9 @@ Verify your remote MCP server works with real MCP clients
 - ✅ Successfully deploy to either Azure Container Apps or Azure Functions
 - ✅ Application is accessible via public Azure URL
 - ✅ Basic connectivity test confirms MCP server is running in the cloud
-- ✅ MCP Inspector successfully connects to your deployed server
+- ✅ MCP Inspector successfully connects to your deployed server (Connect to /mcp endpoint via Streamable HTTP transport)
 - ✅ Weather tools (`get_forecast` and `get_alerts`) are visible and functional in MCP Inspector
-- ✅ Tools return real data and work with various locations
+- ✅ Tools return real data and work with various locations (i.e. Use 40.7128, -74.0060 for New York)
 - ✅ Complete end-to-end remote MCP server functionality demonstration
 
 
