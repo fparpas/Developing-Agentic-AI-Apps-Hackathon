@@ -142,7 +142,7 @@ AIAgent agent = await persistentAgentsClient.GetAIAgentAsync(agentServiceId);
 
 ### Task 2B: Integrate with Azure AI Foundry Agents Service (New Foundry)
 
-In this task, you will integrate the Agent Service into your Microsoft Agent Framework application created in previous challenge. This will allow your agent to leverage the capabilities of the Microsoft Foundry(New Foundry)Agent Service and check for travel policy compliance.
+In this task, you will integrate the Agent Service into your Microsoft Agent Framework application created in previous challenge. This will allow your agent to leverage the capabilities of the Microsoft Foundry (New Foundry) Agent Service and check for travel policy compliance.
 
 To integrate with the Agent Service, you will need to set up the `AIProjectClient` and retrieve the agent using its name.
 
@@ -162,38 +162,37 @@ Initialize the MCP client with the following code:
 ```csharp
 var mcpServerUrl = "Your remote MCP server endpoint";
 
-_mcpClient = await McpClientFactory.CreateAsync(
-    new SseClientTransport(
-        new SseClientTransportOptions
-        {
-            Endpoint = new Uri(mcpServerUrl),
-            ConnectionTimeout = TimeSpan.FromMinutes(5) // Increase MCP connection timeout to 5 minutes
-        }
-    )
-);
+var mcpClient = await McpClient.CreateAsync(
+           new HttpClientTransport(
+               new HttpClientTransportOptions()
+               {
+                   Endpoint = new Uri(mcpServerUrl)
+               }
+           )
+        );
 ```
 
 After creating the MCP client, you will get the list of tools and add them to Microsoft Agent Framework:
 
 ```csharp
+//Get list of tools from MCP server
 var mcpTools = await _mcpClient.ListToolsAsync();
+Console.WriteLine($"Found {mcpTools.Count} MCP tools");
 
-//List available MCP tools
 Console.WriteLine("Available MCP Tools:");
 foreach (var tool in mcpTools)
 {
     Console.WriteLine($"- {tool.Name}: {tool.Description}");
 }
 
-//Register MCP tools to agent
+// Register MCP tools with the agent
 AIAgent agent = new AzureOpenAIClient(
     new Uri(endpoint),
     new ApiKeyCredential(apiKey))
     .GetChatClient(deploymentName)
-    .CreateAIAgent(
+    .AsAIAgent(
         instructions: instructions,
-        name: agentName,
-        tools: [.. mcpTools.Cast<AITool>().ToList()]
+        name: agentName,// Register MCP tools with the agent
     );
 ```
 
@@ -208,8 +207,6 @@ AIAgent agent = new AzureOpenAIClient(
 - ✅ Demonstrate that the user can ask questions about weather data through the integrated MCP server.
 
 ## Learning Resources
-- [Learn Microsoft Agent Framework in 3 minutes!](https://www.youtube.com/watch?v=Q881t44hWng)
-- [Introducing Microsoft Agent Framework: The Open-Source Engine for Agentic AI Apps](https://devblogs.microsoft.com/foundry/introducing-microsoft-agent-framework-the-open-source-engine-for-agentic-ai-apps/)
 - [Microsoft Agent Framework | MS Learn](https://learn.microsoft.com/en-us/agent-framework/overview/agent-framework-overview)
 - [Microsoft Agent Framework | GitHub Repository](https://github.com/microsoft/agent-framework)
 - [Microsoft Agent Framework .NET Samples | GitHub Repository](https://github.com/microsoft/agent-framework/tree/main/dotnet/samples)

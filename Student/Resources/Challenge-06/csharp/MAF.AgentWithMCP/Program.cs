@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Client;
 using OpenAI;
+using OpenAI.Chat;
 using System.ClientModel;
 using System.ComponentModel;
 using System.Text.Json;
@@ -20,7 +21,7 @@ class Program
 {
     private static IConfiguration _configuration;
     private static IClientTransport? _clientTransport;
-    private static IMcpClient? _mcpClient;
+    private static McpClient? _mcpClient;
 
     static async Task Main(string[] args)
     {
@@ -77,7 +78,7 @@ class Program
     }
 
 
-    private static async Task<IMcpClient> InitializeMcpClient()
+    private static async Task<McpClient> InitializeMcpClient()
     {
         var mcpServerUrl = _configuration["MCPServer:RemoteMCP:Endpoint"] ?? throw new InvalidOperationException("Remote MCP endpoint is required");
 
@@ -85,7 +86,7 @@ class Program
 
         throw new NotImplementedException("Method not implemented");
 
-        return null; //return the mcpClient
+        return null; //return the mcp client
     }
 
     private static async Task<AIAgent> CreateSimpleAgent(string agentName, string description, string instructions)
@@ -99,7 +100,7 @@ class Program
             new Uri(endpoint),
             new ApiKeyCredential(apiKey))
             .GetChatClient(deploymentName)
-            .CreateAIAgent(name: agentName, instructions: instructions, description: description);
+            .AsAIAgent(name: agentName, instructions: instructions, description: description);
 
         return agent;
     } 
@@ -151,7 +152,7 @@ class Program
         Console.WriteLine($"Agent Description: {aIAgent.Description}");
         Console.WriteLine("Type 'exit' to quit.\n");
 
-        AgentThread agentThread = aIAgent.GetNewThread();
+         AgentSession session = await aIAgent.CreateSessionAsync();
 
         while (true)
         {
@@ -174,7 +175,7 @@ class Program
                 Console.ResetColor();
 
                 // Run agent with user input and agent thread
-                var response = await aIAgent.RunAsync(userInput, agentThread);
+                var response = await aIAgent.RunAsync(userInput, session);
 
                 Console.WriteLine(response);
             }
