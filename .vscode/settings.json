@@ -1,9 +1,0 @@
-{
-    "github.copilot.chat.virtualTools.enabled": true,
-    "python-envs.pythonProjects": [],
-    "python.defaultInterpreterPath": "${fileDirname}/.venv/bin/python",
-    "python.terminal.activateEnvironment": true,
-    "python.analysis.extraPaths": [
-        "${fileDirname}/.venv/lib/python*/site-packages"
-    ]
-}

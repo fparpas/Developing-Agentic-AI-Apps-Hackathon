@@ -50,29 +50,21 @@ Complete the implementation in `travel_multi_agent_client.py` by filling in the 
 - Load Azure OpenAI settings from environment variables
 - Create the `AzureOpenAIResponsesClient`
 - Set up the `MCPStdioTool` pointing to the Travel MCP server
-- Create `ChatAgent` instances for each agent specification
-- Initialize threads for each agent
-- Set the coordinator as the starting agent
+- Create agents using `chat_client.as_agent()` with instructions, descriptions, and tools
+- Build the handoff workflow with `HandoffBuilder`
 
-### 2. Handoff Workflow (`run()` method)
+### 2. Event Processing (`process_events()` method)
+- Consume async workflow events from `run_stream()` or `run()`
+- Identify `request_info` events containing `HandoffAgentUserRequest` payloads
+- Display agent messages from `event.data.agent_response.messages`
+- Collect pending requests for subsequent user responses
+
+### 3. Interaction Loop (`run()` method)
 - Implement the main chat loop that handles user input
 - Support special commands: `summary`, `policy`, `exit`
-- Manage automatic agent handoffs based on pending agent state
-- Stream agent responses and display them to the user
-- Parse handoff markers to determine which agent should respond next
-- Maintain conversation flow across agent transitions
-
-### 3. HANDOFF Marker Parsing (`parse_handoff()` method)
-- Parse agent responses for lines containing `HANDOFF:<AgentName>`
-- Extract the target agent name from the marker
-- Map agent names to valid agent keys (coordinator, flight, hotel, activity, transfer, reference)
-- Return the appropriate agent key or None if no valid handoff is found
-
-### 4. Context-Aware Prompts (`build_prompt()` method)
-- Retrieve recent conversation context using the provided `render_context()` helper
-- Combine conversation history with the latest user request
-- Add appropriate handoff instructions for non-coordinator agents
-- Return a complete prompt that maintains conversation continuity
+- On the first turn: `await self.process_events(self.workflow.run(user_input, stream=True))`
+- On subsequent turns: build `responses` dict from `pending_requests` and call `workflow.run(responses=responses, stream=True)`
+- The HandoffBuilder manages all agent routing, context broadcast, and handoffs automatically
 
 ## Run the orchestrator
 
@@ -82,7 +74,7 @@ Once you've completed the TODO sections, test your implementation:
 python travel_multi_agent_client.py
 ```
 
-You will be greeted with a console prompt. Type natural language prompts ("Find me a flight from SEA to LHR next June") and the coordinator will decide when to hand over to the flight/hotel/activity/transfer agents. Agents emit `HANDOFF:<Agent>` markers to signal the next executor, closely matching the C# `AgentWorkflowBuilder.CreateHandoffBuilderWith(...)` behavior. Type `summary` to see collected trip snippets or `exit` to leave the session.
+You will be greeted with a console prompt. Type natural language prompts ("Find me a flight from SEA to LHR next June") and the `HandoffBuilder` workflow will automatically route to the appropriate specialist agent. The framework injects handoff tools into each agent, so no manual `HANDOFF:` marker parsing is needed. Type `summary` to see collected trip snippets or `exit` to leave the session.
 
 If `AZURE_AI_FOUNDRY_PROJECT_ENDPOINT` and `AZURE_AI_AGENT_ID` are set in your `.env`, the `policy` command sends the aggregated trip notes to your persistent agent for validation using `DefaultAzureCredential` (so `az login`, managed identity, VS Code identity, etc. are automatically honored).
 
@@ -102,25 +94,30 @@ python server.py
 
 ## Architecture Notes
 
-### Orchestration Patterns (C# Reference)
+### Orchestration Patterns
 
-The C# Microsoft Agent Framework provides `AgentWorkflowBuilder` with four patterns:
+The `agent-framework-orchestrations` package provides high-level builders for common orchestration patterns in both C# and Python:
 
-1. **Sequential**: `AgentWorkflowBuilder.BuildSequential(agents)` - Agents execute in a fixed order
-2. **Concurrent**: `AgentWorkflowBuilder.BuildConcurrent(agents)` - All agents run in parallel
-3. **Handoff**: `AgentWorkflowBuilder.CreateHandoffBuilderWith(coord).WithHandoff(...)` - Dynamic delegation
-4. **Agents-as-Tools**: `agent.AsAIFunction()` - Wrap agents as callable tools
+```python
+from agent_framework.orchestrations import (
+    SequentialBuilder,   # Agents execute in a fixed order
+    ConcurrentBuilder,   # All agents run in parallel
+    HandoffBuilder,      # Coordinator dynamically delegates to specialists
+    GroupChatBuilder,    # Manager-directed multi-agent conversations
+    MagenticBuilder,     # Magentic-One multi-agent orchestration
+)
+```
 
-The Python SDK currently exposes raw building blocks (ChatAgent, threads, tools) without the high-level workflow builder layer. This challenge focuses on implementing the **Handoff pattern** manually to demonstrate the core orchestration concepts.
+This challenge uses **HandoffBuilder** to demonstrate decentralised agent routing.
 
-### Handoff Pattern Details
+### HandoffBuilder Details
 
-In the handoff pattern:
-- The **Coordinator** agent acts as the primary interface with users
-- When specialized work is needed, the coordinator emits `HANDOFF:Flight` (or Hotel, Activity, etc.)
-- The specialist agent performs its task and returns control with `HANDOFF:Coordinator`
-- Your code must parse these markers and switch between agents accordingly
-- Each agent maintains its own thread but shares conversation context
+The `HandoffBuilder` creates a mesh workflow where agents can transfer control to one another:
+- Agents are connected automatically - the builder injects handoff tools
+- No `HANDOFF:` markers or string parsing needed
+- Context is broadcast to all participants after every turn
+- The `run(stream=True)` / `run(responses=..., stream=True)` event loop drives the interaction
+- Agents decide when to hand off by calling the injected handoff tool
 
 This pattern enables dynamic, context-driven workflows where agents collaborate naturally.
 
@@ -128,6 +125,7 @@ This pattern enables dynamic, context-driven workflows where agents collaborate 
 
 After completing the core implementation:
 - Experiment with the policy agent integration by setting up Azure AI Foundry credentials
-- Consider how you might implement the other orchestration patterns (sequential, concurrent, agents-as-tools)
-- Extend the agent specifications to add new capabilities or specialists
-- Compare your implementation with the C# version to understand the architectural differences
+- Try building the other orchestration patterns (`SequentialBuilder`, `ConcurrentBuilder`, `GroupChatBuilder`)
+- Use `.with_autonomous_mode()` on the `HandoffBuilder` to let agents run without waiting for user input
+- Extend the workflow by adding new specialist agents to the `participants` list
+- Compare your implementation with the C# version to understand the architectural similarities

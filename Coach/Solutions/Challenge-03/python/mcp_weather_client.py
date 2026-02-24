@@ -8,7 +8,7 @@ using MCPStdioTool for easy tool discovery and execution from MCP servers.
 import asyncio
 import os
 import sys
-from agent_framework import ChatAgent
+from agent_framework import Agent
 from agent_framework.azure import AzureOpenAIResponsesClient
 from agent_framework import MCPStdioTool
 from dotenv import load_dotenv
@@ -20,9 +20,8 @@ load_dotenv()
 async def main():
     """Main entry point for the MCP weather client agent."""
     if len(sys.argv) < 2:
-        print("Usage: python mcp_weather_client.py <path_to_weather_server.py>")
-        print("\nExample:")
-        print("  python mcp_weather_client.py ../weather_mcp_server/weather.py")
+        print("\nUsage:\npython mcp_weather_client.py <path_to_weather_server.py>\n")
+        print("Example:\npython mcp_weather_client.py ../../Challenge-02/python/weather.py\n")
         sys.exit(1)
 
     server_path = sys.argv[1]
@@ -69,10 +68,14 @@ async def main():
     )
 
     # Create agent with MCP tools
-    async with ChatAgent(
-        chat_client=chat_client,
+    async with Agent(
+        client=chat_client,
         name="WeatherAgent",
-        instructions="You are a helpful weather assistant. Use the available MCP tools to answer weather questions accurately.",
+        instructions="""
+        You are a helpful weather assistant.
+        Use the available MCP tools to answer weather questions accurately.
+        Output plain text only, do not emit Markdown.
+        """,
         tools=[mcp_tool]
     ) as agent:
         print("\n" + "=" * 60)
@@ -92,8 +95,8 @@ async def main():
                 if not user_input:
                     continue
 
-                print("Agent: ", end="", flush=True)
                 response = await agent.run(user_input)
+                print("\nAgent: ", end="", flush=True)
                 print(response)
                 print()
 

@@ -7,6 +7,7 @@
 .venv/
 
 # User-specific files
+**/.vscode/
 *.rsuser
 *.suo
 *.user

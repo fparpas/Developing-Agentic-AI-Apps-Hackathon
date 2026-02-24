@@ -46,8 +46,8 @@ uv venv .venv
 # Activate virtual environment
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
-# Install dependencies
-uv pip install -r requirements.txt
+# Install dependencies. Make sure you run with --pre
+uv pip install -r requirements.txt --pre
 ```
 
 **Or using standard `pip`:**
@@ -62,8 +62,8 @@ python -m venv .venv
 # Activate virtual environment
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
-# Install dependencies
-pip install -r requirements.txt
+# Install dependencies. Make sure you run with --pre
+pip install -r requirements.txt --pre
 ```
 
 ### 2. Configure Your Azure OpenAI Credentials
@@ -103,16 +103,17 @@ Weather Assistant
 Ask me about the weather. Type 'exit' to quit.
 
 You: Is it going to rain tomorrow in Seattle?
-Agent: [10/24/25 15:58:05] INFO     Processing request of type CallToolRequest                                                                                            server.py:674
+
+[10/24/25 15:58:05] INFO     Processing request of type CallToolRequest                                                                                            server.py:674
 [10/24/25 15:58:08] INFO     HTTP Request: GET https://api.weather.gov/points/47.6062,-122.3321 "HTTP/1.1 200 OK"                                                _client.py:1740
 [10/24/25 15:58:09] INFO     HTTP Request: GET https://api.weather.gov/gridpoints/SEW/125,68/forecast "HTTP/1.1 200 OK"                                          _client.py:1740
-Yes, it's going to rain in Seattle tomorrow.
+
+Agent: Yes, it's going to rain in Seattle tomorrow.
 
 - **Friday Forecast**:
   - High Temperature: 61°F
   - Winds: 9 to 13 mph SSW
   - Forecast: Rain expected, with a 100% chance of precipitation. New rainfall amounts between a quarter and half of an inch possible.
-
 ```
 
 The agent will:
@@ -155,9 +156,9 @@ graph TD
    - Automatically discovers and manages tools from the MCP server
    - Seamlessly integrates MCP tools with the Agent Framework
 
-3. **ChatAgent Integration**
-   - Uses Microsoft Agent Framework ChatAgent for agent orchestration
-   - Integrates with Azure OpenAI for language understanding
+3. **Agent Integration**
+   - Uses Microsoft Agent Framework `Agent` type for agent orchestration
+   - Integrates with Microsoft Foundry to call an LLM using Responses API
    - Processes user queries and generates responses
    - Automatically manages tool selection and execution
 
@@ -232,10 +233,10 @@ The client includes:
 Switch between providers by using different chat clients:
 
 ```python
-# Azure OpenAI (current implementation)
+# Azure OpenAI Responses API (current implementation)
 from agent_framework.azure import AzureOpenAIResponsesClient
 
-# OpenAI
+# OpenAI Responses API
 from agent_framework.openai import OpenAIResponsesClient
 
 # Anthropic
@@ -314,7 +315,7 @@ async with ChatAgent(
 - ✅ Connects to MCP servers over stdio transport
 - ✅ Discovers and lists tools from connected servers
 - ✅ Interactive command-line interface for user queries
-- ✅ Integration with Azure OpenAI for natural language understanding
+- ✅ Integration with Microsoft Foundry for calling LLMs
 - ✅ Agent can reason about which tools to use based on queries
 - ✅ Agent can execute tool calls on MCP servers
 - ✅ User can ask weather questions and get responses

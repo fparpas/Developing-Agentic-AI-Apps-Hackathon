@@ -10,12 +10,13 @@ clients to access weather tools via HTTP instead of stdio.
 
 from typing import Any
 import httpx
+import uvicorn
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from mcp.server.fastmcp import FastMCP
 
-# Initialize FastMCP server with FastAPI
+# Initialize FastMCP server
 mcp = FastMCP("weather")
 
 # Constants for the National Weather Service API
@@ -117,16 +118,22 @@ Forecast: {period['detailedForecast']}
 
     return "\n---\n".join(forecasts)
 
+# Create the MCP Streamable HTTP sub-application
+mcp_app = mcp.streamable_http_app()
+
+@asynccontextmanager
+async def lifespan(app):
+    """Run the MCP server's lifespan within FastAPI's lifespan."""
+    async with mcp_app.router.lifespan_context(mcp_app):
+        yield
 
 # Create FastAPI application
-app = FastAPI(title="Weather MCP Server", version="1.0.0")
-
+app = FastAPI(title="Weather MCP Server", version="1.0.0", lifespan=lifespan)
 
 @app.get("/health")
 async def health_check():
     """Health check endpoint for Azure deployment."""
     return {"status": "healthy", "service": "weather-mcp-server"}
-
 
 @app.get("/")
 async def root():
@@ -139,22 +146,12 @@ async def root():
         "documentation": "/docs"
     }
 
-
-# Integrate MCP with FastAPI
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """Lifespan context manager for FastAPI."""
-    yield
-
-
-app.router.lifespan_context = lifespan
+# Mount the MCP Streamable HTTP transport at /mcp
+app.mount("/", mcp_app)
 
 
 if __name__ == "__main__":
-    import uvicorn
-
-    # Run the server on port 8000 (Azure will expose it on port 80)
-    # Use 0.0.0.0 to accept connections from any interface
+    print("\nStarting Weather MCP Server on port 8000 (Streamable HTTP at /mcp)...\n")
     uvicorn.run(
         app,
         host="0.0.0.0",
