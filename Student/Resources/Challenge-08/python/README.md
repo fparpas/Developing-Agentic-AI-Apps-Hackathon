@@ -62,8 +62,8 @@ Complete the implementation in `travel_multi_agent_client.py` by filling in the 
 ### 3. Interaction Loop (`run()` method)
 - Implement the main chat loop that handles user input
 - Support special commands: `summary`, `policy`, `exit`
-- On the first turn: `await self.process_events(self.workflow.run_stream(user_input))`
-- On subsequent turns: build `responses` dict from `pending_requests` and call `workflow.run(responses=responses)`
+- On the first turn: `await self.process_events(self.workflow.run(user_input, stream=True))`
+- On subsequent turns: build `responses` dict from `pending_requests` and call `workflow.run(responses=responses, stream=True)`
 - The HandoffBuilder manages all agent routing, context broadcast, and handoffs automatically
 
 ## Run the orchestrator
@@ -116,7 +116,7 @@ The `HandoffBuilder` creates a mesh workflow where agents can transfer control t
 - Agents are connected automatically - the builder injects handoff tools
 - No `HANDOFF:` markers or string parsing needed
 - Context is broadcast to all participants after every turn
-- The `run_stream()` / `run(responses=...)` event loop drives the interaction
+- The `run(stream=True)` / `run(responses=..., stream=True)` event loop drives the interaction
 - Agents decide when to hand off by calling the injected handoff tool
 
 This pattern enables dynamic, context-driven workflows where agents collaborate naturally.

@@ -57,10 +57,10 @@ The **Handoff Workflow** is the optimal pattern for travel planning because:
 
 The system uses `HandoffBuilder` with an event-driven request/response cycle:
 
-1. **First turn**: `workflow.run_stream(user_message)` starts the workflow
+1. **First turn**: `workflow.run(user_message, stream=True)` starts the workflow
 2. **Events arrive**: agents respond and emit `request_info` events with `HandoffAgentUserRequest`
 3. **Display**: Agent messages are extracted from `event.data.agent_response.messages`
-4. **Respond**: `workflow.run(responses={req_id: HandoffAgentUserRequest.create_response(text)})`
+4. **Respond**: `workflow.run(responses={req_id: HandoffAgentUserRequest.create_response(text)}, stream=True)`
 5. **Repeat**: The loop continues until the user exits
 
 ### Example Conversation Flow
