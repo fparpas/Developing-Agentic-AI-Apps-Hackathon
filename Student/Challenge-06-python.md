@@ -97,13 +97,13 @@ By creating this tool, you will enable the AI agent to call a function that retr
 Add a method to retrieve the current time and register it as a tool in your agent.
 
 ```python
-from datetime import datetime
+from datetime import datetime, timezone
 from agent_framework import AIFunction, ai_function
 
 # Method 1: Using AIFunction directly
 def get_current_time_utc() -> str:
     """Returns the current system time in UTC."""
-    return f"The current time in UTC is {datetime.utcnow().isoformat()}"
+    return f"The current time in UTC is {datetime.now(timezone.utc).isoformat()}"
 
 current_time_function = AIFunction(
     name="get_current_time_utc",
@@ -115,7 +115,7 @@ current_time_function = AIFunction(
 @ai_function
 def get_current_time_utc() -> str:
     """Returns the current system time in UTC."""
-    return f"The current time in UTC is {datetime.utcnow().isoformat()}"
+    return f"The current time in UTC is {datetime.now(timezone.utc).isoformat()}"
 ```
 
 > **Note**: For functions with parameters, you need to define an `input_model` using Pydantic:
@@ -141,7 +141,7 @@ def get_current_time_utc() -> str:
 ```python
 from agent_framework import ChatAgent, AIFunction
 from agent_framework.azure import AzureOpenAIResponsesClient
-from datetime import datetime
+from datetime import datetime, timezone
 import os
 
 # Consider storing secrets in an .env file and loading
@@ -163,7 +163,7 @@ async def create_agent_with_tools():
 
     def get_current_time_utc() -> str:
         """Returns the current system time in UTC."""
-        return f"The current time in UTC is {datetime.utcnow().isoformat()}"
+        return f"The current time in UTC is {datetime.now(timezone.utc).isoformat()}"
 
     # Define the current time tool as an AIFunction
     current_time_function = AIFunction(

@@ -42,8 +42,10 @@ pip install -r requirements.txt
 
 ## Usage
 
+First argument should be path to your Weather MCP Server.
+
 ```bash
-python agent_with_mcp.py ../weather_mcp_server/weather.py
+python agent_with_mcp.py ../../Challenge-02/python/weather.py
 ```
 
 ## Success Criteria Met
