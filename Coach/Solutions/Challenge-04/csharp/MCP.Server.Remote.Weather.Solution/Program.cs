@@ -29,10 +29,10 @@ var app = builder.Build();
 
 app.MapMcp();
 
-app.Run();
-
 Console.WriteLine("🚀 Weather MCP Server starting with HTTP transport...");
 Console.WriteLine("🌐 Server is now accessible remotely via HTTP");
 Console.WriteLine("📡 Clients can connect to HTTP endpoints");
 Console.WriteLine("⏹️  Press Ctrl+C to stop the server");
+
+app.Run();
 
