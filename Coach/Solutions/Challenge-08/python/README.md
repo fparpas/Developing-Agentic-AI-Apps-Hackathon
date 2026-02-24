@@ -53,18 +53,15 @@ The **Handoff Workflow** is the optimal pattern for travel planning because:
 
 ## How It Works
 
-### Handoff Workflow Pattern
+### Event-Driven Interaction Loop
 
-The system uses **intelligent handoffs** between agents:
+The system uses `HandoffBuilder` with an event-driven request/response cycle:
 
-1. **User starts with CoordinatorAgent** - The coordinator understands travel needs
-2. **Dynamic routing** - Based on context, coordinator hands off to specialists:
-   - "I need a flight" → Handoff to **FlightAgent**
-   - "What hotels are available?" → Handoff to **HotelAgent**
-   - "Things to do in Paris?" → Handoff to **ActivityAgent**
-3. **Agents hand back** - Specialists return control to coordinator
-4. **Context preserved** - Conversation history maintained across handoffs
-5. **Iterative refinement** - Users can refine choices, revisit agents
+1. **First turn**: `workflow.run_stream(user_message)` starts the workflow
+2. **Events arrive**: agents respond and emit `request_info` events with `HandoffAgentUserRequest`
+3. **Display**: Agent messages are extracted from `event.data.agent_response.messages`
+4. **Respond**: `workflow.run(responses={req_id: HandoffAgentUserRequest.create_response(text)})`
+5. **Repeat**: The loop continues until the user exits
 
 ### Example Conversation Flow
 
@@ -188,10 +185,9 @@ The `travel_mcp_server` provides Amadeus API integration using the official Pyth
 
 ### Intelligent Handoffs
 
-The system automatically detects when to hand off to specialized agents based on:
-- Keywords in user input (flight, hotel, activity, etc.)
-- Context from agent responses
-- Natural conversation flow
+The `HandoffBuilder` injects handoff tools into each agent. Agents decide
+when to hand off based on the conversation context. No keyword parsing or
+manual marker detection is needed.
 
 ### Bidirectional Communication
 
@@ -214,16 +210,16 @@ If configured with Azure AI Foundry agent:
 
 ```python
 class TravelAgentOrchestrator:
-    """Main orchestrator implementing handoff workflow."""
+    """Main orchestrator using HandoffBuilder."""
 
     async def initialize_agents(self):
-        """Create all specialized agents with specific instructions."""
+        """Create agents via chat_client.as_agent() and build HandoffBuilder workflow."""
+
+    async def process_events(self, event_stream):
+        """Consume workflow events, display responses, collect pending requests."""
 
     async def run_handoff_workflow(self):
-        """Execute interactive handoff workflow."""
-
-    def parse_handoff_request(self, response: str):
-        """Detect handoff requests from context."""
+        """Event-driven interaction loop using run_stream/run."""
 
     async def check_travel_policy(self, trip_details: str):
         """Validate against Azure AI Foundry policy agent."""
@@ -269,36 +265,28 @@ Agents are only invoked when needed, not pre-emptively.
 
 ### Add New Agents
 
-1. Create new `ChatAgent` in `initialize_agents()`
-2. Add specialized instructions
-3. Update handoff detection in `parse_handoff_request()`
-4. Add to agent mapping in `get_agent_by_type()`
+1. Create a new agent with `chat_client.as_agent()`
+2. Add it to the `participants` list in the `HandoffBuilder` call
+3. That's it! The builder handles tool injection and routing
 
 ### Example: Adding a Weather Agent
 
 ```python
-self.weather_agent = await self.exit_stack.enter_async_context(
-    ChatAgent(
-        chat_client=chat_client,
-        name="WeatherAgent",
-        instructions="You are a weather specialist. Provide forecasts and travel weather advice."
-    )
+weather = chat_client.as_agent(
+    name="WeatherAgent",
+    description="Provides forecasts and travel weather advice.",
+    instructions="You are a weather specialist. Provide forecasts and climate info.",
 )
-```
 
-Then update detection:
-```python
-handoff_patterns = {
-    # ... existing patterns ...
-    'weather': ['weather', 'forecast', 'temperature', 'climate']
-}
+# Just add to participants:
+participants = [coordinator, flight, hotel, activity, transfer, reference, weather]
 ```
 
 ## Troubleshooting
 
 ### Issue: Agents not handing off
 
-**Solution:** Check that keywords in `parse_handoff_request()` match your conversation patterns. The system uses keyword detection for simplicity in this educational example.
+**Solution:** Verify agent `description` fields clearly indicate each agent's domain. The `HandoffBuilder` uses descriptions to generate handoff tool metadata that helps agents decide routing.
 
 ### Issue: Policy agent not working
 

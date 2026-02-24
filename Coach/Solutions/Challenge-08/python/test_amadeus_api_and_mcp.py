@@ -27,13 +27,13 @@ load_dotenv()
 
 ORIGIN = "OTP"
 DESTINATION = "SEA"
-DEPARTURE_DATE = "2026-06-11"
+DEPARTURE_DATE = "2026-11-11"
 ADULTS = 2
 TRAVEL_CLASS = "BUSINESS"
 
 HOTEL_CITY = DESTINATION
 HOTEL_CHECK_IN_DATE = DEPARTURE_DATE
-HOTEL_CHECK_OUT_DATE = "2026-06-20"  # few nights after arrival
+HOTEL_CHECK_OUT_DATE = "2026-11-20"  # few nights after arrival
 
 
 def get_amadeus_client() -> Client:

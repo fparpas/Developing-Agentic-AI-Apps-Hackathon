@@ -90,30 +90,16 @@ You'll implement different orchestration patterns to demonstrate how agents can 
 - Use **Sequential Orchestration** for the main planning pipeline
 - Use **Concurrent Orchestration** for gathering parallel information
 
-### Requirements
+### Your Task
 
-1. **Set up the Microsoft Agent Framework**:
-   - Install the required NuGet packages for agent orchestration
-   - Configure the agent runtime environment
+Your goal is to create **multi-agent orchestration workflows** that enable these agents to collaborate in a natural, multi-turn conversation. You'll implement different orchestration patterns to demonstrate how agents can work together in various ways:
 
-2. **Create Specialized Agents**:
-   - Implement each agent with specific instructions and capabilities
-   - Configure appropriate AI models for each agent's role
-   - Define clear interfaces and responsibilities
+- **Sequential Orchestration** - Process travel requests in a step-by-step pipeline
+- **Concurrent Orchestration** - Gather information from multiple agents in parallel
+- **Handoff Orchestration** - Enable dynamic handoffs between agents based on context
+- **Agents as Tools** - Use specialized agents as callable tools from a main orchestrator
 
-3. **Implement Orchestration Patterns**:
-   - **Sequential Pattern**: Chain agents for step-by-step planning
-   - **Concurrent Pattern**: Run multiple agents in parallel for information gathering
-
-4. **Build the Travel Planning Workflow**:
-   - Accept user input for destination, dates, budget, and preferences
-   - Coordinate agents to gather and process relevant information
-   - Generate a comprehensive travel plan with recommendations
-
-5. **Add Error Handling and Fallbacks**:
-   - Implement proper error handling for agent failures
-   - Add fallback mechanisms for when agents cannot complete tasks
-   - Ensure graceful degradation of functionality
+Start with Handoff, then see what other workflows would work here and implement those as well.
 
 ## Success Criteria
 
@@ -128,10 +114,10 @@ To successfully complete this challenge, you must demonstrate:
 
 ### ✅ **Orchestration Patterns**
 
-- [ ] Implemented Sequential Orchestration for the main workflow
-- [ ] Implemented Concurrent Orchestration for parallel information gathering
-- [ ] Implemented Group Chat Orchestration for collaborative scenarios
-- [ ] Demonstrated proper runtime management and cleanup
+- [ ] Built an orchestration workflow other than the provided `HandoffBuilder`, with all specialist agents as participants
+- [ ] Coordinator agent is set as the start agent
+- [ ] Implemented a multi-turn interaction loop that calls `workflow.run()` to emit `WorkflowEvent`, processes agent responses, and feeds user replies back into subsequent `workflow.run(responses=...)` calls
+- [ ] Demonstrated runtime management and cleanup
 
 ### ✅ **Travel Planning Functionality**
 
@@ -141,6 +127,7 @@ To successfully complete this challenge, you must demonstrate:
 - [ ] Activity agent recommends relevant attractions and activities
 - [ ] Restaurant agent suggests appropriate dining options
 - [ ] Coordinator agent synthesizes all information into a coherent plan
+- [ ] By typing in 'policy', the Travel Policy Agent running in Microsoft Foundry checks the trip summary against company policy
 
 ### ✅ **Code Quality and Architecture**
 
@@ -148,12 +135,6 @@ To successfully complete this challenge, you must demonstrate:
 - [ ] Appropriate error handling and logging
 - [ ] Proper async/await patterns for agent coordination
 - [ ] Configuration management for API keys and settings
-
-### ✅ **Documentation**
-
-- [ ] Clear README with setup and usage instructions
-- [ ] Code comments explaining orchestration choices
-- [ ] Example scenarios and expected outputs
 
 ## Learning Resources
 
