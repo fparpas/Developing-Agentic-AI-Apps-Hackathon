@@ -304,19 +304,7 @@ class TravelAgentOrchestrator:
             except Exception as exc:
                 print(f"\n[ERROR] {exc}\n")
 
-
-def ensure_travel_server_available() -> None:
-    """Fail fast if the MCP server script is missing."""
-
-    server_path = Path(__file__).parent / "travel_mcp_server" / "server.py"
-    if not server_path.exists():
-        raise FileNotFoundError(
-            "travel_mcp_server/server.py is required. Create it before running the orchestrator."
-        )
-
-
 async def main() -> None:
-    ensure_travel_server_available()
     orchestrator = TravelAgentOrchestrator()
     try:
         print("Initialising travel agents...\n")
