@@ -9,9 +9,9 @@ import asyncio
 import os
 import sys
 from contextlib import AsyncExitStack
-from datetime import datetime
+from datetime import datetime, timezone
 
-from agent_framework import ChatAgent, MCPStdioTool, AIFunction
+from agent_framework import Agent, MCPStdioTool, FunctionTool
 from agent_framework.azure import AzureOpenAIResponsesClient
 from dotenv import load_dotenv
 
@@ -24,7 +24,7 @@ class TimeTools:
     @staticmethod
     def get_current_time_in_utc() -> str:
         """Returns the current system time in UTC."""
-        return f"The current time in UTC is {datetime.utcnow()}"
+        return f"The current time in UTC is {datetime.now(timezone.utc)}"
 
 
 class MCPIntegratedAgent:
@@ -57,14 +57,14 @@ class MCPIntegratedAgent:
         )
 
         self.agent = await self.exit_stack.enter_async_context(
-            ChatAgent(
-                chat_client=chat_client,
+            Agent(
+                client=chat_client,
                 name=agent_name,
                 instructions=instructions
             )
         )
 
-        print(f"{agent_name} initialized\n")
+        print(f"{agent_name} initialized")
 
     async def create_time_agent_and_register_tools(self, agent_name: str, instructions: str):
         """
@@ -91,8 +91,8 @@ class MCPIntegratedAgent:
             api_version=api_version
         )
 
-        # Create an AIFunction from the TimeTools method
-        time_function = AIFunction(
+        # Create a FunctionTool from the TimeTools method
+        time_function = FunctionTool(
             name="get_current_time_in_utc",
             description="Returns the current system time in UTC",
             func=TimeTools.get_current_time_in_utc
@@ -100,15 +100,15 @@ class MCPIntegratedAgent:
 
         # Create the agent with the time tool
         self.agent = await self.exit_stack.enter_async_context(
-            ChatAgent(
-                chat_client=chat_client,
+            Agent(
+                client=chat_client,
                 name=agent_name,
                 instructions=instructions,
                 tools=[time_function]
             )
         )
 
-        print(f"{agent_name} initialized with time tool\n")
+        print(f"{agent_name} initialized with time tool")
 
     async def create_weather_agent_and_register_mcp_tools(self, agent_name: str, instructions: str, server_script_path: str):
         """
@@ -145,15 +145,15 @@ class MCPIntegratedAgent:
 
         # Create the agent with the MCP tool
         self.agent = await self.exit_stack.enter_async_context(
-            ChatAgent(
-                chat_client=chat_client,
+            Agent(
+                client=chat_client,
                 name=agent_name,
                 instructions=instructions,
                 tools=[mcp_tool]
             )
         )
 
-        print(f"{agent_name} initialized with MCP weather tools\n")
+        print(f"{agent_name} initialized with MCP weather tools")
 
     async def run_interactive_session(self, agent_name: str = "JokeAgent"):
         """Run interactive session with agent."""
@@ -181,11 +181,6 @@ class MCPIntegratedAgent:
                 server_script_path=server_path
             )
 
-        print("=" * 60)
-        print(f"Interactive Session for Agent: {self.agent.name if self.agent else 'Unknown'}")
-        print("=" * 60)
-        print("Type 'exit' to quit.\n")
-
         while True:
             try:
                 query = input("You: ").strip()
@@ -198,7 +193,7 @@ class MCPIntegratedAgent:
                     continue
 
                 print("Agent: ", end="", flush=True)
-                async for update in self.agent.run_stream(query):
+                async for update in self.agent.run(query, stream=True):
                     if update.text:
                         print(update.text, end="", flush=True)
                 print()
