@@ -23,7 +23,7 @@ Microsoft Agent Framework provides a structured approach to AI agent development
 
 - **Agent Runtime**: The central orchestration engine that manages AI services, tools, and agent execution
 
-- **AI Services**: Integration points with AI models (OpenAI, Azure OpenAI, etc.)
+- **AI Services**: Integration points with AI models (OpenAI, Azure OpenAI/Microsoft Foundry, etc.)
 
 - **Tools**: Reusable components that extend the agent's capabilities
 
@@ -81,10 +81,17 @@ In just a few steps, you can build your first AI agent with Microsoft Agent Fram
 
 ```plaintxt
 azure-ai-agents>=1.2.0b5
-agent-framework>=1.0.0b251114
+azure-ai-projects>=2.0.0b3
+azure-identity>=1.17.0
+# opentelemetry-semantic-conventions-ai 0.4.14 removed SpanAttributes.LLM_SYSTEM,
+# but agent-framework 1.0.0rc1 still references it. Downgrading to 0.4.13 fixes it.
+opentelemetry-semantic-conventions-ai==0.4.13
+agent-framework>=1.0.0rc1
 mcp[cli]>=1.2.0
 python-dotenv>=1.0.0
 ```
+
+> **Starter code**: A skeleton file is provided at `Resources/Challenge-06/python/agent_with_mcp.py` with the imports, chat loop, and `TODO` comments already in place. Open it and fill in the missing pieces for each task below.
 
 ### Task 1: Current time tool
 
@@ -98,55 +105,49 @@ Add a method to retrieve the current time and register it as a tool in your agen
 
 ```python
 from datetime import datetime, timezone
-from agent_framework import AIFunction, ai_function
+from agent_framework import tool
 
-# Method 1: Using AIFunction directly
-def get_current_time_utc() -> str:
-    """Returns the current system time in UTC."""
-    return f"The current time in UTC is {datetime.now(timezone.utc).isoformat()}"
-
-current_time_function = AIFunction(
-    name="get_current_time_utc",
-    description="Returns the current system time in UTC",
-    func=get_current_time_utc
-)
-
-# Method 2: Using the @ai_function decorator (simpler)
-@ai_function
+@tool(approval_mode="never_require")
 def get_current_time_utc() -> str:
     """Returns the current system time in UTC."""
     return f"The current time in UTC is {datetime.now(timezone.utc).isoformat()}"
 ```
 
-> **Note**: For functions with parameters, you need to define an `input_model` using Pydantic:
+The `@tool` decorator automatically infers the tool **name** from the function name and the **description** from the docstring. You can also set `approval_mode="always_require"` in production if you want user confirmation before tool execution.
+
+> **Note**: For functions with parameters, simply use type annotations with `Annotated` and `Field` for descriptions. The `@tool` decorator handles schema generation automatically:
 > ```python
 > from typing import Annotated
-> from pydantic import BaseModel, Field
+> from pydantic import Field
+> from agent_framework import tool
 >
-> class TimeArgs(BaseModel):
+> @tool(approval_mode="never_require")
+> def get_time_for_timezone(
 >     timezone: Annotated[str, Field(description="The timezone name")]
->     # Tip: You can just use 'pass' here for functions with no arguments.
->     # input_model is a required parameter in AIFunction.
->
-> time_function = AIFunction(
->     name="get_time_for_timezone",
->     description="Get time for a specific timezone",
->     func=lambda timezone: f"Time in {timezone}: ...",
->     input_model=TimeArgs
-> )
+> ) -> str:
+>     """Get time for a specific timezone."""
+>     return f"Time in {timezone}: ..."
 > ```
+>
+> **Tip**: You can also pass plain functions directly to `tools=[]` without any decorator — the SDK will auto-wrap them. The `@tool` decorator is useful when you want to configure options like `approval_mode`.
 
 #### Create an agent and register the Current Time Tool
 
 ```python
-from agent_framework import ChatAgent, AIFunction
+from agent_framework import Agent, tool
 from agent_framework.azure import AzureOpenAIResponsesClient
 from datetime import datetime, timezone
+from dotenv import load_dotenv
 import os
 
-# Consider storing secrets in an .env file and loading
-# them using python-dotenv and load_dotenv()
-# See https://pypi.org/project/python-dotenv/
+# Load environment variables from .env file
+load_dotenv()
+
+# Define the current time tool using the @tool decorator
+@tool(approval_mode="never_require")
+def get_current_time_utc() -> str:
+    """Returns the current system time in UTC."""
+    return f"The current time in UTC is {datetime.now(timezone.utc).isoformat()}"
 
 async def create_agent_with_tools():
     """Create an agent with the current time tool registered."""
@@ -154,30 +155,21 @@ async def create_agent_with_tools():
     # Create the chat client
     # AZURE_OPENAI_DEPLOYMENT_NAME should be the name of your model deployment on Microsoft Foundry/Azure OpenAI
     # i.e. "gpt-4o-mini"
-    chat_client = AzureOpenAIResponsesClient(
+    client = AzureOpenAIResponsesClient(
         endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
         api_key=os.getenv("AZURE_OPENAI_API_KEY"),
         deployment_name=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"),
         api_version=os.getenv("AZURE_OPENAI_API_VERSION", "latest")
     )
 
-    def get_current_time_utc() -> str:
-        """Returns the current system time in UTC."""
-        return f"The current time in UTC is {datetime.now(timezone.utc).isoformat()}"
-
-    # Define the current time tool as an AIFunction
-    current_time_function = AIFunction(
-        name="get_current_time_utc",
-        description="Returns the current system time in UTC",
-        func=get_current_time_utc
-    )
-
-    # Create the agent with the tool registered
-    agent = ChatAgent(
-        chat_client=chat_client,
+    # Create the agent explicitly and pass the @tool-decorated function directly.
+    # Alternatively, you can use the shorthand: client.as_agent(name=..., instructions=..., tools=...)
+    # which creates an Agent bound to that client in one call.
+    agent = Agent(
+        client=client,
         name="TimeAgent",
-        instructions="You are a helpful assistant. When the user asks for the current time, use the get_current_time_utc tool to provide an accurate response.",
-        tools=[current_time_function]
+        instructions="When the user asks for the current time, use the get_current_time_utc tool to provide an accurate response. Do not engage in any other type of conversation.",
+        tools=[get_current_time_utc]
     )
 
     return agent
@@ -205,9 +197,11 @@ async def main():
         if not user_input:
             continue
 
-        # Stream response from agent
+        # Stream response from agent token-by-token
+        # You can also use `result = await agent.run(user_input)`
+        # for "blocking", non-streaming call.
         print("\nAgent: ", end="", flush=True)
-        async for update in agent.run_stream(user_input):
+        async for update in agent.run(user_input, stream=True):
             if update.text:
                 print(update.text, end="", flush=True)
         print()

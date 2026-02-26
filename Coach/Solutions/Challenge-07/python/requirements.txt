@@ -1,7 +1,10 @@
 # Observability and Tracing Dependencies
 
+# You must pip install with --pre for these packages
+# to pull the latest pre-release versions
+
 # Agent Framework
-agent-framework>=0.1.0
+agent-framework>=1.0.0rc1
 
 # MCP Integration
 mcp[cli]>=1.2.0
@@ -15,7 +18,7 @@ opentelemetry-exporter-otlp>=0.41b0
 
 # OpenTelemetry Instrumentation
 opentelemetry-instrumentation>=0.41b0
-opentelemetry-instrumentation-fastapi>=0.41b0
+opentelemetry-instrumentation-openai-v2>=2.0.0
 opentelemetry-instrumentation-httpx>=0.41b0
 opentelemetry-instrumentation-requests>=0.41b0
 

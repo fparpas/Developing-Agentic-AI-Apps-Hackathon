@@ -7,15 +7,15 @@
 
 ## Introduction
 
-In this challenge, you'll build your first AI Agent using Azure AI Agents Service with file search capabilities. You'll create a **Travel Policy Compliance Agent** that can analyze and answer questions about your company's travel policy using intelligent document retrieval.
+In this challenge, you'll build your first AI Agent using Microsoft Foundry Agent Service with file search capabilities. You'll create a **Travel Policy Compliance Agent** that can analyze and answer questions about your company's travel policy using intelligent document retrieval.
 
 ## Concepts
 
-Before diving into the implementation, let's understand the key concepts of Azure AI Agent Service
+Before diving into the implementation, let's understand the key concepts of Foundry Agent Service
 
-### Azure AI Agents Service
+### Microsoft Foundry Agent Service
 
-Azure AI Agents Service provides a managed platform for building and deploying AI agents with advanced capabilities. Key features include:
+Agent Service provides a managed platform for building and deploying AI agents with advanced capabilities. Key features include:
 
 - **Managed Agent Hosting**: Azure handles the infrastructure, scaling, and management of your AI agents
 - **Built-in Tools**: Pre-configured tools for file search, function calling, and code interpretation
@@ -62,10 +62,10 @@ The agent will use the company travel policy document as its knowledge base to p
 
 Your first task is to set up the AI agent using the Azure AI Foundry portal:
 
-1. **Create an AI Agent in Azure AI Foundry**
-   - Navigate to the Azure AI Foundry portal
-   - Create a new AI agent with file search capabilities enabled
-   - Configure the agent with the following instructions:
+1. **Create an Agent in Agent Service**
+   - Navigate to the Microsoft Foundry portal at https://ai.azure.com
+   - Create a new Agent with file search capabilities enabled
+   - Configure the Agent with the following instructions:
 
    > You are a Travel Compliance Policy Agent for a company. Your role is to review, validate, and enforce the company's travel policy by evaluating travel requests, itineraries, and expense reports. You must ensure all travel activities comply with the policy's rules, financial limits, and approval workflows.
 
@@ -76,7 +76,7 @@ Your first task is to set up the AI agent using the Azure AI Foundry portal:
    - Ensure the document is properly indexed and searchable
 
 3. **Test in the Playground**
-   - Use the Azure AI Foundry playground to test your agent
+   - Use the Foundry Playground to test your agent
    - Ask sample questions about travel policies to verify the agent can retrieve relevant information
    - Validate that the agent provides accurate responses based on the uploaded document
    - Test various scenarios like expense limits  and booking requirements
@@ -96,9 +96,9 @@ Your second task is to create a Python application that integrates with your con
 **Application Development:**
 
 1. Create a Python application that:
-   - Uses Azure AI Projects SDK for Python
+   - Uses Azure AI Projects SDK for Python (azure-ai-projects)
    - Establishes connection with Azure credentials
-   - Connects to your configured AI agent from Task 1
+   - Connects to your configured Agent from Task 1
    - Manages conversation threads and messages
    - Integrates with file search capabilities
 
@@ -108,7 +108,7 @@ Your second task is to create a Python application that integrates with your con
    - Provide clear instructions
 
 3. Agent integration:
-   - Establish connection to your Azure AI agent
+   - Establish connection to your Agent in Foundry Agent Service
    - Manage conversation threads properly
    - Ensure file search functionality works
 
@@ -119,13 +119,12 @@ Use this code as a foundation for your application:
 `requirements.txt`:
 
 ```plaintxt
-azure-ai-projects>=0.1.0
-azure-identity>=1.25.1
+azure-ai-projects>=1.0.0
+azure-identity>=1.25.0
 python-dotenv>=1.0.0
 ```
 
 ```python
-import asyncio
 import os
 import sys
 from azure.ai.projects import AIProjectClient
@@ -142,7 +141,7 @@ class StreamingEventHandler(AgentEventHandler):
             print(delta.text, end="", flush=True)
 
 
-async def run_agent_conversation():
+def run_agent_conversation():
     """Run an interactive conversation with the travel policy agent."""
 
     # Consider storing secrets in an .env file and loading
@@ -157,53 +156,55 @@ async def run_agent_conversation():
 
     project_client = AIProjectClient(endpoint=endpoint, credential=DefaultAzureCredential())
 
-    # Get agents client
-    agents_client = project_client.agents
+    # Use context manager for proper resource cleanup
+    with project_client:
+        # .agents returns an authenticated AgentsClient from the azure-ai-agents package
+        agents_client = project_client.agents
 
-    # Load your agent from Azure AI Foundry
-    agent = agents_client.get_agent(agent_id)
-    print(f"Loaded agent: {agent.name}")
+        # Load your agent from Microsoft Foundry
+        agent = agents_client.get_agent(agent_id)
+        print(f"Loaded agent: {agent.name}")
 
-    # Create a new thread for conversation
-    thread = agents_client.threads.create()
-    print(f"Created thread: {thread.id}")
+        # Create a new thread for conversation
+        thread = agents_client.threads.create()
+        print(f"Created thread: {thread.id}")
 
-    # Interactive conversation loop
-    print("\nTravel Policy Compliance Agent")
-    print("Ask me about travel policies. Type 'exit' to quit.\n")
+        # Interactive conversation loop
+        print("\nTravel Policy Compliance Agent")
+        print("Ask me about travel policies. Type 'exit' to quit.\n")
 
-    while True:
-        # Get user input
-        user_input = input("You: ").strip()
+        while True:
+            # Get user input
+            user_input = input("You: ").strip()
 
-        if user_input.lower() == 'exit':
-            break
+            if user_input.lower() == 'exit':
+                break
 
-        if not user_input:
-            continue
+            if not user_input:
+                continue
 
-        # Send message to agent
-        agents_client.messages.create(
-            thread_id=thread.id,
-            role="user",
-            content=[{"type": "text", "text": user_input}]
-        )
+            # Send message to agent
+            agents_client.messages.create(
+                thread_id=thread.id,
+                role="user",
+                content=[{"type": "text", "text": user_input}]
+            )
 
-        # Stream the agent's response in real-time using custom event handler
-        print("Agent: ", end="", flush=True)
+            # Stream the agent's response in real-time using custom event handler
+            print("Agent: ", end="", flush=True)
 
-        with agents_client.runs.stream(
-            thread_id=thread.id,
-            agent_id=agent_id,
-            event_handler=StreamingEventHandler()
-        ) as stream:
-            stream.until_done()
+            with agents_client.runs.stream(
+                thread_id=thread.id,
+                agent_id=agent_id,
+                event_handler=StreamingEventHandler()
+            ) as stream:
+                stream.until_done()
 
-        print()  # New line after response
+            print()  # New line after response
 
 # Main execution
 if __name__ == "__main__":
-    asyncio.run(run_agent_conversation())
+    run_agent_conversation()
 ```
 
 **Important Notes:**
@@ -228,7 +229,7 @@ pip install azure-ai-projects azure-identity
 
 After completing both tasks, you will have:
 
-- **A configured AI agent** in Azure AI Foundry with file search capabilities and travel policy knowledge
+- **A configured Agent** in Agent Service with file search capabilities and travel policy knowledge
 - **A working console application** that provides an interactive interface to query travel policy information
 - **A complete solution** that demonstrates enterprise AI agent capabilities with document-based knowledge retrieval
 
@@ -249,7 +250,7 @@ Agent: "The travel policy requires you to book accommodations at approved corpor
 
 ## Success Criteria
 
-- ✅ Successfully created and configured an AI agent in Azure AI Foundry with file search capabilities and travel policy knowledge
+- ✅ Successfully created and configured an Agent in Foundry Agent Service with file search capabilities and travel policy knowledge
 - ✅ Validated that you uploaded and indexed the travel policy document in a vector store for searchable content
 - ✅ Demonstrated agent functionality by testing it in the Azure AI Foundry playground to validate policy-based responses
 - ✅ Successfully built a working Python application that connects to your agent and provides an interactive interface
@@ -257,13 +258,13 @@ Agent: "The travel policy requires you to book accommodations at approved corpor
 
 ## Learning Resources
 
-### Azure AI Agents Service Documentation
+### Microsoft Foundry Agent Service Documentation
 
-- [Azure AI Agents Service Overview](https://learn.microsoft.com/en-us/azure/ai-foundry/agents/overview)
-- [Azure AI Agents Service Concepts](https://learn.microsoft.com/en-us/azure/ai-foundry/agents/concepts/threads-runs-messages)
-- [File Search with AI Agents](https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/tools/file-search)
+- [Agent Service Overview](https://learn.microsoft.com/en-us/azure/ai-foundry/agents/overview)
+- [Agent Service Concepts](https://learn.microsoft.com/en-us/azure/ai-foundry/agents/concepts/threads-runs-messages)
+- [File Search with Agents](https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/tools/file-search)
 
 ### Sample Code and Tutorials
 
-- [Azure AI Foundry Samples - C#](https://github.com/azure-ai-foundry/foundry-samples/tree/main/samples/microsoft/csharp/getting-started-agents)
-- [Azure AI Foundry Samples - Python](https://github.com/azure-ai-foundry/foundry-samples/tree/main/samples/microsoft/python/getting-started-agents)
+- [Foundry Samples - C#](https://github.com/azure-ai-foundry/foundry-samples/tree/main/samples/microsoft/csharp/getting-started-agents)
+- [Foundry Samples - Python](https://github.com/azure-ai-foundry/foundry-samples/tree/main/samples/microsoft/python/getting-started-agents)
