@@ -60,18 +60,30 @@ You can use the following observability tools to monitor and analyze the behavio
 ## Description
 You should incorporate observability into your Microsoft Agent Framework application using a Console exporter and one or more of the following approaches to visualize and analyze the telemetry data:
 
-1. Console Exporter for development and debugging. You can docker run [Jaeger](https://www.jaegertracing.io/) for this one.
-```bash
-docker run -d --name jaeger \
-  -e COLLECTOR_OTLP_ENABLED=true \
-  -p 4317:4317 \
-  -p 16686:16686 \
-  jaegertracing/all-in-one:latest
-```
-
-2. Application Insights or Microsoft Foundry Tracing for production monitoring
+1. Console Exporter for development and debugging
+2. Application Insights or AI Foundry Tracing for production monitoring
 
 Use the Agent Framework application created in the previous challenge and add comprehensive observability to track agent behavior, tool executions, and conversation flows.
+
+## Talk is cheap. Show me.
+Here's how to wire up OpenTelemetry in Agent Framework:
+https://github.com/microsoft/agent-framework/tree/main/python/samples/02-agents/observability
+
+```python
+from agent_framework.observability import configure_otel_providers, enable_instrumentation
+
+# Option 1: environment-driven (recommended)
+# export ENABLE_INSTRUMENTATION=true
+# export ENABLE_CONSOLE_EXPORTERS=true            # optional
+# export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
+configure_otel_providers()
+
+# Option 2: programmatic
+configure_otel_providers(enable_console_exporters=True)
+enable_instrumentation(enable_sensitive_data=False)
+```
+
+As always, if you get stuck, see Coach solution for inspiration.
 
 ### Observability Pipeline
 
