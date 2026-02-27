@@ -1,3 +1,9 @@
+# Challenge 06: Agent with MCP integration
+
+# Use --pre to allow installation of pre-release versions,
+# which are required for this challenge.
+# pip install -r requirements.txt --pre
+
 azure-ai-agents>=1.2.0b5
 azure-ai-projects>=1.0.0
 azure-identity>=1.17.0
