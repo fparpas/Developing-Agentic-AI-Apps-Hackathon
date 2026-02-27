@@ -66,7 +66,7 @@ Take your `weather_remote_server.py` from Challenge 04 and add API key protectio
 2. Load the expected key from an environment variable
 3. Wrap the app with the middleware before passing it to uvicorn
 
-Below is the complete server — the **new lines are marked with `# 🔑 NEW`** comments. Everything else is unchanged from Challenge 04.
+Below is the complete server.
 
 **File: `secure_weather_server.py`**
 
@@ -202,8 +202,10 @@ class ApiKeyAuthMiddleware:
         if not key or not hmac.compare_digest(key.decode(), self.api_key):
             resp = JSONResponse(
                 status_code=401,
-                content={"detail": "Missing or invalid API key. Provide 'X-API-Key' header."},
-                headers={"WWW-Authenticate": "ApiKey realm=\"API\""},
+                content={
+                    "Missing or invalid API key. " +
+                    "Provide 'X-API-Key' header."
+                }
             )
             await resp(scope, receive, send)
             return
