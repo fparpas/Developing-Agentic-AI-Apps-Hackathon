@@ -202,10 +202,7 @@ class ApiKeyAuthMiddleware:
         if not key or not hmac.compare_digest(key.decode(), self.api_key):
             resp = JSONResponse(
                 status_code=401,
-                content={
-                    "Missing or invalid API key. " +
-                    "Provide 'X-API-Key' header."
-                }
+                content={"detail": "Missing or invalid API key. Provide 'X-API-Key' header."}
             )
             await resp(scope, receive, send)
             return
@@ -224,14 +221,15 @@ if __name__ == "__main__":
 
 ### Task 3: Update the MCP Client to send the API Key
 
-The only change to your existing client is passing the API key header when creating the MCP tool. Use `MCPStreamableHTTPTool` with a `headers` dict:
+The only change to your existing client is passing the API key header when creating the MCP tool. Use `MCPStreamableHTTPTool` with an `httpx.AsyncClient` that carries the auth header:
 
 ```python
 """Secure MCP Client - connects to a remote MCP server with API key auth."""
 
 import asyncio
 import os
-from agent_framework import ChatAgent, MCPStreamableHTTPTool
+import httpx
+from agent_framework import Agent, MCPStreamableHTTPTool
 from agent_framework.azure import AzureOpenAIResponsesClient
 from dotenv import load_dotenv
 
@@ -248,21 +246,25 @@ async def main():
 
     # The only change vs. an unsecured client: pass the API key via headers
     server_url = os.getenv("MCP_SERVER_URL", "http://localhost:8000/mcp")
+    http_client = httpx.AsyncClient(headers={"x-api-key": os.environ["API_KEY"]})
     mcp_tool = MCPStreamableHTTPTool(
         name="WeatherMCP",
         url=server_url,
-        headers={"X-API-Key": os.environ["API_KEY"]}
+        http_client=http_client
+        # Once agent-framework 1.0.0 is released, you should be able to
+        # pass headers here directly, instead of an http_client, like this:
+        # headers={"x-api-key": os.environ["API_KEY"]}
     )
 
-    async with ChatAgent(
-        chat_client=chat_client,
+    async with Agent(
+        client=chat_client,
         name="WeatherAgent",
         instructions="You are a helpful weather assistant with access to weather tools.",
         tools=[mcp_tool]
     ) as agent:
         query = "What's the weather forecast for New York?"
         print(f"Query: {query}\n")
-        async for update in agent.run_stream(query):
+        async for update in agent.run(query, stream=True):
             if update.text:
                 print(update.text, end="", flush=True)
         print()

@@ -2,7 +2,8 @@
 
 import asyncio
 import os
-from agent_framework import ChatAgent, MCPStreamableHTTPTool
+import httpx
+from agent_framework import Agent, MCPStreamableHTTPTool
 from agent_framework.azure import AzureOpenAIResponsesClient
 from dotenv import load_dotenv
 
@@ -19,14 +20,18 @@ async def main():
 
     # The only change vs. an unsecured client: pass the API key via headers
     server_url = os.getenv("MCP_SERVER_URL", "http://localhost:8000/mcp")
+    http_client = httpx.AsyncClient(headers={"x-api-key": os.environ["API_KEY"]})
     mcp_tool = MCPStreamableHTTPTool(
         name="WeatherMCP",
         url=server_url,
-        headers={"X-API-Key": os.environ["API_KEY"]}
+        http_client=http_client,
+        # Once agent-framework 1.0.0 is released, you should be
+        # able to pass headers here, directly, like this:
+        # headers={"x-api-key": os.environ["API_KEY"]}
     )
 
-    async with ChatAgent(
-        chat_client=chat_client,
+    async with Agent(
+        client=chat_client,
         name="WeatherAgent",
         instructions="You are a helpful weather assistant with access to weather tools.",
         tools=[mcp_tool]
@@ -40,7 +45,7 @@ async def main():
                 continue
 
             print("Agent: ", end="", flush=True)
-            async for update in agent.run_stream(user_input):
+            async for update in agent.run(user_input, stream=True):
                 if update.text:
                     print(update.text, end="", flush=True)
             print("\n")
