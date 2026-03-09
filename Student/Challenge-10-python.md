@@ -76,6 +76,8 @@ In this challenge, you'll complete a partially implemented agentic RAG system th
 
 You'll work with the [starter project](./Resources/Challenge-10/python). The conversational interface is already implemented; your objective is to complete the core agentic retrieval workflow powered by Azure AI Search.
 
+> **Tip:** If you get stuck, refer to the Coach solution for inspiration.
+
 ### Task 1: Set Up Azure Resources
 
 Create and configure the required Azure services for agentic retrieval.
@@ -85,8 +87,8 @@ Create and configure the required Azure services for agentic retrieval.
    - Choose a Standard tier or higher to support vector search and semantic capabilities
 
 2. **Deploy required models**:
-    - Chat completion model (for reasoning and synthesis), for example `gpt-4o`
-    - Embedding model (for vector search), for example `text-embedding-3-small`
+    - Chat completion model (for reasoning and synthesis), for example `gpt-4.1`
+    - Embedding model (for vector search), for example `text-embedding-3-large`
 
 ### Task 2: Configure Access and Set Up Permissions
 
@@ -107,29 +109,26 @@ Navigate to the starter project and configure your Azure service settings.
 1. **Open the starter project**:
 
 ```bash
-cd Student/Resources/Challenge-10/AgenticRAG
+cd Student/Resources/Challenge-10/python
 ```
 
-2. **Update configuration file** with your Azure service configurations. Create a `config.json` file:
+2. **Update environment variables** with your Azure service configurations. Copy `.env.sample` to `.env` and fill in your values:
 
-   ```json
-   {
-     "azure_openai": {
-       "endpoint": "https://your-openai-service.openai.azure.com",
-       "api_key": "your-openai-api-key",
-       "deployment_name": "gpt-4o",
-       "model": "gpt-4o",
-       "embeddings_deployment_name": "text-embedding-3-small",
-       "embeddings_model": "text-embedding-3-small"
-     },
-     "azure_ai_search": {
-       "endpoint": "https://your-search-service.search.windows.net",
-       "search_key": "your-search-admin-key",
-       "index_name": "nasa-earth-night-index",
-       "knowledge_source_name": "nasa-knowledge-source",
-       "knowledge_agent_name": "earth-night-agent"
-     }
-   }
+   ```bash
+   # Azure OpenAI
+   AZURE_OPENAI_ENDPOINT=https://your-openai-service.openai.azure.com
+   AZURE_OPENAI_API_KEY=your-openai-api-key
+   AZURE_OPENAI_DEPLOYMENT_NAME=gpt-4.1
+   AZURE_OPENAI_MODEL=gpt-4.1
+   AZURE_OPENAI_EMBEDDINGS_DEPLOYMENT_NAME=text-embedding-3-large
+   AZURE_OPENAI_EMBEDDINGS_MODEL=text-embedding-3-large
+
+   # Azure AI Search
+   AZURE_AI_SEARCH_ENDPOINT=https://your-search-service.search.windows.net
+   AZURE_AI_SEARCH_KEY=your-search-admin-key
+   AZURE_AI_SEARCH_INDEX_NAME=nasa-earth-night-index
+   AZURE_AI_SEARCH_KNOWLEDGE_SOURCE_NAME=nasa-knowledge-source
+   AZURE_AI_SEARCH_KNOWLEDGE_AGENT_NAME=earth-night-agent
    ```
 
 ### Task 4: Implement Agentic Retrieval Components

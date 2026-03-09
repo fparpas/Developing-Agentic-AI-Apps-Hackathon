@@ -7,23 +7,23 @@ This is the starter project for Challenge 10 - Build Agentic RAG with Azure AI S
 - Python 3.8 or higher
 - Azure AI Search service (Standard tier or higher)
 - Azure OpenAI service with deployed models:
-  - Chat completion model (e.g., `gpt-4o`)
-  - Embedding model (e.g., `text-embedding-3-small`)
+  - Chat completion model (e.g., `gpt-4.1`)
+  - Embedding model (e.g., `text-embedding-3-large`)
 
 ## Setup
 
-1. **Install dependencies**:
+1. Create a Python virtual environment, activate and **install dependencies**:
    ```bash
-   pip install -r requirements.txt
+   pip install -r requirements.txt --pre
 
    # or
-   # uv pip install -r requirements.txt
+   # uv pip install -r requirements.txt --pre
    # if using uv (highly recommended for performance)
    # https://docs.astral.sh/uv/
    ```
 
 2. **Configure the application**:
-   - Copy `config.json` and update it with your Azure service credentials
+   - Copy `.env.sample` to `.env` and update it with your Azure service credentials
    - Fill in the following values:
      - Azure OpenAI endpoint and API key
      - Azure OpenAI deployment names and models
@@ -70,14 +70,14 @@ The application will:
 ```
 python/
 ├── agentic_rag.py        # Main application file
-├── config.json           # Configuration file (you need to update this)
+├── .env.sample           # Environment variables template (copy to .env)
 ├── requirements.txt      # Python dependencies
 └── README.md             # This file
 ```
 
 ## Tips
 
-- Refer to the Challenge 10 README for detailed implementation guidance
+- Refer to the Challenge 10 challenge document for detailed implementation guidance
 - Use the Azure AI Search Python SDK documentation for API reference
 - The conversational interface is already implemented - focus on the retrieval components
 - Test your implementation with various question types to observe agentic behavior

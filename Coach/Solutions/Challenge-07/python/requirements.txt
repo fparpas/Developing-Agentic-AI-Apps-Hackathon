@@ -3,6 +3,10 @@
 # You must pip install with --pre for these packages
 # to pull the latest pre-release versions
 
+# opentelemetry-semantic-conventions-ai 0.4.14 removed SpanAttributes.LLM_SYSTEM,
+# but agent-framework 1.0.0rc1 still references it. Downgrading to 0.4.13 fixes it.
+opentelemetry-semantic-conventions-ai==0.4.13
+
 # Agent Framework
 agent-framework>=1.0.0rc1
 

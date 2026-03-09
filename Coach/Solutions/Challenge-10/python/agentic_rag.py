@@ -1,6 +1,6 @@
 """
-Agentic RAG with Azure AI Search
-This starter application demonstrates how to build an agentic retrieval system
+Agentic RAG with Azure AI Search - Solution
+This application demonstrates how to build an agentic retrieval system
 using Azure AI Search and Azure OpenAI.
 """
 
@@ -80,16 +80,139 @@ class AgenticRAGApp:
         """
         credential = DefaultAzureCredential()
 
-        # TODO: Add your code here to complete this challenge
-        # - Create a SearchIndexClient
-        # - Upload data to the index
-        # - Create a knowledge source
-        # - Create a knowledge agent
+        # ── 1. Create the Search Index ──────────────────────────────────
+        fields = [
+            SimpleField(
+                name="id",
+                type=SearchFieldDataType.String,
+                key=True,
+                filterable=True,
+                sortable=True,
+                facetable=True,
+            ),
+            SearchField(
+                name="page_chunk",
+                type=SearchFieldDataType.String,
+                filterable=False,
+                sortable=False,
+                facetable=False,
+            ),
+            SearchField(
+                name="page_embedding_text_3_large",
+                type=SearchFieldDataType.Collection(SearchFieldDataType.Single),
+                vector_search_dimensions=3072,
+                vector_search_profile_name="hnsw_text_3_large",
+            ),
+            SimpleField(
+                name="page_number",
+                type=SearchFieldDataType.Int32,
+                filterable=True,
+                sortable=True,
+                facetable=True,
+            ),
+        ]
 
-        print(f"{Fore.RED}Register and configure agentic search components in code before running.")
-        sys.exit(255)
+        vectorizer = AzureOpenAIVectorizer(
+            vectorizer_name="azure_openai_text_3_large",
+            parameters=AzureOpenAIVectorizerParameters(
+                resource_url=self.aoai_endpoint,
+                deployment_name=self.aoai_embedding_deployment,
+                model_name=self.aoai_embedding_model,
+            ),
+        )
 
-        return None  # Replace with actual SearchIndexClient instance
+        vector_search = VectorSearch(
+            profiles=[
+                VectorSearchProfile(
+                    name="hnsw_text_3_large",
+                    algorithm_configuration_name="alg",
+                    vectorizer_name="azure_openai_text_3_large",
+                )
+            ],
+            algorithms=[HnswAlgorithmConfiguration(name="alg")],
+            vectorizers=[vectorizer],
+        )
+
+        semantic_config = SemanticConfiguration(
+            name="semantic_config",
+            prioritized_fields=SemanticPrioritizedFields(
+                content_fields=[SemanticField(field_name="page_chunk")]
+            ),
+        )
+
+        semantic_search = SemanticSearch(
+            default_configuration_name="semantic_config",
+            configurations=[semantic_config],
+        )
+
+        index = SearchIndex(
+            name=self.index_name,
+            fields=fields,
+            vector_search=vector_search,
+            semantic_search=semantic_search,
+        )
+
+        index_client = SearchIndexClient(
+            endpoint=self.search_endpoint,
+            credential=AzureKeyCredential(self.search_key),
+        )
+        index_client.create_or_update_index(index)
+        print(f"Index '{self.index_name}' created or updated successfully.")
+
+        # ── 2. Upload Data to the Index ─────────────────────────────────
+        response = requests.get(index_data_url, timeout=60)
+        response.raise_for_status()
+        documents = response.json()
+
+        search_client = SearchClient(
+            endpoint=self.search_endpoint,
+            index_name=self.index_name,
+            credential=AzureKeyCredential(self.search_key),
+        )
+        search_client.upload_documents(documents=documents)
+        print(f"Documents uploaded to index '{self.index_name}' successfully.")
+
+        # ── 3. Create a Knowledge Source ────────────────────────────────
+        index_knowledge_source = SearchIndexKnowledgeSource(
+            name=self.knowledge_source_name,
+            search_index_parameters=SearchIndexKnowledgeSourceParameters(
+                search_index_name=self.index_name,
+                source_data_fields=[
+                    SearchIndexFieldReference(name="id"),
+                    SearchIndexFieldReference(name="page_chunk"),
+                    SearchIndexFieldReference(name="page_number"),
+                ],
+            ),
+        )
+        index_client.create_or_update_knowledge_source(index_knowledge_source)
+        print(f"Knowledge source '{self.knowledge_source_name}' created or updated successfully.")
+
+        # ── 4. Create a Knowledge Agent (Knowledge Base) ────────────────
+        openai_parameters = AzureOpenAIVectorizerParameters(
+            resource_url=self.aoai_endpoint,
+            deployment_name=self.aoai_gpt_deployment,
+            model_name=self.aoai_gpt_model,
+        )
+
+        agent_model = KnowledgeBaseAzureOpenAIModel(
+            azure_open_ai_parameters=openai_parameters
+        )
+
+        agent = KnowledgeBase(
+            name=self.knowledge_agent_name,
+            models=[agent_model],
+            knowledge_sources=[
+                KnowledgeSourceReference(
+                    name=self.knowledge_source_name,
+                )
+            ],
+        )
+
+        index_client.create_or_update_knowledge_base(agent)
+        print(f"Knowledge agent '{self.knowledge_agent_name}' created or updated successfully.")
+
+        self.index_client = index_client
+        return index_client
 
     def cleanup_resources(self, index_client: SearchIndexClient):
         """
@@ -98,7 +221,6 @@ class AgenticRAGApp:
         Args:
             index_client: SearchIndexClient instance to use for cleanup
         """
-        # Clean up resources
         index_client.delete_knowledge_base(self.knowledge_agent_name)
         print(f"Knowledge agent '{self.knowledge_agent_name}' deleted successfully.")
 
@@ -201,12 +323,11 @@ class AgenticRAGApp:
             print(Style.RESET_ALL, end="")
 
 
-
 def main():
     """Main entry point for the application."""
     agent_instructions = (
         "A Q&A agent that can answer questions about the Earth at night. "
-        "If you don't have the answer, respond with \"I don't know\"."
+        'If you don\'t have the answer, respond with "I don\'t know".'
     )
     index_data_url = (
         "https://raw.githubusercontent.com/Azure-Samples/azure-search-sample-data/"
