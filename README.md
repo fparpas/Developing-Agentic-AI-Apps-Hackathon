@@ -1,5 +1,7 @@
 # Developing Agentic AI Apps Hackathon
 
+![](hero.png)
+
 ## Introduction
 
 Welcome to this hands‑on hackathon for building Agentic AI applications. You’ll design, build, secure, observe, orchestrate, and scale intelligent AI solutions on Azure.

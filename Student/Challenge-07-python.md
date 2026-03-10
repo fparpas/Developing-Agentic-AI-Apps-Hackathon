@@ -65,6 +65,26 @@ You should incorporate observability into your Microsoft Agent Framework applica
 
 Use the Agent Framework application created in the previous challenge and add comprehensive observability to track agent behavior, tool executions, and conversation flows.
 
+## Talk is cheap. Show me.
+Here's how to wire up OpenTelemetry in Agent Framework:
+https://github.com/microsoft/agent-framework/tree/main/python/samples/02-agents/observability
+
+```python
+from agent_framework.observability import configure_otel_providers, enable_instrumentation
+
+# Option 1: environment-driven (recommended)
+# export ENABLE_INSTRUMENTATION=true
+# export ENABLE_CONSOLE_EXPORTERS=true            # optional
+# export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
+configure_otel_providers()
+
+# Option 2: programmatic
+configure_otel_providers(enable_console_exporters=True)
+enable_instrumentation(enable_sensitive_data=False)
+```
+
+As always, if you get stuck, see Coach solution for inspiration.
+
 ### Observability Pipeline
 
 ```mermaid
