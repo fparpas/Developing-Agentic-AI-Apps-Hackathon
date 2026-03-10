@@ -96,8 +96,7 @@ Enable and use the Azure AI Foundry Tracing UI to visualize the telemetry data c
 - [Microsoft Agent Framework Agent Observability Overview](https://learn.microsoft.com/en-us/agent-framework/user-guide/agents/agent-observability?pivots=programming-language-csharp)
 - [Microsoft Agent Framework Workflows - Observability](https://learn.microsoft.com/en-us/agent-framework/user-guide/workflows/observability)
 - [VS Code - Tracing in AI Toolkit](https://code.visualstudio.com/docs/intelligentapps/tracing)
-- [Sample - Agent Observability with Console Exporter](https://github.com/microsoft/agent-framework/blob/main/dotnet/samples/GettingStarted/Agents/Agent_Step08_Observability)
-- [Sample - OpenTelemetry with the Microsoft Agent Framework](https://github.com/microsoft/agent-framework/blob/main/dotnet/samples/GettingStarted/AgentOpenTelemetry)
+- [Sample - OpenTelemetry with the Microsoft Agent Framework](https://github.com/microsoft/agent-framework/tree/main/dotnet/samples/02-agents/AgentOpenTelemetry)
 
 #### Foundry Classic Observability
 - [View trace results for AI applications using OpenAI SDK - Foundry Classic](https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/develop/trace-application)
