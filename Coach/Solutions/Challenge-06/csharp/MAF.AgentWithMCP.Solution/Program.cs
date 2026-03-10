@@ -118,7 +118,7 @@ class Program
             .AsAIAgent(
                 instructions: instructions,
                 name: agentName,
-                tools: [.. mcpTools.Cast<AITool>().ToList(), AIFunctionFactory.Create(TimeTools.GetCurrentTimeInUTC)]
+                tools: [.. mcpTools.Cast<AITool>().ToList()]
             );
 
         return agent;

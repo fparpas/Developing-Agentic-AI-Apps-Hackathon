@@ -176,7 +176,7 @@ After creating the MCP client, you will get the list of tools and add them to Mi
 
 ```csharp
 //Get list of tools from MCP server
-var mcpTools = await _mcpClient.ListToolsAsync();
+var mcpTools = await mcpClient.ListToolsAsync();
 Console.WriteLine($"Found {mcpTools.Count} MCP tools");
 
 Console.WriteLine("Available MCP Tools:");
@@ -186,14 +186,15 @@ foreach (var tool in mcpTools)
 }
 
 // Register MCP tools with the agent
-AIAgent agent = new AzureOpenAIClient(
-    new Uri(endpoint),
-    new ApiKeyCredential(apiKey))
-    .GetChatClient(deploymentName)
-    .AsAIAgent(
-        instructions: instructions,
-        name: agentName,// Register MCP tools with the agent
-    );
+ AIAgent agent = new AzureOpenAIClient(
+            new Uri(endpoint),
+            new ApiKeyCredential(apiKey))
+            .GetChatClient(deploymentName)
+            .AsAIAgent(
+                instructions: instructions,
+                name: agentName,
+                tools: [.. mcpTools.Cast<AITool>().ToList()]
+            );
 ```
 
 ## Success Criteria
