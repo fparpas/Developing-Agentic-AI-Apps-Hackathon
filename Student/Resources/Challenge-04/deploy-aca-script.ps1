@@ -10,7 +10,7 @@
 
 param(
     [Parameter(Mandatory = $false)]
-    [string]$ResourceGroupName = "rg-weathermcp-demo1",
+    [string]$ResourceGroupName = "rg-weathermcp-demo",
     
     [Parameter(Mandatory = $false)]
     [string]$Location = "eastus",
