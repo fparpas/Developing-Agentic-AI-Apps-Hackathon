@@ -1,5 +1,5 @@
 """
-Secure Weather MCP Server - Challenge 09 Solution
+Secure Weather MCP Server - Challenge 10 Solution
 
 Takes the Challenge 04 remote weather server and adds API key
 authentication via pure ASGI middleware.

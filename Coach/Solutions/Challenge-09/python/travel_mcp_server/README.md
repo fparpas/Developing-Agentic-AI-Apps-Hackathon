@@ -29,7 +29,7 @@ needed to make a real Amadeus call and format a friendly response.
 Install dependencies in an isolated environment:
 
 ```bash
-cd Coach/Solutions/Challenge-08/python/travel_mcp_server
+cd Coach/Solutions/Challenge-09/python/travel_mcp_server
 python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt

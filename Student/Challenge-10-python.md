@@ -1,493 +1,303 @@
-# Challenge 10 - Python - Build Agentic RAG with Azure AI Search
+# Challenge 10 - Python - Secure your remote MCP server with an API Key
 
-[< Previous Challenge](./Challenge-09-python.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-11.md)
+[< Previous Challenge](./Challenge-09-python.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-11-python.md)
 
 [![](https://img.shields.io/badge/C%20Sharp-lightgray)](Challenge-10-csharp.md)
 [![](https://img.shields.io/badge/Python-blue)](Challenge-10-python.md)
 
-
 ## Introduction
 
-In this challenge, you'll build an advanced **agentic Retrieval-Augmented Generation (RAG)** system using Azure AI Search. Unlike traditional RAG approaches that only retrieve and concatenate content, agentic retrieval allows the AI to decide what to retrieve, when to retrieve it, and how to iteratively refine its search strategy to answer complex, multi-part questions.
+Previously, you worked with MCP servers and clients in both local and remote environments, but these setups lacked authentication and authorization. While this approach might suffice for development or trusted local scenarios, it is not suitable for production. When deploying remote MCP servers accessible over HTTP/HTTPS, it is essential to implement robust authentication for all clients. Exposing an unsecured MCP server to the internet can result in significant security risks (abuse of tools, data exfiltration, quota exhaustion, malicious chaining, etc.).
 
-You will implement a conversational AI system that can:
-- Dynamically search a knowledge base
-- Reason about intermediate retrieval results
-- Perform iterative refinement when information is incomplete
-- Synthesize a grounded answer with cited sources
+In this challenge, you will secure your MCP Weather Server by introducing API key authentication. This gives you a simple, explicit credential mechanism while preparing the code structure so you can later upgrade to standards-based authorization (OAuth 2.1 / OIDC, signed tokens, per-principal policies) with minimal refactoring.
 
-Throughout the process, you can inspect activities to understand how the agent planned, searched, and constructed its final response.
+> ℹ️ API keys are intentionally used here as the “training wheels” step before adopting a full identity provider such as Microsoft Entra ID with OAuth 2.1 / OIDC. Keep your handler boundaries clean so you can drop in a standards-compliant validator later without touching business logic.
 
 ## Concepts
 
-Before diving into the implementation, let's understand the key concepts that make agentic retrieval powerful for modern AI applications.
+### API Key Authentication
 
-### Agentic Retrieval vs. Traditional RAG
+API keys are a simple and effective method for authenticating clients to your MCP server. They provide:
 
-**Traditional RAG** typically features:
+- **Client Identification**: Each client gets a unique key to identify requests
+- **Access Control**: Keys can be revoked or have different permission levels
+- **Usage Tracking**: Monitor which clients are making requests
+- **Rate Limiting**: Control request frequency per client
 
-- Fixed similarity search per user prompt
-- Limited reasoning about missing context
-- Static chunk retrieval (one-shot)
-- Blind concatenation of results
+### MCP Security Considerations
+When securing MCP servers, consider:
+- **Transport Security**: Use HTTPS for encrypted communication
+- **Authentication**: Verify client identity before processing requests
+- **Authorization**: Control which tools/resources clients can access
+- **Input Validation**: Sanitize all inputs to prevent injection attacks
+- **Audit Logging**: Track all requests for security monitoring
+- **Rate Limiting**: Prevent abuse and DoS attacks
 
-**Agentic Retrieval** enables:
+> (IMPORTANT) Canonical header name: use `X-API-Key` everywhere. Both server and client must match the exact casing to avoid authentication failures—double-check configuration before deploying.
 
-- **Dynamic Query Planning** – the agent decomposes or reformulates queries
-- **Iterative Refinement** – additional searches when gaps remain
-- **Contextual Reasoning** – awareness of sufficiency vs. insufficiency
-- **Grounded Synthesis** – combines sources while preserving attribution
+#### MCP Server Authorization (High Level)
 
-### Agentic Retrieval Workflow
-
-```mermaid
-graph TD
-    A[User Query] --> B[Agent Planning]
-    B --> C[Dynamic Search Query Generation]
-    C --> D[Knowledge Source Retrieval]
-    D --> E[Result Evaluation]
-    E --> F{Need More Info?}
-    F -->|Yes| C
-    F -->|No| G[Synthesis & Response]
-    G --> H[User Response with Sources]
-```
-
-### Azure AI Search Knowledge Agents
-
-Azure AI Search provides native support for agentic retrieval through the following capabilities:
-
-- **Knowledge Sources**: Structured data repositories an agent can query
-- **Knowledge Agents**: Orchestrators that retrieve, reason, and synthesize
-- **Retrieval Orchestration**: Coordination of multi-step query execution
-- **Activity Tracking**: Logs of decision paths and retrieval operations
-
-### Enterprise Knowledge Integration
-
-Agentic retrieval enables enterprise scenarios such as:
-
-- **Multi-Source Knowledge**: Unified retrieval across documents, databases, APIs
-- **Contextual Understanding**: Domain-aware reasoning about user intent
-- **Auditability**: Trace how each answer was formed
-- **Source Attribution**: Cite underlying documents for verification
-- **Security Alignment**: Honor data governance and access control boundaries
+The Model Context Protocol includes an authorization model aligned with OAuth concepts for HTTP transports. This challenge deliberately starts simpler (static API key) so you can focus on the mechanics of securing endpoints. Your handler, routing, and middleware ordering should make it trivial to swap in a standards-compliant token validator later. See the specs: [MCP Authorization Standards Compliance](https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization#standards-compliance).
 
 ## Description
-In this challenge, you'll complete a partially implemented agentic RAG system that demonstrates how AI agents can intelligently search through a knowledge base about "Earth at Night" using NASA data. The system showcases advanced retrieval capabilities in which the agent decides what to search for and how to synthesize the results.
+In this challenge, you will upgrade your existing Weather MCP Server to enable secure remote access using API key authentication.
 
-You'll work with the [starter project](./Resources/Challenge-10/python). The conversational interface is already implemented; your objective is to complete the core agentic retrieval workflow powered by Azure AI Search.
+You will upgrade your existing (previous challenge) Weather MCP Server to require an API key for every MCP request. The work includes:
 
-> **Tip:** If you get stuck, refer to the Coach solution for inspiration.
+1. Converting (or confirming) the server is exposed via HTTP (remote capable) and not only local process transport.
+2. Adding middleware that validates an API key from a header.
+3. Registering the authentication middleware in the correct order.
+4. Requiring authorization for the MCP endpoint route.
+5. Updating your MCP client to send the header.
 
-### Task 1: Set Up Azure Resources
+> ℹ️ While API keys are a simple way to secure your server, it is generally more secure to authenticate clients using an identity provider such as Microsoft Entra ID (formerly Azure AD) with OAuth 2.0 or OpenID Connect flows. These modern authentication methods provide stronger security, support for user and application identities, token expiration, and advanced access controls. For production scenarios, consider integrating with an identity provider instead of relying solely on API keys.
 
-Create and configure the required Azure services for agentic retrieval.
+## Tasks
 
-1. **Create Azure AI Search Service**:
-   - Create a new Azure AI Search service in the Azure portal
-   - Choose a Standard tier or higher to support vector search and semantic capabilities
+### Task 1: Convert MCP Server to remote MCP Server
 
-2. **Deploy required models**:
-    - Chat completion model (for reasoning and synthesis), for example `gpt-4.1`
-    - Embedding model (for vector search), for example `text-embedding-3-large`
+Ensure that your MCP server is converted into remote MCP server that can handle HTTP requests (this was accomplished in Challenge 04):
 
-### Task 2: Configure Access and Set Up Permissions
+### Task 2: Add API Key Authentication Middleware to your Remote MCP Server
 
-Azure AI Search agentic retrieval requires that the Search service can call Azure OpenAI. Configure these permissions:
+Take your `weather_remote_server.py` from Challenge 04 and add API key protection. You need three things on top of the existing code:
 
-For **Azure AI Search**:
-- Enable role-based access control (RBAC) on the Search service.
-- Enable a system-assigned managed identity.
-- Assign these roles to yourself (development convenience): `Search Service Contributor`, `Search Index Data Contributor`, `Search Index Data Reader`.
+1. An ASGI middleware class that checks the `X-API-Key` header
+2. Load the expected key from an environment variable
+3. Wrap the app with the middleware before passing it to uvicorn
 
-For **Azure OpenAI**:
-- Assign the `Cognitive Services OpenAI User` role to the Search service's managed identity.
+Below is the complete server.
 
-### Task 3: Configure the Application
-
-Navigate to the starter project and configure your Azure service settings.
-
-1. **Open the starter project**:
-
-```bash
-cd Student/Resources/Challenge-10/python
-```
-
-2. **Update environment variables** with your Azure service configurations. Copy `.env.sample` to `.env` and fill in your values:
-
-   ```bash
-   # Azure OpenAI
-   AZURE_OPENAI_ENDPOINT=https://your-openai-service.openai.azure.com
-   AZURE_OPENAI_API_KEY=your-openai-api-key
-   AZURE_OPENAI_DEPLOYMENT_NAME=gpt-4.1
-   AZURE_OPENAI_MODEL=gpt-4.1
-   AZURE_OPENAI_EMBEDDINGS_DEPLOYMENT_NAME=text-embedding-3-large
-   AZURE_OPENAI_EMBEDDINGS_MODEL=text-embedding-3-large
-
-   # Azure AI Search
-   AZURE_AI_SEARCH_ENDPOINT=https://your-search-service.search.windows.net
-   AZURE_AI_SEARCH_KEY=your-search-admin-key
-   AZURE_AI_SEARCH_INDEX_NAME=nasa-earth-night-index
-   AZURE_AI_SEARCH_KNOWLEDGE_SOURCE_NAME=nasa-knowledge-source
-   AZURE_AI_SEARCH_KNOWLEDGE_AGENT_NAME=earth-night-agent
-   ```
-
-### Task 4: Implement Agentic Retrieval Components
-
-Implement four core components:
-
-1. **Search Index** – Create index fields (id, chunk content, embedding vector, page number) plus semantic and vector configurations.
-2. **Data Ingestion** – Upload NASA "Earth at Night" dataset into the index.
-3. **Knowledge Source** – Reference the index and specify included fields.
-4. **Knowledge Agent** – Bridge OpenAI deployments and knowledge source for multi-step retrieval & synthesis.
-
-> **Reference Guide**: For detailed implementation steps and code examples, you can reference the [Azure AI Search agentic retrieval quickstart guide](https://learn.microsoft.com/en-us/azure/search/search-get-started-agentic-retrieval?tabs=search-perms%2Csearch-endpoint&pivots=programming-language-csharp) which provides comprehensive examples for each component.
-
-#### 4.1 Create a Search Index
-
-Create a search index. The index schema contains fields for document identification and page content, embeddings, and numbers. The schema also includes configurations for semantic ranking and vector search, which uses your embeddings deployment to vectorize text and match documents based on semantic or conceptual similarity.
-
-You can create the search index programmatically (as shown below) or by using the **Azure portal**. In the Azure portal, navigate to your Azure AI Search resource, select **Indexes**, and use the UI to define fields, semantic settings, and vector search configurations. This provides a visual way to set up your index if you prefer not to use code.
+**File: `secure_weather_server.py`**
 
 ```python
-from azure.search.documents.indexes import SearchIndexClient
-from azure.search.documents.indexes.models import (
-    SearchIndex,
-    SearchField,
-    SearchFieldDataType,
-    SimpleField,
-    VectorSearch,
-    VectorSearchProfile,
-    HnswAlgorithmConfiguration,
-    AzureOpenAIVectorizer,
-    AzureOpenAIVectorizerParameters,
-    SemanticConfiguration,
-    SemanticSearch,
-    SemanticPrioritizedFields,
-    SemanticField
-)
-from azure.core.credentials import AzureKeyCredential
+import os
+import hmac
+from typing import Any
+from contextlib import asynccontextmanager
 
-# Define fields for the index
-fields = [
-    SimpleField(
-        name="id",
-        type=SearchFieldDataType.String,
-        key=True,
-        filterable=True,
-        sortable=True,
-        facetable=True
-    ),
-    SearchField(
-        name="page_chunk",
-        type=SearchFieldDataType.String,
-        filterable=False,
-        sortable=False,
-        facetable=False
-    ),
-    SearchField(
-        name="page_embedding_text_3_large",
-        type=SearchFieldDataType.Collection(SearchFieldDataType.Single),
-        vector_search_dimensions=3072,
-        vector_search_profile_name="hnsw_text_3_large"
-    ),
-    SimpleField(
-        name="page_number",
-        type=SearchFieldDataType.Int32,
-        filterable=True,
-        sortable=True,
-        facetable=True
+import httpx
+import uvicorn
+from fastapi import FastAPI
+from fastapi.responses import JSONResponse
+from mcp.server.fastmcp import FastMCP
+from dotenv import load_dotenv
+
+load_dotenv()
+
+API_KEY = os.getenv("API_KEY", "your-secure-api-key-change-this")
+
+mcp = FastMCP("weather")
+
+NWS_API_BASE = "https://api.weather.gov"
+USER_AGENT = "weather-app/1.0"
+
+
+async def make_nws_request(url: str) -> dict[str, Any] | None:
+    headers = {"User-Agent": USER_AGENT, "Accept": "application/geo+json"}
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.get(url, headers=headers, timeout=30.0)
+            response.raise_for_status()
+            return response.json()
+        except Exception:
+            return None
+
+
+def format_alert(feature: dict) -> str:
+    props = feature["properties"]
+    return (
+        f"Event: {props.get('event', 'Unknown')}\n"
+        f"Area: {props.get('areaDesc', 'Unknown')}\n"
+        f"Severity: {props.get('severity', 'Unknown')}\n"
+        f"Description: {props.get('description', 'N/A')}\n"
+        f"Instructions: {props.get('instruction', 'N/A')}"
     )
-]
 
-# Define a vectorizer
-vectorizer = AzureOpenAIVectorizer(
-    vectorizer_name="azure_openai_text_3_large",
-    parameters=AzureOpenAIVectorizerParameters(
-        resource_url=aoai_endpoint,
-        deployment_name=aoai_embedding_deployment,
-        model_name=aoai_embedding_model
-    )
-)
 
-# Define a vector search profile and algorithm
-vector_search = VectorSearch(
-    profiles=[
-        VectorSearchProfile(
-            name="hnsw_text_3_large",
-            algorithm_configuration_name="alg",
-            vectorizer_name="azure_openai_text_3_large"
+@mcp.tool()
+async def get_alerts(state: str) -> str:
+    """Get weather alerts for a US state.
+
+    Args:
+        state: Two-letter US state code (e.g., CA, NY, WA, TX)
+    """
+    url = f"{NWS_API_BASE}/alerts/active/area/{state}"
+    data = await make_nws_request(url)
+    if not data or "features" not in data:
+        return "Unable to fetch alerts or no alerts found."
+    if not data["features"]:
+        return "No active alerts for this state."
+    return "\n---\n".join(format_alert(f) for f in data["features"])
+
+
+@mcp.tool()
+async def get_forecast(latitude: float, longitude: float) -> str:
+    """Get weather forecast for a location.
+
+    Args:
+        latitude: Latitude of the location
+        longitude: Longitude of the location
+    """
+    points_data = await make_nws_request(f"{NWS_API_BASE}/points/{latitude},{longitude}")
+    if not points_data:
+        return "Unable to fetch forecast data for this location."
+    try:
+        forecast_url = points_data["properties"]["forecast"]
+    except KeyError:
+        return "Unable to determine forecast URL for this location."
+
+    forecast_data = await make_nws_request(forecast_url)
+    if not forecast_data:
+        return "Unable to fetch detailed forecast."
+
+    forecasts = []
+    for p in forecast_data["properties"]["periods"][:5]:
+        forecasts.append(
+            f"{p['name']}:\n"
+            f"  Temperature: {p['temperature']}°{p['temperatureUnit']}\n"
+            f"  Wind: {p['windSpeed']} {p['windDirection']}\n"
+            f"  Forecast: {p['detailedForecast']}"
         )
-    ],
-    algorithms=[
-        HnswAlgorithmConfiguration(name="alg")
-    ],
-    vectorizers=[vectorizer]
-)
+    return "\n---\n".join(forecasts)
 
-# Define a semantic configuration
-semantic_config = SemanticConfiguration(
-    name="semantic_config",
-    prioritized_fields=SemanticPrioritizedFields(
-        content_fields=[SemanticField(field_name="page_chunk")]
-    )
-)
 
-semantic_search = SemanticSearch(
-    default_configuration_name="semantic_config",
-    configurations=[semantic_config]
-)
+mcp_app = mcp.streamable_http_app()
 
-# Create the index
-index = SearchIndex(
-    name=index_name,
-    fields=fields,
-    vector_search=vector_search,
-    semantic_search=semantic_search
-)
+@asynccontextmanager
+async def lifespan(app):
+    async with mcp_app.router.lifespan_context(mcp_app):
+        yield
 
-# Create the index client and create or update the index
-index_client = SearchIndexClient(
-    endpoint=search_endpoint,
-    credential=AzureKeyCredential(search_key)
-)
-index_client.create_or_update_index(index)
-print(f"Index '{index_name}' created or updated successfully.")
+app = FastAPI(title="Weather MCP Server", version="1.0.0", lifespan=lifespan)
+
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy"}
+
+
+class ApiKeyAuthMiddleware:
+    """Pure ASGI middleware that validates an X-API-Key header on protected paths.
+
+    Uses raw ASGI (not BaseHTTPMiddleware) so streaming responses (SSE) work correctly.
+    """
+
+    def __init__(self, app, api_key: str, protected_paths: list[str] = None):
+        self.app = app
+        self.api_key = api_key
+        self.protected_paths = protected_paths or ["/mcp"]
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        if not any(scope["path"].startswith(p) for p in self.protected_paths):
+            await self.app(scope, receive, send)
+            return
+
+        headers = dict(scope["headers"])
+        key = headers.get(b"x-api-key")
+
+        if not key or not hmac.compare_digest(key.decode(), self.api_key):
+            resp = JSONResponse(
+                status_code=401,
+                content={"detail": "Missing or invalid API key. Provide 'X-API-Key' header."}
+            )
+            await resp(scope, receive, send)
+            return
+
+        await self.app(scope, receive, send)
+
+
+# Mount MCP app and wrap everything with auth middleware
+app.mount("/", mcp_app)
+app = ApiKeyAuthMiddleware(app, api_key=API_KEY, protected_paths=["/mcp"])
+
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
 ```
 
-#### 4.2 Upload Data to the Index
+### Task 3: Update the MCP Client to send the API Key
 
-You can upload data to your Azure AI Search index in two main ways:
-
-- **Using an Indexer via the Azure Portal (Pull Method):**
-    This is known as the "pull" method, where Azure AI Search automatically pulls data from supported data sources (such as Azure Blob Storage, SQL Database, or Cosmos DB) using an indexer. You can configure and schedule indexers in the Azure portal, making it ideal for ongoing or large-scale data ingestion scenarios. The portal provides a visual interface for mapping fields and managing indexing jobs.
-
-- **Uploading Data Programmatically (Push Method):**
-    This is the "push" method, where you directly push data into the search index using code. For simplicity in this challenge, you'll upload a single file containing NASA "Earth at Night" data directly to the index programmatically. This approach is quick and effective for small datasets or initial prototyping.
+The only change to your existing client is passing the API key header when creating the MCP tool. Use `MCPStreamableHTTPTool` with an `httpx.AsyncClient` that carries the auth header:
 
 ```python
-from azure.search.documents import SearchClient
-import requests
-import json
+"""Secure MCP Client - connects to a remote MCP server with API key auth."""
 
-# Upload sample documents from the GitHub URL
-url = "https://raw.githubusercontent.com/Azure-Samples/azure-search-sample-data/refs/heads/main/nasa-e-book/earth-at-night-json/documents.json"
-response = requests.get(url)
-response.raise_for_status()
-documents = response.json()
+import asyncio
+import os
+import httpx
+from agent_framework import Agent, MCPStreamableHTTPTool
+from agent_framework.azure import AzureOpenAIResponsesClient
+from dotenv import load_dotenv
 
-search_client = SearchClient(
-    endpoint=search_endpoint,
-    index_name=index_name,
-    credential=AzureKeyCredential(search_key)
-)
+load_dotenv()
 
-# Upload documents in batches
-result = search_client.upload_documents(documents=documents)
-print(f"Documents uploaded to index '{index_name}' successfully.")
-```
 
-#### 4.3 Create a Knowledge Source
-
-Configure a knowledge source that the agent can query.
-A knowledge source is a reusable reference to your source data. The following code defines a knowledge source that targets your index.
-
-```python
-from azure.search.documents.indexes.models import (
-    SearchIndexKnowledgeSource,
-    SearchIndexKnowledgeSourceParameters
-)
-
-# Create a knowledge source
-index_knowledge_source = SearchIndexKnowledgeSource(
-    name=knowledge_source_name,
-    search_index_parameters=SearchIndexKnowledgeSourceParameters(
-        search_index_name=index_name,
-        source_data_select="id,page_chunk,page_number"
+async def main():
+    chat_client = AzureOpenAIResponsesClient(
+        endpoint=os.environ["AZURE_OPENAI_ENDPOINT"],
+        api_key=os.environ["AZURE_OPENAI_API_KEY"],
+        deployment_name=os.environ["AZURE_OPENAI_DEPLOYMENT_NAME"],
+        api_version="latest"
     )
-)
 
-index_client.create_or_update_knowledge_source(index_knowledge_source)
-print(f"Knowledge source '{knowledge_source_name}' created or updated successfully.")
-```
-
-#### 4.4 Create a Knowledge Agent
-
-Set up the intelligent agent that will perform agentic retrieval.
-
-To target your knowledge source and your model deployment at query time, you need a knowledge agent. A knowledge agent connects your Azure OpenAI deployment with one or more knowledge sources, enabling advanced retrieval and synthesis capabilities.
-
-> **Tip:** You can add multiple knowledge sources to a single knowledge agent. This allows the agent to retrieve and reason across different datasets, indexes, or repositories, making your retrieval system more flexible and powerful.
-
-```python
-from azure.search.documents.indexes.models import (
-    KnowledgeAgent,
-    KnowledgeAgentAzureOpenAIModel,
-    KnowledgeAgentOutputConfiguration,
-    KnowledgeAgentOutputConfigurationModality,
-    KnowledgeSourceReference
-)
-
-# Create a knowledge agent
-openai_parameters = AzureOpenAIVectorizerParameters(
-    resource_url=aoai_endpoint,
-    deployment_name=aoai_gpt_deployment,
-    model_name=aoai_gpt_model
-)
-
-agent_model = KnowledgeAgentAzureOpenAIModel(
-    azure_open_ai_parameters=openai_parameters
-)
-
-output_config = KnowledgeAgentOutputConfiguration(
-    modality=KnowledgeAgentOutputConfigurationModality.ANSWER_SYNTHESIS,
-    include_activity=True
-)
-
-agent = KnowledgeAgent(
-    name=knowledge_agent_name,
-    models=[agent_model],
-    knowledge_sources=[
-        KnowledgeSourceReference(
-            reference_name=knowledge_source_name,
-            include_references=True,
-            include_reference_source_data=True,
-            reranker_threshold=2.5
-        )
-    ],
-    output_configuration=output_config
-)
-
-index_client.create_or_update_knowledge_agent(agent)
-print(f"Knowledge agent '{knowledge_agent_name}' created or updated successfully.")
-```
-
-### Task 5: Execute Agentic Retrieval and Get Results
-
-You can now run agentic retrieval by sending a user query (single or multi-part) to your knowledge agent. Given conversation history and retrieval parameters, the agent:
-
-- Analyzes prior turns to infer the current information need
-- Decomposes complex prompts into focused subqueries
-- Executes subqueries (often in parallel) against the knowledge source
-- Applies semantic ranking to refine relevance
-- Synthesizes grounded, cited natural-language output
-
-Use the following code template to send a user query and retrieve results from your knowledge agent. Update the query content as needed for your scenario:
-
-```python
-from azure.search.documents.agents import KnowledgeAgentRetrievalClient
-from azure.search.documents.agents.models import (
-    KnowledgeAgentRetrievalRequest,
-    KnowledgeAgentMessage,
-    KnowledgeAgentMessageTextContent
-)
-from azure.identity import DefaultAzureCredential
-
-# Create retrieval client
-agent_client = KnowledgeAgentRetrievalClient(
-    endpoint=search_endpoint,
-    agent_name=knowledge_agent_name,
-    credential=DefaultAzureCredential()
-)
-
-messages.append({
-    "role": "user",
-    "content": """Why do suburban belts display larger December brightening than urban cores even though absolute light levels are higher downtown?
-    Why is the Phoenix nighttime street grid is so sharply visible from space, whereas large stretches of the interstate between midwestern cities remain comparatively dim?"""
-})
-
-# Convert messages to the required format
-agent_messages = [
-    KnowledgeAgentMessage(
-        content=[KnowledgeAgentMessageTextContent(text=msg["content"])],
-        role=msg["role"]
+    # The only change vs. an unsecured client: pass the API key via headers
+    server_url = os.getenv("MCP_SERVER_URL", "http://localhost:8000/mcp")
+    http_client = httpx.AsyncClient(headers={"x-api-key": os.environ["API_KEY"]})
+    mcp_tool = MCPStreamableHTTPTool(
+        name="WeatherMCP",
+        url=server_url,
+        http_client=http_client
+        # Once agent-framework 1.0.0 is released, you should be able to
+        # pass headers here directly, instead of an http_client, like this:
+        # headers={"x-api-key": os.environ["API_KEY"]}
     )
-    for msg in messages if msg["role"] != "system"
-]
 
-retrieval_result = agent_client.retrieve(
-    retrieval_request=KnowledgeAgentRetrievalRequest(messages=agent_messages)
-)
+    async with Agent(
+        client=chat_client,
+        name="WeatherAgent",
+        instructions="You are a helpful weather assistant with access to weather tools.",
+        tools=[mcp_tool]
+    ) as agent:
+        query = "What's the weather forecast for New York?"
+        print(f"Query: {query}\n")
+        async for update in agent.run(query, stream=True):
+            if update.text:
+                print(update.text, end="", flush=True)
+        print()
 
-# Add assistant response to conversation history
-assistant_response = retrieval_result.response[0].content[0].text
-messages.append({
-    "role": "assistant",
-    "content": assistant_response
-})
+
+if __name__ == "__main__":
+    asyncio.run(main())
 ```
 
-### Task 6: Analyze Retrieval Intelligence
+### Task 4: Verify secure communication between MCP Client and Server
 
-Inspect the agent's internal reasoning and retrieval trace. Key elements:
+To complete this challenge, make sure your MCP client is configured to include the API key in the request headers when communicating with the remote, secured MCP server. After updating your client, test the connection by sending requests to the server:
 
-- **Response** – Final synthesized answer
-- **Activity** – Step-by-step actions taken
-- **Results** – Source documents and retrieval metadata
+- If the API key is missing or incorrect, the server should respond with an authentication error (HTTP 401 Unauthorized).
+- If the API key is valid, your client should receive successful responses from the protected MCP endpoints.
 
-Use the following code to display the agent's response, activity log, and source references:
-
-```python
-import json
-
-# Print the response, activity, and results
-print("Response:")
-print(retrieval_result.response[0].content[0].text)
-
-print("\nActivity:")
-for activity in retrieval_result.activity:
-    print(f"Activity Type: {type(activity).__name__}")
-    activity_json = json.dumps(
-        activity.as_dict(),
-        indent=2,
-        default=str
-    )
-    print(activity_json)
-
-print("\nResults:")
-for reference in retrieval_result.references:
-    print(f"Reference Type: {type(reference).__name__}")
-    reference_json = json.dumps(
-        reference.as_dict(),
-        indent=2,
-        default=str
-    )
-    print(reference_json)
-```
-
-Test the agentic retrieval with varied question types to observe planning depth and refinement.
-
-1. **Question Types**:
-   - **Factual Questions**: "What is the Earth at night project about?"
-   - **Analytical Questions**: "How does light pollution affect astronomical observations?"
-   - **Comparative Questions**: "What are the differences between urban and rural nighttime lighting?"
-   - **Complex Queries**: "Explain the relationship between economic development and nighttime lighting patterns"
-
-2. **Observe Behavior**:
-    - Note retrieval strategy evolution
-    - Review activity logs for decision points
-    - Examine reference metadata and synthesis quality
-
-Pay attention to:
-
-- How the agent reformulates queries for better recall
-- When it determines more information is required
-- How it fuses multiple sources without hallucination
-- The precision and clarity of source attribution
+Verify that only requests with the correct API key are processed, confirming that your authentication mechanism is working as intended. This demonstrates secure communication between your MCP client and the remote server.
 
 ## Success Criteria
-
-- ✅ Azure AI Search and Azure OpenAI services are provisioned and accessible
-- ✅ Application configuration is complete, including endpoints, API keys, and deployment names
-- ✅ Search index is created with vector and semantic settings, and NASA data is successfully ingested
-- ✅ Knowledge source and knowledge agent are set up and working
-- ✅ Agent performs multi-step retrieval, as shown in the activity log
-- ✅ Multi-turn conversations maintain context across user turns
-- ✅ Retrieval decisions can be explained and audited using activity logs and references
+- ✅ Requests without API keys are rejected (authentication enforced)
+- ✅ Only valid API keys can access protected endpoints (authorization verified)
+- ✅ API key authentication system is implemented and functional
+- ✅ All MCP endpoints require valid authentication
+- ✅ MCP client successfully connects to the remote secured server
 
 ## Learning Resources
 
-- [Agentic Retrieval Concepts | Microsoft Learn](https://learn.microsoft.com/azure/search/search-agentic-retrieval-concept)
-- [Get Started with Agentic Retrieval | Microsoft Learn](https://learn.microsoft.com/azure/search/search-get-started-agentic-retrieval?tabs=search-perms%2Csearch-endpoint&pivots=programming-language-csharp)
-- [Azure AI Search Python SDK | Microsoft Learn](https://learn.microsoft.com/python/api/overview/azure/search-documents-readme)
-- [Azure Core Python SDK | Microsoft Learn](https://learn.microsoft.com/python/api/overview/azure/core-readme)
-- [RAG Solution Design & Evaluation Guide | Microsoft Learn](https://learn.microsoft.com/azure/architecture/ai-ml/guide/rag/rag-solution-design-and-evaluation-guide)
+- [Starlette Middleware](https://www.starlette.io/middleware/)
+- [OWASP API Security Best Practices](https://owasp.org/www-project-api-security/)
+- [Azure Key Vault for Secrets Management](https://learn.microsoft.com/en-us/azure/key-vault/)
+- [HTTP Security Headers](https://owasp.org/www-project-secure-headers/)
+- [Model Context Protocol Security Guidelines](https://modelcontextprotocol.io/docs/security)
+- [Python HMAC for Constant-Time Comparison](https://docs.python.org/3/library/hmac.html)
+- [uvicorn Documentation](https://www.uvicorn.org/)
+- [httpx HTTP Client](https://www.python-httpx.org/)
+- [Async Python Security Patterns](https://python.readthedocs.io/en/stable/library/asyncio.html)

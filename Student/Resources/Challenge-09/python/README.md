@@ -1,4 +1,4 @@
-# Challenge 08 (Python) – Travel Multi-Agent Client
+# Challenge 09 (Python) – Travel Multi-Agent Client
 
 This folder provides a starter project for implementing multi-agent orchestration patterns using the Microsoft Agent Framework. You will complete a travel planning assistant that coordinates multiple specialist agents (coordinator, flight, hotel, activity, transfer, reference, and an optional travel-policy agent) using a handoff workflow pattern. Flight and hotel data is provided through the Travel MCP server that wraps the Amadeus SDK.
 
@@ -33,7 +33,7 @@ python/
 ## Setup
 
 ```bash
-cd Student/Resources/Challenge-08/python
+cd Student/Resources/Challenge-09/python
 python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt

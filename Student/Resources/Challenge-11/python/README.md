@@ -1,6 +1,6 @@
 # Agentic RAG with Azure AI Search - Python Starter
 
-This is the starter project for Challenge 10 - Build Agentic RAG with Azure AI Search (Python version).
+This is the starter project for Challenge 11 - Build Agentic RAG with Azure AI Search (Python version).
 
 ## Prerequisites
 
@@ -77,7 +77,7 @@ python/
 
 ## Tips
 
-- Refer to the Challenge 10 challenge document for detailed implementation guidance
+- Refer to the Challenge 11 challenge document for detailed implementation guidance
 - Use the Azure AI Search Python SDK documentation for API reference
 - The conversational interface is already implemented - focus on the retrieval components
 - Test your implementation with various question types to observe agentic behavior

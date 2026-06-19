@@ -20,6 +20,7 @@ All technical tracks are offered in both C# and Python, allowing you to choose y
 Upon completing the workshop, participants will be able to:
 - Understand and implement Model Context Protocol (MCP) servers and clients for enhanced AI tool integration
 - Build and deploy intelligent applications using Microsoft Agent Framework
+- Deploy agents as containerized Microsoft Foundry Hosted Agents with managed scaling, session state, and dedicated agent identity
 - Create and manage AI Agents using Azure AI Agents Service with file search capabilities
 - Develop Agentic applications with multi-agent architectures and orchestration patterns
 - Implement secure remote MCP servers with proper authentication and deployment strategies
@@ -96,27 +97,31 @@ All hands-on challenges (from Challenge 2 onward) are available in both C# and P
 
 - Enable OpenTelemetry‑based observability (console exporter + Application Insights or Aspire Dashboard) for your Agent Framework app to trace conversations, tool calls, model usage, and diagnose performance.
 
-### Challenge 8: **Develop Agentic AI Applications Using Microsoft Agent Framework and Multi‑Agent Architectures**  ([C#](Student/Challenge-08-csharp.md) | [Python](Student/Challenge-08-python.md))
+### Challenge 8: **Optional – Host Your Agent as a Microsoft Foundry Hosted Agent**  ([C#](Student/Challenge-08-csharp.md) | [Python](Student/Challenge-08-python.md))
+
+- Take the weather agent that integrates the remote MCP server (Challenge 6, Task 2) and deploy it as a containerized **Microsoft Foundry Hosted Agent**. Expose it through the OpenAI‑compatible Responses protocol, run it locally with the Azure Developer CLI, and deploy it to Foundry Agent Service with managed scaling, session state, and a dedicated agent identity.
+
+### Challenge 9: **Develop Agentic AI Applications Using Microsoft Agent Framework and Multi‑Agent Architectures**  ([C#](Student/Challenge-09-csharp.md) | [Python](Student/Challenge-09-python.md))
 
 - Build a multi‑agent “Travel Planning Assistant” using Microsoft Agent Framework orchestration patterns (sequential, concurrent, handoff, agents as tools) combining specialized agents (flights, hotels, activities, policy, coordinator) into a cohesive plan.
 
-### Challenge 9: **Secure Your MCP Remote Server Using an API Key**  ([C#](Student/Challenge-09-csharp.md) | [Python](Student/Challenge-09-python.md))
+### Challenge 10: **Secure Your MCP Remote Server Using an API Key**  ([C#](Student/Challenge-10-csharp.md) | [Python](Student/Challenge-10-python.md))
 
 - Enhance MCP server security by implementing API key authentication or integrate with Entra ID as the identity provider. Secure remote MCP servers while enabling safe access from multiple clients over the internet.
 
-### Challenge 10: **Build Agentic RAG with Azure AI Search**  ([C#](Student/Challenge-10-csharp.md) | [Python](Student/Challenge-10-python.md))
+### Challenge 11: **Build Agentic RAG with Azure AI Search**  ([C#](Student/Challenge-11-csharp.md) | [Python](Student/Challenge-11-python.md))
 
 - Create an advanced agentic Retrieval‑Augmented Generation system using Azure AI Search. Build intelligent agents that dynamically decide what information to retrieve and how to synthesize comprehensive responses.
 
-### Challenge 11: **Optional – Secure Access to MCP Servers in API Management** ([Challenge Guide](Student/Challenge-11.md))
+### Challenge 12: **Optional – Secure Access to MCP Servers in API Management** ([Challenge Guide](Student/Challenge-12.md))
 
 - Learn how to secure access to Model Context Protocol servers using Azure API Management by implementing authentication, rate limiting, and other security policies to protect MCP endpoints.
 
-### Challenge 12: **Optional – Expose a REST API in API Management as an MCP Server** ([Challenge Guide](Student/Challenge-12.md))
+### Challenge 13: **Optional – Expose a REST API in API Management as an MCP Server** ([Challenge Guide](Student/Challenge-13.md))
 
 - Transform existing REST APIs into Model Context Protocol servers through Azure API Management, enabling seamless integration of traditional APIs into MCP‑based agentic workflows.
 
-### Challenge 13: **Optional – Register and Discover Remote MCP Servers in Your API Inventory** ([Challenge Guide](Student/Challenge-13.md))
+### Challenge 14: **Optional – Register and Discover Remote MCP Servers in Your API Inventory** ([Challenge Guide](Student/Challenge-14.md))
 
 - Implement MCP server registration and discovery mechanisms in your API inventory using Azure API Center, enabling centralized management and governance of distributed MCP servers.
 
@@ -133,6 +138,9 @@ All hands-on challenges (from Challenge 2 onward) are available in both C# and P
 - [MCP GitHub Repo - MCP Servers](https://github.com/modelcontextprotocol/servers)
 - [VS Code - MCP Servers](https://code.visualstudio.com/mcp)
 - [Microsoft Learn - Microsoft Agent Framework Overview](https://learn.microsoft.com/en-us/agent-framework/overview/agent-framework-overview)
+- [Microsoft Learn - Foundry Hosted Agents (Agent Framework)](https://learn.microsoft.com/en-us/agent-framework/hosting/foundry-hosted-agent)
+- [Microsoft Learn - Hosted agents in Foundry Agent Service (concepts)](https://learn.microsoft.com/en-us/azure/foundry/agents/concepts/hosted-agents)
+- [Microsoft Learn - Quickstart: Deploy your first hosted agent](https://learn.microsoft.com/en-us/azure/foundry/agents/quickstarts/quickstart-hosted-agent)
 - [Microsoft Learn - Develop AI agents on Azure OpenAI and Microsoft Agent Framework](https://learn.microsoft.com/en-us/training/paths/develop-ai-agents-azure-open-ai-semantic-kernel-sdk/)
 - [Full Course (Lessons 1-11) MCP for Beginners](https://www.youtube.com/watch?v=VfZlglOWWZw)
 - [Microsoft GitHub repo - MCP servers](https://github.com/Microsoft/mcp)

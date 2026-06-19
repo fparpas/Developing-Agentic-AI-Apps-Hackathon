@@ -1,377 +1,78 @@
-# Challenge 08 Solution - Multi-Agent Travel Planning Assistant (Python)
+# Challenge 08 Solution - Host Your Agent as a Microsoft Foundry Hosted Agent (Python)
 
-## Overview
+This directory contains the complete Python coach solution for **Challenge 08**. It takes the weather
+agent that integrates the **remote Weather MCP server** (built in Challenge 6, Task 2) and hosts it
+as a **Microsoft Foundry Hosted Agent** using the **Responses** protocol.
 
-This solution demonstrates **multi-agent orchestration** using Microsoft Agent Framework. It implements a **Handoff Workflow Pattern** where specialized agents collaborate to plan comprehensive travel itineraries.
+> Foundry hosted agents are currently in **preview**.
 
-## Architecture
-
-### Orchestration Pattern: Handoff Workflow
-
-The **Handoff Workflow** is the optimal pattern for travel planning because:
-
-✅ **Multi-Turn Conversational** - Travel planning is iterative and conversational
-✅ **Context-Aware Routing** - Dynamically routes to appropriate specialists
-✅ **Natural Interaction** - Mimics real-world travel agency experiences
-✅ **Flexible and Adaptive** - No predetermined execution order
-✅ **Resource Efficient** - Only activates agents when needed
+## Project structure
 
 ```
-┌─────────────────────────────────────────────┐
-│              User Interface                 │
-└──────────────────┬──────────────────────────┘
-                   │
-                   ▼
-      ┌────────────────────────┐
-      │  CoordinatorAgent      │◄────┐
-      │  (Entry Point)         │     │
-      └───────┬────────────────┘     │
-              │                      │
-     ┌────────┼────────┐             │
-     │        │        │             │
-     ▼        ▼        ▼             │
-┌────────┐ ┌────────┐ ┌────────┐     │
-│Flight  │ │Hotel   │ │Activity│─────┘
-│Agent   │ │Agent   │ │Agent   │
-└────┬───┘ └────┬───┘ └────┬───┘
-     │          │          │
-     └──────────┴──────────┘
-     Handoff back to Coordinator
+python/
+├── main.py            # builds the weather+MCP agent and hosts it via the Responses protocol
+├── requirements.txt   # agent-framework + agent-framework-foundry-hosting + azure-identity
+└── .env.sample        # sample environment variables for local testing
 ```
 
-### Specialized Agents
+## How it works
 
-| Agent | Role | Capabilities |
-|-------|------|--------------|
-| **CoordinatorAgent** | Main interface & orchestrator | Routes requests, synthesizes results, provides summaries |
-| **FlightAgent** | Flight search specialist | Uses the `[FLIGHT] search_flight_offers` MCP tool to fetch real itineraries |
-| **HotelAgent** | Accommodation specialist | Calls `[HOTEL] search_hotel_offers` for live pricing and availability |
-| **ActivityAgent** | Local attractions expert | Provides recommendations via reasoning (no MCP tool) |
-| **TransferAgent** | Ground transportation | Shares transport guidance via reasoning (no MCP tool) |
-| **ReferenceAgent** | Reference data provider | Airport codes, time zones, location information |
-| **TravelPolicyAgent** | Policy compliance (optional) | Validates trips against company policies (Azure AI Foundry) |
+`main.py` performs four steps:
 
-## How It Works
-
-### Event-Driven Interaction Loop
-
-The system uses `HandoffBuilder` with an event-driven request/response cycle:
-
-1. **First turn**: `workflow.run(user_message, stream=True)` starts the workflow
-2. **Events arrive**: agents respond and emit `request_info` events with `HandoffAgentUserRequest`
-3. **Display**: Agent messages are extracted from `event.data.agent_response.messages`
-4. **Respond**: `workflow.run(responses={req_id: HandoffAgentUserRequest.create_response(text)}, stream=True)`
-5. **Repeat**: The loop continues until the user exits
-
-### Example Conversation Flow
-
-```
-User: "I want to travel to Paris next month"
-→ CoordinatorAgent: Greets, gathers requirements
-
-User: "Show me flights from New York on June 15"
-→ [HANDOFF] FlightAgent: Searches, presents options
-→ [HANDOFF BACK] CoordinatorAgent
-
-User: "I'll take the morning flight. Need a hotel near Eiffel Tower"
-→ [HANDOFF] HotelAgent: Searches hotels in that area
-→ [HANDOFF BACK] CoordinatorAgent
-
-User: "What can I do there?"
-→ [HANDOFF] ActivityAgent: Recommends attractions
-→ [HANDOFF BACK] CoordinatorAgent
-
-User: "summary"
-→ CoordinatorAgent: Provides complete itinerary
-```
+1. **Creates a chat client** with `FoundryChatClient`, backed by the Foundry model deployment.
+   `FOUNDRY_PROJECT_ENDPOINT` and `AZURE_AI_MODEL_DEPLOYMENT_NAME` are injected automatically by the
+   hosting platform at runtime; `WEATHER_MCP_ENDPOINT` points at the remote Weather MCP server from
+   Challenge 6.
+2. **Connects to the remote Weather MCP server** with `MCPStreamableHTTPTool`.
+3. **Builds the agent** with the MCP tool registered. `default_options={"store": False}` avoids
+   duplicating conversation history, since the hosting platform manages it.
+4. **Hosts the agent** with `ResponsesHostServer(agent).run()`, exposing an OpenAI-compatible
+   `/responses` endpoint.
 
 ## Prerequisites
 
-1. **Azure OpenAI** resource with a deployed model (e.g., `gpt-4o`)
-2. **Python 3.11+**
-3. **Amadeus API credentials** - Register at [Amadeus for Developers](https://developers.amadeus.com/) for real flight and hotel data
-4. **(Optional)** Azure AI Foundry project with a persistent Travel Policy Agent from Challenge-05
+- [Python 3.10 or later](https://www.python.org/downloads/)
+- [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli) (`az login`)
+- [Azure Developer CLI (`azd`)](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/install-azd) with the AI agent extension: `azd ext install microsoft.foundry`
+- A Microsoft Foundry project with a chat model deployment (for example, `gpt-4o`)
+- The remote Weather MCP server endpoint from Challenge 4 / Challenge 6
 
-## Setup Instructions
-
-### 1. Install Dependencies
+## Run locally
 
 ```bash
-# Create Python Virtual Environment
 cd Coach/Solutions/Challenge-08/python
-python -m venv .venv # or uv venv
-source .venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt # or uv pip install -r requirements.txt
+
+python -m venv .venv
+# Windows (PowerShell): .\.venv\Scripts\Activate.ps1
+source .venv/bin/activate
+pip install -r requirements.txt
+
+cp .env.sample .env    # then edit .env with your values
+azd ai agent run       # or: python main.py
 ```
 
-### 2. Configure Environment
-
-Copy the example environment file:
+The agent host listens on `http://localhost:8088`. Test it:
 
 ```bash
-cp .env.example .env
+azd ai agent invoke --local "What is the weather in New York?"
+# or
+curl -sS -X POST http://localhost:8088/responses \
+  -H "Content-Type: application/json" \
+  -d '{"input": "What is the weather in New York?", "stream": false}'
 ```
 
-Edit `.env` with your Azure credentials:
-
-```env
-# Required - Azure OpenAI
-AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
-AZURE_OPENAI_API_KEY=your-api-key-here
-AZURE_OPENAI_DEPLOYMENT_NAME=gpt-4o
-AZURE_OPENAI_API_VERSION=2024-08-01-preview
-
-# Required - Amadeus Travel API
-AMADEUS_API_KEY=your-amadeus-api-key-here
-AMADEUS_API_SECRET=your-amadeus-api-secret-here
-
-# Optional (for Policy Agent)
-AZURE_AI_FOUNDRY_PROJECT_ENDPOINT=https://your-project.api.azureml.ms
-AZURE_AI_AGENT_ID=your-agent-id-here
-```
-
-### 3. Run the Application
+## Deploy to Foundry Agent Service
 
 ```bash
-python multi_agent_travel_planner.py
+azd provision   # only if you don't already have a Foundry project
+azd deploy
+azd ai agent invoke "What is the weather in Seattle?"
 ```
 
-### 4. (Optional) Sanity-Test the Data Path
+When you are done, run `azd down` to remove all provisioned resources.
 
-Use the lightweight harness to exercise both the raw Amadeus SDK and the MCP
-server with the same query before launching the orchestrator:
+## Learning resources
 
-```bash
-python test_amadeus_vs_mcp.py
-```
-
-The script prints two blocks so you can compare the direct SDK response with the
-`search_flight_offers` tool output.
-
-## Usage
-
-### Interactive Commands
-
-- **Normal conversation** - Ask about flights, hotels, activities, etc.
-- **`summary`** - Display accumulated trip details
-- **`policy`** - Check trip against company policy (if configured)
-- **`exit`** or **`quit`** - End session
-
-### Example Queries
-
-```
-"I need to fly from Seattle to Tokyo in December"
-"Find hotels near Shibuya station under $200/night"
-"What are the must-see attractions in Tokyo?"
-"How do I get from Narita Airport to my hotel?"
-"What's the airport code for Tokyo?"
-```
-
-## Key Features
-
-### Real Travel Data via Amadeus API
-
-This solution uses **real flight and hotel data** from the Amadeus Travel API via an MCP server:
-
-- **FlightAgent** - Real-time flight search, pricing, and availability
-- **HotelAgent** - Actual hotel search and offers with live pricing
-- **MCP Integration** - Travel data accessed through Model Context Protocol tools
-
-The `travel_mcp_server` provides Amadeus API integration using the official Python SDK:
-- **Official Amadeus SDK** (`amadeus>=8.1.0`) - Reliable, maintained API client
-- `[FLIGHT] search_flight_offers` – Returns up to five itineraries with price summaries (accepts either city names or IATA codes)
-- `[HOTEL] search_hotel_offers` – Lists hotel options for a city/date range (auto-resolves common city names to codes)
-- Automatic authentication and error handling
-
-### Intelligent Handoffs
-
-The `HandoffBuilder` injects handoff tools into each agent. Agents decide
-when to hand off based on the conversation context. No keyword parsing or
-manual marker detection is needed.
-
-### Bidirectional Communication
-
-- Coordinator → Specialist (forward handoff)
-- Specialist → Coordinator (return handoff)
-- Maintains conversation continuity
-
-### Trip Summary
-
-Use the `summary` command to see accumulated trip details from all agents.
-
-### Policy Compliance (Optional)
-
-If configured with Azure AI Foundry agent:
-- Type `policy` to validate trip against company policies
-- Uses persistent agent from Challenge-05
-- Provides compliance feedback
-
-## Code Structure
-
-```python
-class TravelAgentOrchestrator:
-    """Main orchestrator using HandoffBuilder."""
-
-    async def initialize_agents(self):
-        """Create agents via chat_client.as_agent() and build HandoffBuilder workflow."""
-
-    async def process_events(self, event_stream):
-        """Consume workflow events, display responses, collect pending requests."""
-
-    async def run_handoff_workflow(self):
-        """Event-driven interaction loop using run_stream/run."""
-
-    async def check_travel_policy(self, trip_details: str):
-        """Validate against Azure AI Foundry policy agent."""
-```
-
-## Educational Notes
-
-### Why Handoff Pattern?
-
-This solution uses the **Handoff Workflow** because travel planning is:
-
-1. **Conversational** - Users iteratively refine choices
-2. **Non-linear** - Order of operations varies by user
-3. **Contextual** - Decisions depend on previous choices
-4. **Flexible** - Not all users need all services
-
-### Alternative Patterns (Not Used Here)
-
-**Sequential Workflow** - Too rigid; forces all steps in order
-**Concurrent Workflow** - Can't handle dependencies between agents
-**Agents as Tools** - Works, but less natural for multi-turn conversations
-
-See the C# README for detailed pattern comparison.
-
-## Design Principles
-
-### Separation of Concerns
-Each agent has a **single, well-defined responsibility**.
-
-### Agent Instructions
-Each agent has **specialized system instructions** tailored to its role.
-
-### Loose Coupling
-Agents communicate through the coordinator, not directly with each other.
-
-### Context Preservation
-Conversation history is maintained across handoffs.
-
-### Lazy Activation
-Agents are only invoked when needed, not pre-emptively.
-
-## Extending the Solution
-
-### Add New Agents
-
-1. Create a new agent with `chat_client.as_agent()`
-2. Add it to the `participants` list in the `HandoffBuilder` call
-3. That's it! The builder handles tool injection and routing
-
-### Example: Adding a Weather Agent
-
-```python
-weather = chat_client.as_agent(
-    name="WeatherAgent",
-    description="Provides forecasts and travel weather advice.",
-    instructions="You are a weather specialist. Provide forecasts and climate info.",
-)
-
-# Just add to participants:
-participants = [coordinator, flight, hotel, activity, transfer, reference, weather]
-```
-
-## Troubleshooting
-
-### Issue: Agents not handing off
-
-**Solution:** Verify agent `description` fields clearly indicate each agent's domain. The `HandoffBuilder` uses descriptions to generate handoff tool metadata that helps agents decide routing.
-
-### Issue: Policy agent not working
-
-**Solution:** Ensure:
-1. Azure AI Foundry endpoint is correct
-2. Agent ID is valid
-3. You have proper Azure credentials configured
-4. The persistent agent exists in your Azure AI Foundry project
-
-### Issue: API rate limits
-
-**Solution:** Add delays between requests or upgrade your Azure OpenAI tier.
-
-## Learning Outcomes
-
-After completing this solution, you should understand:
-
-- Multi-agent orchestration patterns
-- Handoff workflow implementation
-- Agent specialization and role design
-- Context management in conversations
-- Integration with Azure AI Foundry persistent agents
-- When to use different orchestration patterns
-
-## Additional Resources
-
-- [Microsoft Agent Framework Documentation](https://learn.microsoft.com/en-us/agent-framework/)
-- [AI Agent Orchestration Patterns](https://learn.microsoft.com/en-us/azure/architecture/ai-ml/guide/ai-agent-design-patterns)
-- [Workflows and Orchestrations](https://learn.microsoft.com/en-us/agent-framework/user-guide/workflows/orchestrations/overview)
-
-## Success Criteria
-
-- [x] Created 6+ specialized agents with distinct roles
-- [x] Implemented Handoff Workflow pattern
-- [x] Coordinator orchestrates agent collaboration
-- [x] Dynamic routing based on conversation context
-- [x] **Real travel data from Amadeus API**
-- [x] **MCP server integration for flight and hotel tools**
-- [x] Travel planning functionality (flights, hotels, activities, transfers)
-- [x] Optional policy compliance integration
-- [x] Clean, educational code structure
-- [x] Comprehensive documentation
-
----
-
-## Architecture
-
-```
-┌─────────────────────────────────────┐
-│   Multi-Agent Travel Planner        │
-│                                     │
-│  ┌─────────────────────────────┐   │
-│  │  FlightAgent + HotelAgent   │   │
-│  │  (with MCP tools)           │   │
-│  └──────────┬──────────────────┘   │
-│             │                       │
-└─────────────┼───────────────────────┘
-              │ MCP Protocol
-              ▼
-┌─────────────────────────────────────┐
-│     Travel MCP Server                │
-│                                     │
-│  ┌─────────────────────────────┐   │
-│  │  Amadeus Auth Service       │   │
-│  ├─────────────────────────────┤   │
-│  │  Flight Tools               │   │
-│  │  - search_flight_offers     │   │
-│  ├─────────────────────────────┤   │
-│  │  Hotel Tools                │   │
-│  │  - search_hotel_offers      │   │
-│  └──────────┬──────────────────┘   │
-└─────────────┼───────────────────────┘
-              │ HTTPS
-              ▼
-┌─────────────────────────────────────┐
-│     Amadeus Travel API              │
-│     (Real flight & hotel data)      │
-└─────────────────────────────────────┘
-```
-
-**Note:** This solution demonstrates production-ready orchestration patterns with real travel APIs. For additional production features, consider adding:
-- Enhanced error handling and retries
-- Comprehensive logging and telemetry
-- State persistence and session management
-- More sophisticated handoff logic
-- User authentication and authorization
-- Cost tracking and budget management
-- Caching for frequently accessed data
+- [Foundry Hosted Agents (Agent Framework) – Python](https://learn.microsoft.com/en-us/agent-framework/hosting/foundry-hosted-agent?pivots=programming-language-python)
+- [Hosted agents in Foundry Agent Service – concepts](https://learn.microsoft.com/en-us/azure/foundry/agents/concepts/hosted-agents)
+- [Quickstart: Deploy your first hosted agent](https://learn.microsoft.com/en-us/azure/foundry/agents/quickstarts/quickstart-hosted-agent?pivots=vscode)

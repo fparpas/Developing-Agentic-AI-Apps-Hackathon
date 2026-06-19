@@ -1,14 +1,28 @@
-# Install requirements with --pre
-# to include beta versions of azure-search-documents
+# Secure Weather MCP Server and Client - Challenge 10 Solution
 
-azure-identity>=1.25.2
-azure-core>=1.38.2
-colorama>=0.4.6
-requests>=2.32.5
+# Server Dependencies
+# -------------------
+
+# FastAPI web framework for HTTP server
+fastapi>=0.104.0
+
+# ASGI server for running FastAPI
+uvicorn[standard]>=0.24.0
+
+# MCP SDK
+mcp[cli]>=1.2.0
+
+# HTTP client
+httpx>=0.24.0
+
+# Starlette for middleware (included with FastAPI)
+starlette>=0.27.0
+
 python-dotenv>=1.0.0
 
-# Agentic retrieval is a preview feature.
-# Classes like KnowledgeBaseRetrievalClient,
-# KnowledgeBase, SearchIndexKnowledgeSource, and related models
-# only exist in this beta version
-azure-search-documents>=11.7.0b2
+# Client Dependencies
+# -------------------
+
+# Microsoft Agent Framework for client agent capabilities
+agent-framework>=1.0.0rc1
+azure-ai-agents>=1.2.0b5

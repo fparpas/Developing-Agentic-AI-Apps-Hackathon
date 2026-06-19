@@ -1,5 +1,4 @@
-# Challenge 09 - C# - Secure Your Remote MCP Server with an API Key
-
+# Challenge 09 - C# - Develop Agentic AI Applications using Microsoft Agent Framework and Multi-Agent Architectures
 [< Previous Challenge](./Challenge-08-csharp.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-10-csharp.md)
 
 [![](https://img.shields.io/badge/C%20Sharp-blue)](Challenge-09-csharp.md)
@@ -7,257 +6,167 @@
 
 ## Introduction
 
-Previously, you worked with MCP servers and clients in local and remote environments without authentication or authorization. While that may suffice for local development or trusted scenarios, it is not suitable for production. When deploying remote MCP servers over HTTP/HTTPS, you must implement robust authentication for all clients. Exposing an unsecured MCP server to the internet creates significant security risks (abuse of tools, data exfiltration, quota exhaustion, malicious chaining, etc.).
+In this challenge you'll practice how to use the powerful capabilities of Microsoft Agent Framework to design and orchestrate intelligent agents that work collaboratively to solve complex problems. You'll build a multi-agent application that leverages the strengths of different agents to achieve a common goal.
 
-In this challenge, you will secure the existing MCP Weather server by introducing API key authentication. This provides a simple, explicit credential mechanism and prepares the code structure so you can later upgrade to standards‑based authorization (OAuth 2.1 / OIDC, signed tokens, per‑principal policies) with minimal refactoring.
+You'll also learn about the different types of orchestration patterns available, and use the Microsoft Agent Framework to develop your own AI agents that can collaborate for a multi-agent solution.
 
-## Concepts
+## Key Concepts
 
-### API Key Authentication
+The Microsoft Agent Framework's agent orchestration framework makes it possible to design, manage, and scale complex multi-agent workflows without having to manually handle the details of agent coordination. Instead of relying on a single agent to manage every aspect of a task, you can combine multiple specialized agents. Each agent with a unique role or area of expertise can collaborate to create systems that are more robust, adaptive, and capable of solving real-world problems collaboratively.
 
-API keys are a simple and effective method for authenticating clients to your MCP server. They provide:
+By orchestrating agents together, you can take on tasks that would be too complex for a single agent—from running parallel analyses, to building multi-stage processing pipelines, to managing dynamic, context-driven handoffs between experts.
 
-- **Client identification**: Each client receives a unique key used to identify requests.
-- **Access control**: Keys can be revoked or assigned distinct permission levels.
-- **Usage tracking**: Monitor which clients initiate requests.
-- **Rate limiting**: Control request frequency per client.
+### Why multi-agent orchestration matters
 
-### MCP Security Considerations
-When securing MCP servers, consider:
+Traditional single-agent systems are limited in their ability to handle complex, multi-faceted tasks. By orchestrating multiple agents, each with specialized skills or roles, we can create systems that are more robust, adaptive, and capable of solving real-world problems collaboratively. Multi-agent orchestration in Microsoft Agent Framework provides a flexible foundation for building such systems, supporting a variety of coordination patterns.
 
-- **Transport security**: Use HTTPS for encrypted communication.
-- **Authentication**: Verify client identity before processing requests.
-- **Authorization**: Control which tools/resources clients can access.
-- **Input validation**: Sanitize all inputs to prevent injection attacks.
-- **Audit logging**: Track requests for security monitoring.
-- **Rate limiting**: Prevent abuse and denial‑of‑service (DoS) attacks.
+### Supported AI Agent orchestration patterns
 
+Like well-known cloud design patterns, agent orchestration patterns are technology agnostic approaches to coordinating multiple agents to work together towards a common goal. To learn more about the patterns themselves, refer to the [AI agent orchestration patterns documentation](https://learn.microsoft.com/en-us/azure/architecture/ai-ml/guide/ai-agent-design-patterns).
 
-#### MCP Server Authorization (High‑Level Overview)
+Microsoft Agent Framework supports you by implementing these orchestration patterns directly in the SDK. These patterns are available as part of the framework and can be easily extended or customized so you can tune your agent collaboration scenario.
+To learn more about the supported patterns, refer to the [Microsoft Agent Framework Workflows Orchestrations Patterns](https://learn.microsoft.com/en-us/agent-framework/user-guide/workflows/orchestrations/overview).
+| Pattern | Description | Typical Use Case |
+|---------|-------------|------------------|
+| **Concurrent** | Broadcasts a task to all agents, collects results independently | Parallel analysis, independent subtasks, ensemble decision making |
+| **Sequential** | Passes the result from one agent to the next in a defined order | Step-by-step workflows, pipelines, multi-stage processing |
+| **Group Chat** | Coordinates multiple agents in a collaborative conversation with a manager controlling speaker selection and flow. | Iterative refinement, collaborative problem-solving, content review. |
+| **Handoff** | Dynamically passes control between agents based on context or rules | Dynamic workflows, escalation, fallback, or expert handoff scenarios |
 
-The Model Context Protocol includes an authorization model aligned with OAuth concepts for HTTP transports. This challenge deliberately starts simpler (static API key) so you can focus on the mechanics of securing endpoints. Your handler, routing, and middleware ordering should make it trivial to swap in a standards‑compliant token validator later. See the specs: [MCP Authorization Standards Compliance](https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization#standards-compliance).
+### Agents as tools
+"Agents as Tools" is an architectural pattern in AI systems where specialized AI agents are wrapped as callable functions (tools) that can be used by other agents. This creates a hierarchical structure where:
+
+ 1. A primary "orchestrator" agent handles user interaction and determines which specialized agent to call
+ 2. Specialized "tool agents" perform domain-specific tasks when called by the orchestrator
+
+This approach mimics human team dynamics, where a manager coordinates specialists, each bringing unique expertise to solve complex problems. Rather than a single agent trying to handle everything, tasks are delegated to the most appropriate specialized agent.
+
+In some workflows, you may want a central agent to orchestrate a network of specialized agents, instead of handing off control. You can do this by modeling agents as tools.
+
+### A unified orchestration workflow
+
+Regardless of which orchestration pattern you choose, the Microsoft Agent Framework  provides a consistent, developer-friendly interface for building and running them. The typical flow looks like this:
+
+1. Define your agents and describe their capabilities and tools
+2. Select and create an orchestration pattern, optionally adding a manager agent if needed
+3. Optionally configure callbacks or transforms for custom input and output handling
+4. Start a runtime to manage execution
+5. Invoke the orchestration with your task
+6. Retrieve results in an asynchronous, non-blocking way
+
+Because all patterns share the same core interface, you can easily experiment with different orchestration strategies without rewriting agent logic or learning new APIs. The SDK abstracts the complexity of agent communication, coordination, and result aggregation so you can focus on designing workflows that deliver results.
+
+Multi-agent orchestration in Microsoft Agent Framework provides a flexible, scalable way to build intelligent systems that combine the strengths of multiple specialized agents. With built-in orchestration patterns, a unified development model, and runtime features for managing execution, you can quickly prototype, refine, and deploy collaborative AI workflows. Whether you're running agents in parallel, coordinating sequential steps, or enabling dynamic conversations, the framework gives you the tools to turn multiple agents into a cohesive problem-solving team.
+
+## Prerequisites
+
+### Starting the Travel MCP Server
+
+The Travel MCP Server provides the travel booking APIs (Amadeus) that the agents will use. Make sure it's running before starting this challenge:
+
+Before starting the Travel MCP Server, you need to register for an Amadeus API key:
+1. Visit the [Amadeus for Developers portal](https://developers.amadeus.com/)
+2. Create an account or sign in
+3. Register your application to obtain your API key and secret
+4. Configure these credentials in your Travel MCP Server settings
+
+To start the Travel MCP Server, open a terminal and navigate to the Travel MCP Server project directory:
+
+```powershell
+# Navigate to the Travel MCP Server directory
+cd Student\Resources\Challenge-09\csharp\MCP.Server.Travel.Solution
+
+# Run the server
+dotnet run
+```
+
+The server should start on `http://localhost:8080` (or the port specified in your configuration).
 
 ## Description
 
-In this challenge, you will upgrade the existing Weather MCP server so it requires an API key for every MCP request and supports secure remote access over HTTP. The work includes:
+In this challenge, you will build a sophisticated multi-agent application using Microsoft Agent Framework. A starter project with pre-built specialized travel agents has been provided [here](./Resources/Challenge-09/csharp/MAF.TravelMultiAgentClient). Your task is to implement orchestration workflows that enable these agents to work together in a multi-turn conversational experience.
 
-1. Confirming the server is exposed via HTTP (remote‑capable) and not only local process transport.
-2. Adding a custom authentication handler that validates an API key from a header.
-3. Registering the authentication and authorization middleware in the correct ASP.NET Core order.
-4. Requiring authorization for the MCP endpoint route.
-5. Updating your MCP client to send the API key header.
+### Provided Agents
 
+The starter project includes the following specialized agents, each with specific capabilities powered by Model Context Protocol (MCP) tools:
 
-> ℹ️ While API keys are a simple way to secure your server, it is generally more secure to authenticate clients using an identity provider such as Microsoft Entra ID (formerly Azure AD) with OAuth 2.0 or OpenID Connect flows. These modern methods provide stronger security, user and application identities, token expiration, and advanced access controls. For production scenarios, consider integrating with an identity provider instead of relying solely on API keys. Refer to the solution in the `Coach/` directory for an example of implementing OAuth 2.0 authentication with Entra ID.
+1. **FlightAgent** - Searches for flights, checks availability, retrieves flight status, and handles flight bookings using Amadeus flight APIs
+2. **HotelAgent** - Searches for hotels, checks availability, compares rates, and manages hotel reservations using Amadeus hotel APIs
+3. **ActivityAgent** - Recommends activities, attractions, and points of interest based on location and preferences using Amadeus activities APIs
+4. **TransferAgent** - Handles ground transportation, airport transfers, and rental car bookings using Amadeus transfer APIs
+5. **ReferenceAgent** - Provides reference data such as airport codes, airline information, city details, and travel insights using Amadeus reference APIs
+6. **TravelPolicyAgent** - Validates travel plans against company policies using Azure AI Foundry Agent Service (persistent agent with file search)
+7. **TravelCoordinatorAgent** - Acts as the main interface with customers and orchestrates the overall travel planning workflow
 
-### Task 1: Convert MCP Server to Remote MCP Server
+### Your Task
 
-Ensure that your MCP server runs remotely over HTTP and can handle incoming requests.
+Your goal is to create **multi-agent orchestration workflows** that enable these agents to collaborate in a natural, multi-turn conversation. You'll implement different orchestration patterns to demonstrate how agents can work together in various ways:
 
-### Task 2: Implement API Key Authentication Handler
+- **Sequential Orchestration** - Process travel requests in a step-by-step pipeline
+- **Concurrent Orchestration** - Gather information from multiple agents in parallel
+- **Handoff Orchestration** - Enable dynamic handoffs between agents based on context
+- **Agents as Tools** - Use specialized agents as callable tools from a main orchestrator
 
-Add a new folder `Authentication` (if not already present) and create `ApiKeyAuthenticationHandler.cs` with the following (simplified) implementation:
+#### Task 1: **Review the Provided Agents**:
+   - Examine the pre-built agents in the `MAF.TravelMultiAgentClient/Agents` folder
+   - Understand each agent's capabilities and MCP tool integration
+   - Review the agent instructions and system prompts
 
-```csharp
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.Extensions.Options;
-using System.Security.Claims;
-using System.Text.Encodings.Web;
+#### Task 2: **Implement Orchestration Patterns**:
+Examine and decide which orchestration pattern is more suitable for the given scenario
+   - **Sequential Workflow**: Create a pipeline where agents execute one after another in a defined order
+   - **Concurrent Workflow**: Implement parallel execution where multiple agents run simultaneously
+   - **Handoff Workflow**: Build a dynamic workflow where agents can transfer control to each other based on context
+   - **Agents as Tools Pattern**: Create a main orchestrator that uses specialized agents as callable tools
 
-/// <summary>
-/// Options for the API Key authentication scheme.
-/// </summary>
-/// <remarks>
-/// This simple scheme extracts an API key from a configurable HTTP header (default: <c>X-API-Key</c>).
-/// For production scenarios consider:
-/// 1. Storing keys securely (Azure Key Vault, database with hashing, etc.).
-/// 2. Supporting key rotation (multiple active keys with expirations).
-/// 3. Adding rate limiting and anomaly detection per key.
-/// 4. Moving to a stronger, token-based (OAuth 2.1 / OIDC) authorization model when user / app identity is required.
-/// </remarks>
-public class ApiKeyAuthenticationSchemeOptions : AuthenticationSchemeOptions
-{
-    /// <summary>The canonical scheme name.</summary>
-    public const string DefaultScheme = "ApiKey";
-
-    /// <summary>The scheme name exposed to ASP.NET Core.</summary>
-    public string Scheme => DefaultScheme;
-
-    /// <summary>The name of the HTTP header from which to read the API key.</summary>
-    public string ApiKeyHeaderName { get; set; } = "X-API-Key";
-}
-
-/// <summary>
-/// Authentication handler that validates a static API key supplied via a header.
-/// </summary>
-/// <remarks>
-/// This implementation is intentionally minimal for challenge purposes:
-/// - Uses a hard-coded key for demonstration.
-/// - Treats the raw key value as the authenticated principal's name.
-/// - Does not differentiate scopes/roles or persist usage metrics.
-///
-/// Hardcoded secrets MUST NOT be used in production. Replace <see cref="ValidateApiKey"/> with
-/// a call to a secure key store or validation service. Consider hashing stored keys and comparing
-/// in constant time to reduce timing attack risk. Avoid logging full keys; if logging is necessary, log only a short prefix.
-/// </remarks>
-public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthenticationSchemeOptions>
-{
-    private const string ApiKeyHeaderName = "X-API-Key";
-
-    public ApiKeyAuthenticationHandler(
-        IOptionsMonitor<ApiKeyAuthenticationSchemeOptions> options,
-        ILoggerFactory logger,
-        UrlEncoder encoder)
-        : base(options, logger, encoder)
-    {
-    }
-
-    /// <summary>
-    /// Attempts to authenticate the request by extracting and validating the API key.
-    /// </summary>
-    /// <returns>An <see cref="AuthenticateResult"/> indicating success or failure.</returns>
-    protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
-    {
-        if (!Request.Headers.TryGetValue(ApiKeyHeaderName, out var extractedApiKey))
-        {
-            return AuthenticateResult.Fail("API Key was not provided");
-        }
-
-        var apiKey = extractedApiKey.FirstOrDefault();
-        if (string.IsNullOrWhiteSpace(apiKey))
-        {
-            return AuthenticateResult.Fail("API Key was not provided");
-        }
-
-        var isValidKey = ValidateApiKey(apiKey);
-        if (!isValidKey)
-        {
-            return AuthenticateResult.Fail("Invalid API Key");
-        }
-
-        var claims = new[]
-        {
-            new Claim(ClaimTypes.Name, apiKey),
-        };
-
-        var identity = new ClaimsIdentity(claims, Options.Scheme);
-        var principal = new ClaimsPrincipal(identity);
-        var ticket = new AuthenticationTicket(principal, Options.Scheme);
-
-        return AuthenticateResult.Success(ticket);
-    }
-
-    /// <summary>
-    /// Validates the provided API key.
-    /// </summary>
-    /// <param name="key">The raw API key string supplied by the client.</param>
-    /// <returns><c>true</c> if the key is valid; otherwise <c>false</c>.</returns>
-    /// <remarks>
-    /// Replace this hard-coded comparison with a secure lookup (e.g., hashed comparison from a store).
-    /// Use constant-time comparison to minimize timing attack vectors when keys are user-generated.
-    /// </remarks>
-    private bool ValidateApiKey(string key)
-    {
-        return string.Compare(key, "<Add your API Key>", StringComparison.Ordinal) == 0;
-    }
-
-    /// <summary>
-    /// Handles the authentication challenge (401) by returning a WWW-Authenticate header and message.
-    /// </summary>
-    /// <param name="properties">Authentication properties.</param>
-    protected override async Task HandleChallengeAsync(AuthenticationProperties properties)
-    {
-        Response.StatusCode = 401;
-        Response.Headers["WWW-Authenticate"] = $"{Options.Scheme} realm=\"API\"";
-        await Response.WriteAsync("Unauthorized: Valid API key required");
-    }
-
-    /// <summary>
-    /// Handles forbidden (403) responses when authentication succeeded but authorization failed.
-    /// </summary>
-    /// <param name="properties">Authentication properties.</param>
-    protected override async Task HandleForbiddenAsync(AuthenticationProperties properties)
-    {
-        Response.StatusCode = 403;
-        await Response.WriteAsync("Forbidden: Insufficient permissions");
-    }
-}
-
-```
-
-### Task 3: Register Authentication & Protect MCP Endpoints
-
-In your `Program.cs` configure the authentication scheme and protect your MCP endpoints.
-
-```csharp
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = "ApiKey";
-    options.DefaultChallengeScheme = McpAuthenticationDefaults.AuthenticationScheme;
-})
-.AddScheme<ApiKeyAuthenticationSchemeOptions, ApiKeyAuthenticationHandler>("ApiKey", options =>
-{
-    options.ApiKeyHeaderName = "X-API-Key";
-});
-
-builder.Services.AddAuthorization();
-builder.Services.AddHttpContextAccessor();
-
-var app = builder.Build();
-
-app.UseRouting();
-
-app.MapGet("/", () => "MCP server is running!");
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.MapMcp().RequireAuthorization();
-
-app.Run();
-```
-
-### Task 4: Update the MCP Client to Send the API Key
-
-Modify the MCP client from a previous challenge to include the API key when calling the secured remote server.
-
-
-```csharp
-  var clientTransport = new SseClientTransport(new SseClientTransportOptions()
-                {
-                    Endpoint = new Uri(remoteMCP),
-                    AdditionalHeaders = new Dictionary<string, string>
-                    {
-                        { "X-API-Key", "<Your API Key>" }
-                    }
-                });
-```
-
-### Task 5: Verify Secure Communication Between MCP Client and Server
-
-Ensure your MCP client includes the API key in request headers when communicating with the secured remote MCP server. Test the connection by sending requests:
-
-- If the API key is missing or incorrect, the server should respond with HTTP 401 (Unauthorized).
-- If the API key is valid, the client should receive successful responses from protected MCP endpoints.
-
-Verify that only requests with the correct API key are processed. This confirms your authentication mechanism works as intended and demonstrates secure communication between the MCP client and the remote server.
+#### Task 3: **Enable Multi-Turn Conversations**:
+   - Implement conversation state management to maintain context across turns
+   - Allow users to refine their requests based on agent responses
+   - Support follow-up questions and iterative planning
+   - Maintain conversation history throughout the session
 
 ## Success Criteria
 
-- ✅ Requests without an API key are rejected (authentication enforced).
-- ✅ Only valid API keys can access protected endpoints (authorization verified).
-- ✅ API key authentication system is implemented and functional.
-- ✅ All MCP endpoints require valid authentication.
-- ✅ MCP client successfully connects to the secured remote server.
+To successfully complete this challenge, you must demonstrate:
+
+- ✅ **Understanding of Provided Agents**
+
+- Reviewed all the pre-built agents and understood their capabilities
+- Understood how each agent integrates with MCP tools from the Travel MCP Server
+- Understood how the TravelPolicyAgent leverages the AI Foundry persistent agent to validate and comply with travel policies
+- Can explain the role and purpose of each specialized agent
+- Explain the difference between chat client agents and persistent agents (TravelPolicyAgent)
+
+### ✅ **Orchestration Patterns Implementation**
+
+- Examine the Sequential Workflow with proper agent chaining
+- Examine the Concurrent Workflow for parallel agent execution
+- Examine the Handoff Workflow with dynamic agent transitions
+- Examine the Agents as Tools pattern with a main orchestrator
+- Demonstrated understanding of when to use each orchestration pattern
+- Explain to your coach which orchestration pattern is best suited for the given Travel agents scenario
+
+### ✅ **Multi-Turn Conversation Capability**
+
+- Application maintains conversation context across multiple turns
+- Users can ask follow-up questions and refine their requests
+- Conversation history is properly managed and passed between agents
+- Agents build upon previous responses in the conversation
+- Session state is maintained throughout the interaction
+### ✅ **Testing and Demonstration**
+
+- Successfully demonstrated the selected orchestration pattern to your coach as a multi-turn conversation
+- Provides meaningful example scenarios for travel planning
+- Shows how conversation context is maintained across turns
+- Demonstrates error handling and graceful failure scenarios
 
 ## Learning Resources
 
-- [ASP.NET Core Web API Security](https://docs.microsoft.com/en-us/aspnet/core/security/)
-- [API Security Best Practices](https://owasp.org/www-project-api-security/)
-- [Azure Key Vault for Secrets Management](https://docs.microsoft.com/en-us/azure/key-vault/)
-- [HTTP Security Headers](https://owasp.org/www-project-secure-headers/)
-- [CORS in ASP.NET Core](https://docs.microsoft.com/en-us/aspnet/core/security/cors)
-- [Model Context Protocol Security Guidelines](https://modelcontextprotocol.io/docs/security)
-- [HTTPS Enforcement in ASP.NET Core](https://docs.microsoft.com/en-us/aspnet/core/security/enforcing-ssl)
-- [Rate Limiting in ASP.NET Core](https://docs.microsoft.com/en-us/aspnet/core/performance/rate-limit)
- 
+### Official Microsoft Documentation
+
+- [Microsoft Agent Framework Workflows Orchestrations](https://learn.microsoft.com/en-us/agent-framework/user-guide/workflows/orchestrations/overview)
+- [Understand Agent Orchestration](https://learn.microsoft.com/en-us/training/modules/orchestrate-semantic-kernel-multi-agent-solution/3-understand-agent-orchestration)
+- [AI Agent Orchestration Patterns](https://learn.microsoft.com/en-us/azure/architecture/ai-ml/guide/ai-agent-design-patterns)
+- [Agents in Workflows](https://learn.microsoft.com/en-us/agent-framework/tutorials/workflows/agents-in-workflows?pivots=programming-language-csharp)
+- [Amadeus for Developers](https://developers.amadeus.com/)
+- [Amadeus Open AI Specification](https://github.com/amadeus4dev/amadeus-open-api-specification/tree/main/spec/json)

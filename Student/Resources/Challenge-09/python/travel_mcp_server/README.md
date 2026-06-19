@@ -31,7 +31,7 @@ Legacy names `AMADEUS_API_KEY / AMADEUS_API_SECRET` also work for compatibility 
 ## Run standalone (optional)
 
 ```bash
-cd Student/Resources/Challenge-08/python/travel_mcp_server
+cd Student/Resources/Challenge-09/python/travel_mcp_server
 python server.py
 ```
 

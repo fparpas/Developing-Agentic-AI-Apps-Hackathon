@@ -1,104 +1,132 @@
-# Challenge 13 – Optional – Register and Discover Remote MCP Servers in Your API Inventory
+# Challenge 13 - Optional - Expose REST API in API Management as an MCP server
 
-[< Previous Challenge](./Challenge-12.md) - **[Home](../README.md)**
+[< Previous Challenge](./Challenge-12.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-14.md)
 
 ## Introduction
 
-In this challenge, you'll learn how to use Azure API Center to maintain an inventory (registry) of remote Model Context Protocol (MCP) servers and enable stakeholders to discover them using the API Center portal. MCP servers expose backend APIs and data sources in a standardized way for consumption by AI agents and models.
+In the previous challenge, you secured access to existing MCP servers using Azure API Management. You can also transform any REST API managed in Azure API Management into an MCP server.
 
-Azure API Center provides a centralized platform for managing your organization's API ecosystem, including MCP servers that enable AI agents to access external data sources and services. By registering MCP servers in your API inventory, you make them discoverable to developers and other stakeholders, who can then integrate them into their agentic AI applications.
+This challenge covers the second major MCP use case in Azure API Management: automatically exposing REST APIs as MCP servers so AI agents can use them as tools without custom MCP code. API operations automatically become MCP tools that agents can discover and invoke.
+
+You will work with the **National Weather Service API** (`api.weather.gov`), a public REST API that provides forecasts, alerts, and observational data across the United States. It illustrates how an existing API can become a powerful agent tool without additional server implementation.
 
 ## Concepts
 
-### Azure API Center
+### Transforming a REST API into an MCP Server
 
-Azure API Center is a centralized platform for managing your organization's API ecosystem, including Model Context Protocol (MCP) servers. It provides a unified inventory and governance solution for all types of APIs across your organization, enabling better discovery, management, and governance of API assets.
+Azure API Management can automatically transform any REST API into an MCP (Model Context Protocol) server, enabling AI agents to use existing APIs as tools without custom code. The transformation leverages OpenAPI specifications to generate MCP tools that map directly to REST API operations.
 
-#### Key features include:
+### OpenAPI Specification Import
 
-- **API Inventory Management** – Maintain a comprehensive catalog of all APIs, including MCP servers, in your organization.
-- **Discovery Portal** – Provide developers with a searchable interface to find and explore APIs.
-- **Environment Management** – Configure different environments (development, staging, production) for your APIs.
-- **Governance and Compliance** – Apply consistent policies and standards across your API portfolio.
-- **Integration Capabilities** – Automatically synchronize with Azure API Management and other API platforms.
+OpenAPI specifications provide machine‑readable descriptions of REST APIs, including endpoints, parameters, request/response schemas, and authentication methods. API Management can import these specifications to create fully managed API proxies with automatic documentation, validation, and governance.
 
-#### API Center Components
+### MCP Tool Generation
 
-- **APIs** – Core API definitions that represent your API assets, including MCP servers.
-- **Versions** – Different versions of your APIs, each with its own specifications and metadata.
-- **Environments** – Logical groupings that represent different deployment stages (dev, test, prod).
-- **Deployments** – Specific instances of API versions running in particular environments.
-- **API Definitions** – Technical specifications (OpenAPI, AsyncAPI, etc.) that describe your APIs.
+When exposing a REST API as an MCP server, each API operation automatically becomes an MCP tool:
 
-#### MCP Server Management in API Center
+- **Tool Names**: Generated from operation IDs or endpoint paths
+- **Parameters**: Mapped from OpenAPI parameter definitions
+- **Schemas**: Request and response schemas are preserved for validation
+- **Documentation**: API descriptions become tool descriptions for AI agents
 
-For Model Context Protocol servers specifically, Azure API Center enables you to:
+### Agent Tool Discovery
 
-- Maintain a centralized inventory of MCP servers alongside traditional APIs.
-- Register both custom and partner MCP servers with the "MCP" API type.
-- Provide discovery capabilities for AI developers through the API Center portal.
-- Configure environments, deployments, and definitions for MCP servers.
-- Leverage the same governance and management capabilities as traditional APIs.
+AI agents discover available weather tools through the MCP protocol:
+
+- **Tool listing**: Query available tools and their capabilities.
+- **Parameter schemas**: Understand required and optional parameters.
+- **Response formats**: Know the data shape returned by each tool.
+- **Tool chaining**: Combine multiple tools to answer multi‑step queries.
+
+### API Management Integration Benefits
+
+Exposing REST APIs through API Management provides enterprise‑grade capabilities:
+
+- **Security**: Authentication, authorization, and API key management.
+- **Governance**: Rate limiting, quotas, and usage policies.
+- **Monitoring**: Analytics, logging, and performance metrics.
+- **Reliability**: Caching, retry logic, and circuit breaker patterns.
+- **Documentation**: Automatic API documentation and developer portal integration.
 
 ## Description
 
-Your task is to set up an Azure API Center instance and register MCP servers in your API inventory to make them discoverable to your organization's developers and AI application builders.
+In this challenge, you will import the National Weather Service API into Azure API Management using its OpenAPI specification, then expose that REST API as an MCP server. This enables AI agents to access real‑time weather data through standardized MCP tools.
 
-### Task 1: Set up Azure API Center
+The National Weather Service offers a free API with current conditions, forecasts, alerts, and station observation data for the United States.
 
-1. Create an Azure API Center instance in your subscription.
-2. Configure the API Center with appropriate naming and a resource group.
-3. Set up the API Center portal for developer discovery.
+### Task 1: Import National Weather Service API into API Management
 
-### Task 2: Integration with API Management
+Import the weather API using its OpenAPI specification to create a managed API in Azure API Management.
 
-In your Azure API Management instance:
+1. **Access Your API Management Instance**:
+   - Navigate to your Azure API Management instance from previous challenges
+   - If you don't have one, follow the [API Management quickstart](https://learn.microsoft.com/en-us/azure/api-management/get-started-create-service-instance)
 
-1. Enable automatic synchronization between API Management and API Center.
-2. Verify that MCP servers from API Management are automatically imported.
-3. Test the synchronization process.
+2. **Import the OpenAPI Specification**:
+   - Import the API using the OpenAPI specification from: `https://api.weather.gov/openapi.json`
+   - Configure with display name "National Weather Service API" and URL suffix "weather"
 
-### Task 3: Manually Register a Custom MCP Server
+3. **Verify API Import**:
+   - Confirm operations import successfully, including endpoints for coordinates, forecasts, alerts, and observations.
+   - Review automatically generated documentation for completeness and accuracy.
 
-1. Register a custom MCP server in your API inventory.
-2. Set the API type to "MCP".
-3. Configure an environment for your MCP server (e.g., "Production", "Development").
-4. Create a deployment with the runtime URL for your MCP service.
+4. **Test the API**:
+   - Use the **Test** tab to verify connectivity.
+   - Send a sample request.
+   - Confirm valid responses are returned from the National Weather Service.
 
-### Task 4: Register Partner MCP Servers
+### Task 2: Create MCP Server from REST API
 
-1. Browse the curated list of partner MCP servers in Azure API Center.
-2. Register one or more partner MCP servers from Microsoft services (such as Azure Logic Apps, GitHub, etc.).
-3. Verify that the partner servers are automatically configured with:
-   - API entry with MCP type.
-   - Environment and deployment.
-   - OpenAPI definition (if available).
+Transform your imported REST API into an MCP server that AI agents can discover and use.
 
-### Task 5: Configure API Center Portal
+1. **Create MCP Server from API**:
+   - Navigate to **MCP servers** in your API Management instance
+   - Create a new MCP server by exposing the National Weather Service API as an MCP server
+   - Configure the server with name "Weather Tools Server", base path "weather-tools", and appropriate description
 
-1. Set up the API Center portal for your organization.
-2. Configure user access and permissions.
-3. Test the discovery experience by browsing registered MCP servers.
-4. Verify that developers can view MCP server details, including URL endpoints.
+2. **Review Generated MCP Tools**:
+   - Verify that API operations convert to MCP tools with descriptive names.
+   - Confirm parameter schemas are mapped from the OpenAPI specification.
+   - Note key tools such as `get_points_by_coordinates`, `get_gridpoint_forecast`, `get_alerts`, and `get_station_observations`.
 
+3. **Configure Tool Documentation**:
+   - Review and enhance tool descriptions for AI agent consumption
+   - Ensure parameter descriptions are clear and response schemas are properly documented
+
+### Task 3: Test MCP Server with MCP Inspector
+
+Verify that your weather MCP server works correctly with MCP clients.
+
+1. **Connect MCP Inspector**:
+   - Launch MCP Inspector and connect to your MCP server URL: `https://<your-apim-name>.azure-api.net/weather-tools/mcp`
+
+2. **Validate Weather Tools**:
+   - Explore available tools and verify documentation quality.
+   - Test key operations: location metadata, forecasts, current conditions, and alerts.
+   - Confirm responses contain valid, current weather data with accurate timestamps and location information.
+
+### Optional Task 4: Integrate with AI Agents
+
+Create an AI agent that can use your weather MCP server to answer weather-related questions and provide intelligent recommendations.
 
 ## Success Criteria
 
-- ✅ An Azure API Center instance is successfully created and configured with portal access.
-- ✅ Appropriate environments, deployments, and access controls are set up.
-- ✅ At least one custom MCP server is registered with API type "MCP".
-- ✅ At least one partner MCP server is registered from the curated list (Microsoft Learn, GitHub, etc.).
-- ✅ The API Center portal is accessible and functional for developers.
-- ✅ MCP servers are discoverable in the portal with proper filtering and browsing capabilities.
-- ✅ MCP servers have appropriate descriptions and metadata for governance.
-- ✅ API Management synchronization is working with automated import of MCP servers.
+- ✅ National Weather Service API is successfully imported into API Management using OpenAPI specification
+- ✅ REST API operations are properly imported with correct parameters and documentation
+- ✅ MCP server is created from the imported REST API with all tools properly configured
+- ✅ Weather tools are available and functional through MCP Inspector
+- ✅ Tools can retrieve real-time weather data including forecasts, current conditions, and alerts
+- ✅ MCP server correctly handles location-based queries with coordinate parameters
+- ✅ AI agents can successfully discover, call, and receive valid responses from weather tools
+
 
 ## Learning Resources
 
-- [Azure API Center Overview](https://learn.microsoft.com/en-us/azure/api-center/overview)
-- [Register and discover remote MCP servers in your API inventory](https://learn.microsoft.com/en-us/azure/api-center/register-discover-mcp-server)
-- [Tutorial: Register APIs in your API inventory](https://learn.microsoft.com/en-us/azure/api-center/tutorials/register-apis)
-- [Tutorial: Add environments and deployments for APIs](https://learn.microsoft.com/en-us/azure/api-center/tutorials/configure-environments-deployments)
-- [Set up API Center portal](https://learn.microsoft.com/en-us/azure/api-center/set-up-api-center-portal)
-- [Synchronize APIs from Azure API Management instance](https://learn.microsoft.com/en-us/azure/api-center/synchronize-api-management-apis)
+### Azure API Management
+- [Quickstart: Create a new Azure API Management instance by using the Azure portal](https://learn.microsoft.com/en-us/azure/api-management/get-started-create-service-instance)
+- [Import an OpenAPI specification | Microsoft Learn](https://learn.microsoft.com/en-us/azure/api-management/import-api-from-oas?tabs=portal)
+- [Expose REST API in API Management as an MCP server | Microsoft Learn](https://learn.microsoft.com/en-us/azure/api-management/export-rest-mcp-server)
+- [About MCP servers in Azure API Management](https://learn.microsoft.com/en-us/azure/api-management/mcp-server-overview)
 
+### National Weather Service API
+- [National Weather Service API Documentation](https://www.weather.gov/documentation/services-web-api)

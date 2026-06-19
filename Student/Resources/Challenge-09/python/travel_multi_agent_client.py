@@ -1,7 +1,7 @@
 """
-Coach Solution
+Student Solution
 
-Multi-Agent Travel Planning Assistant - Challenge 08 (Python).
+Multi-Agent Travel Planning Assistant - Challenge 09 (Python).
 
 Uses HandoffBuilder from agent-framework-orchestrations to orchestrate
 specialist agents. The framework manages agent routing via tool calls,
@@ -83,7 +83,7 @@ class TravelAgentOrchestrator:
         current_date = today.strftime("%Y-%m-%d")
         current_year = today.year
 
-        # -- Create agents via chat_client.as_agent() -------------------------
+        # Create agents via chat_client.as_agent()
 
         coordinator = chat_client.as_agent(
             name="CoordinatorAgent",
@@ -161,16 +161,20 @@ class TravelAgentOrchestrator:
             ),
         )
 
-        # Build handoff workflow
-        participants = [coordinator, reference, flight, hotel, activity, transfer]
+        # TODO: You need to implement this part to build the handoff workflow using HandoffBuilder.
+        # The workflow should route between the agents based on the conversation context and user requests.
+        # The HandoffBuilder will automatically inject handoff tools into each agent,
+        # so they can transfer control to one another.
+        #
+        # If you get stuck, refer to the solution in the Coach directory.
+
+        print("[OH NOES] You need to implement the HandoffBuilder workflow before running this script.");
+        sys.exit(255);
+
+        participants = [...]
 
         self.workflow = (
-            HandoffBuilder(
-                name="travel_planning",
-                participants=participants,
-            )
-            .with_start_agent(coordinator)
-            .build()
+               ...
         )
 
         # Policy Agent (Called from Microsoft Foundry Agent Service
@@ -186,7 +190,7 @@ class TravelAgentOrchestrator:
         else:
             print("[INFO] Travel Policy Agent not configured (optional)")
 
-        print("[OK] All agents initialised via HandoffBuilder\n")
+        print("[OK] All agents initialized via HandoffBuilder\n")
 
     async def check_travel_policy(self, trip_summary: str) -> Optional[str]:
         """Validate trip details against a persistent policy agent."""
@@ -307,7 +311,7 @@ class TravelAgentOrchestrator:
 async def main() -> None:
     orchestrator = TravelAgentOrchestrator()
     try:
-        print("Initialising travel agents...\n")
+        print("Initializing travel agents...\n")
         await orchestrator.initialize_agents()
         await orchestrator.run_handoff_workflow()
     except Exception as exc:

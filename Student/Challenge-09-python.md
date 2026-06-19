@@ -1,4 +1,4 @@
-# Challenge 09 - Python - Secure your remote MCP server with an API Key
+# Challenge 09 - Python - Develop Agentic AI Applications using Microsoft Agent Framework and Multi-Agent Architectures
 
 [< Previous Challenge](./Challenge-08-python.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-10-python.md)
 
@@ -7,297 +7,142 @@
 
 ## Introduction
 
-Previously, you worked with MCP servers and clients in both local and remote environments, but these setups lacked authentication and authorization. While this approach might suffice for development or trusted local scenarios, it is not suitable for production. When deploying remote MCP servers accessible over HTTP/HTTPS, it is essential to implement robust authentication for all clients. Exposing an unsecured MCP server to the internet can result in significant security risks (abuse of tools, data exfiltration, quota exhaustion, malicious chaining, etc.).
+In this challenge you'll practice how to use the powerful capabilities of Microsoft Agent Framework to design and orchestrate intelligent agents that work collaboratively to solve complex problems. You'll build a multi-agent application that leverages the strengths of different agents to achieve a common goal.
 
-In this challenge, you will secure your MCP Weather Server by introducing API key authentication. This gives you a simple, explicit credential mechanism while preparing the code structure so you can later upgrade to standards-based authorization (OAuth 2.1 / OIDC, signed tokens, per-principal policies) with minimal refactoring.
+You'll also learn about the different types of orchestration patterns available, and use the Microsoft Agent Framework to develop your own AI agents that can collaborate for a multi-agent solution.
 
-> ℹ️ API keys are intentionally used here as the “training wheels” step before adopting a full identity provider such as Microsoft Entra ID with OAuth 2.1 / OIDC. Keep your handler boundaries clean so you can drop in a standards-compliant validator later without touching business logic.
+## Key Concepts
 
-## Concepts
+The Microsoft Agent Framework's agent orchestration framework makes it possible to design, manage, and scale complex multi-agent workflows without having to manually handle the details of agent coordination. Instead of relying on a single agent to manage every aspect of a task, you can combine multiple specialized agents. Each agent with a unique role or area of expertise can collaborate to create systems that are more robust, adaptive, and capable of solving real-world problems collaboratively.
 
-### API Key Authentication
+By orchestrating agents together, you can take on tasks that would be too complex for a single agent—from running parallel analyses, to building multi-stage processing pipelines, to managing dynamic, context-driven handoffs between experts.
 
-API keys are a simple and effective method for authenticating clients to your MCP server. They provide:
+### Why multi-agent orchestration matters
 
-- **Client Identification**: Each client gets a unique key to identify requests
-- **Access Control**: Keys can be revoked or have different permission levels
-- **Usage Tracking**: Monitor which clients are making requests
-- **Rate Limiting**: Control request frequency per client
+Traditional single-agent systems are limited in their ability to handle complex, multi-faceted tasks. By orchestrating multiple agents, each with specialized skills or roles, we can create systems that are more robust, adaptive, and capable of solving real-world problems collaboratively. Multi-agent orchestration in Microsoft Agent Framework provides a flexible foundation for building such systems, supporting a variety of coordination patterns.
 
-### MCP Security Considerations
-When securing MCP servers, consider:
-- **Transport Security**: Use HTTPS for encrypted communication
-- **Authentication**: Verify client identity before processing requests
-- **Authorization**: Control which tools/resources clients can access
-- **Input Validation**: Sanitize all inputs to prevent injection attacks
-- **Audit Logging**: Track all requests for security monitoring
-- **Rate Limiting**: Prevent abuse and DoS attacks
+### Supported orchestration patterns
 
-> (IMPORTANT) Canonical header name: use `X-API-Key` everywhere. Both server and client must match the exact casing to avoid authentication failures—double-check configuration before deploying.
+Like well-known cloud design patterns, agent orchestration patterns are technology agnostic approaches to coordinating multiple agents to work together towards a common goal. To learn more about the patterns themselves, refer to the [AI agent orchestration patterns documentation](https://learn.microsoft.com/en-us/azure/architecture/ai-ml/guide/ai-agent-design-patterns).
 
-#### MCP Server Authorization (High Level)
+Microsoft Agent Framework supports you by implementing these orchestration patterns directly in the SDK. These patterns are available as part of the framework and can be easily extended or customized so you can tune your agent collaboration scenario.
+To learn more about the supported patterns, refer to the [Microsoft Agent Framework Workflows Orchestrations Patterns](https://learn.microsoft.com/en-us/agent-framework/user-guide/workflows/orchestrations/overview).
+| Pattern | Description | Typical Use Case |
+|---------|-------------|------------------|
+| **Concurrent** | Broadcasts a task to all agents, collects results independently | Parallel analysis, independent subtasks, ensemble decision making |
+| **Sequential** | Passes the result from one agent to the next in a defined order | Step-by-step workflows, pipelines, multi-stage processing |
+| **Group Chat** | Coordinates multiple agents in a collaborative conversation with a manager controlling speaker selection and flow. | Iterative refinement, collaborative problem-solving, content review. |
+| **Handoff** | Dynamically passes control between agents based on context or rules | Dynamic workflows, escalation, fallback, or expert handoff scenarios |
 
-The Model Context Protocol includes an authorization model aligned with OAuth concepts for HTTP transports. This challenge deliberately starts simpler (static API key) so you can focus on the mechanics of securing endpoints. Your handler, routing, and middleware ordering should make it trivial to swap in a standards-compliant token validator later. See the specs: [MCP Authorization Standards Compliance](https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization#standards-compliance).
+### Agents as tools
+"Agents as Tools" is an architectural pattern in AI systems where specialized AI agents are wrapped as callable functions (tools) that can be used by other agents. This creates a hierarchical structure where:
+
+ 1. A primary "orchestrator" agent handles user interaction and determines which specialized agent to call
+ 2. Specialized "tool agents" perform domain-specific tasks when called by the orchestrator
+
+This approach mimics human team dynamics, where a manager coordinates specialists, each bringing unique expertise to solve complex problems. Rather than a single agent trying to handle everything, tasks are delegated to the most appropriate specialized agent.
+
+In some workflows, you may want a central agent to orchestrate a network of specialized agents, instead of handing off control. You can do this by modeling agents as tools.
+
+### A unified orchestration workflow
+
+Regardless of which orchestration pattern you choose, the Microsoft Agent Framework  provides a consistent, developer-friendly interface for building and running them. The typical flow looks like this:
+
+1. Define your agents and describe their capabilities and tools
+2. Select and create an orchestration pattern, optionally adding a manager agent if needed
+3. Optionally configure callbacks or transforms for custom input and output handling
+4. Start a runtime to manage execution
+5. Invoke the orchestration with your task
+6. Retrieve results in an asynchronous, non-blocking way
+
+Because all patterns share the same core interface, you can easily experiment with different orchestration strategies without rewriting agent logic or learning new APIs. The SDK abstracts the complexity of agent communication, coordination, and result aggregation so you can focus on designing workflows that deliver results.
+
+Multi-agent orchestration in Microsoft Agent Framework provides a flexible, scalable way to build intelligent systems that combine the strengths of multiple specialized agents. With built-in orchestration patterns, a unified development model, and runtime features for managing execution, you can quickly prototype, refine, and deploy collaborative AI workflows. Whether you’re running agents in parallel, coordinating sequential steps, or enabling dynamic conversations, the framework gives you the tools to turn multiple agents into a cohesive problem-solving team.
+
+## Prerequisites
+
+### Starting the Travel MCP Server
+
+The Travel MCP Server provides the travel booking APIs (Amadeus) that the agents will use. Make sure it's running before starting this challenge:
+
+Before starting the Travel MCP Server, you need to register for an Amadeus API key:
+1. Visit the [Amadeus for Developers portal](https://developers.amadeus.com/)
+2. Create an account or sign in
+3. Register your application to obtain your API key and secret
+4. Configure these credentials in your Travel MCP Server settings
+
+Start your Travel MCP Server by opening a terminal and executing the command to run the local MCP server
 
 ## Description
-In this challenge, you will upgrade your existing Weather MCP Server to enable secure remote access using API key authentication.
 
-You will upgrade your existing (previous challenge) Weather MCP Server to require an API key for every MCP request. The work includes:
+In this challenge, you will build a sophisticated multi-agent application using Microsoft Agent Framework. You'll create specialized agents that work together to solve a complex business scenario requiring multiple areas of expertise.
 
-1. Converting (or confirming) the server is exposed via HTTP (remote capable) and not only local process transport.
-2. Adding middleware that validates an API key from a header.
-3. Registering the authentication middleware in the correct order.
-4. Requiring authorization for the MCP endpoint route.
-5. Updating your MCP client to send the header.
+Your task is to develop a **Travel Planning Assistant** that uses multiple agents to collaboratively plan a comprehensive trip. This scenario requires:
 
-> ℹ️ While API keys are a simple way to secure your server, it is generally more secure to authenticate clients using an identity provider such as Microsoft Entra ID (formerly Azure AD) with OAuth 2.0 or OpenID Connect flows. These modern authentication methods provide stronger security, support for user and application identities, token expiration, and advanced access controls. For production scenarios, consider integrating with an identity provider instead of relying solely on API keys.
+1. **Search Flights Agent** - Provides flight options and recommendations
+2. **Search Hotels Agent** - Provides hotel options and recommendations
+3. **Activity Agent** - Recommends activities and attractions based on interests
+4. **Travel Policy Compliance Agent** - Check if travelling complies with the company policies
+4. **Coordinator Agent** - Orchestrates the collaboration and provides final recommendations
 
-## Tasks
+You'll implement different orchestration patterns to demonstrate how agents can work together in various ways:
 
-### Task 1: Convert MCP Server to remote MCP Server
+- Use **Sequential Orchestration** for the main planning pipeline
+- Use **Concurrent Orchestration** for gathering parallel information
 
-Ensure that your MCP server is converted into remote MCP server that can handle HTTP requests (this was accomplished in Challenge 04):
+### Your Task
 
-### Task 2: Add API Key Authentication Middleware to your Remote MCP Server
+Your goal is to create **multi-agent orchestration workflows** that enable these agents to collaborate in a natural, multi-turn conversation. You'll implement different orchestration patterns to demonstrate how agents can work together in various ways:
 
-Take your `weather_remote_server.py` from Challenge 04 and add API key protection. You need three things on top of the existing code:
+- **Sequential Orchestration** - Process travel requests in a step-by-step pipeline
+- **Concurrent Orchestration** - Gather information from multiple agents in parallel
+- **Handoff Orchestration** - Enable dynamic handoffs between agents based on context
+- **Agents as Tools** - Use specialized agents as callable tools from a main orchestrator
 
-1. An ASGI middleware class that checks the `X-API-Key` header
-2. Load the expected key from an environment variable
-3. Wrap the app with the middleware before passing it to uvicorn
-
-Below is the complete server.
-
-**File: `secure_weather_server.py`**
-
-```python
-import os
-import hmac
-from typing import Any
-from contextlib import asynccontextmanager
-
-import httpx
-import uvicorn
-from fastapi import FastAPI
-from fastapi.responses import JSONResponse
-from mcp.server.fastmcp import FastMCP
-from dotenv import load_dotenv
-
-load_dotenv()
-
-API_KEY = os.getenv("API_KEY", "your-secure-api-key-change-this")
-
-mcp = FastMCP("weather")
-
-NWS_API_BASE = "https://api.weather.gov"
-USER_AGENT = "weather-app/1.0"
-
-
-async def make_nws_request(url: str) -> dict[str, Any] | None:
-    headers = {"User-Agent": USER_AGENT, "Accept": "application/geo+json"}
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.get(url, headers=headers, timeout=30.0)
-            response.raise_for_status()
-            return response.json()
-        except Exception:
-            return None
-
-
-def format_alert(feature: dict) -> str:
-    props = feature["properties"]
-    return (
-        f"Event: {props.get('event', 'Unknown')}\n"
-        f"Area: {props.get('areaDesc', 'Unknown')}\n"
-        f"Severity: {props.get('severity', 'Unknown')}\n"
-        f"Description: {props.get('description', 'N/A')}\n"
-        f"Instructions: {props.get('instruction', 'N/A')}"
-    )
-
-
-@mcp.tool()
-async def get_alerts(state: str) -> str:
-    """Get weather alerts for a US state.
-
-    Args:
-        state: Two-letter US state code (e.g., CA, NY, WA, TX)
-    """
-    url = f"{NWS_API_BASE}/alerts/active/area/{state}"
-    data = await make_nws_request(url)
-    if not data or "features" not in data:
-        return "Unable to fetch alerts or no alerts found."
-    if not data["features"]:
-        return "No active alerts for this state."
-    return "\n---\n".join(format_alert(f) for f in data["features"])
-
-
-@mcp.tool()
-async def get_forecast(latitude: float, longitude: float) -> str:
-    """Get weather forecast for a location.
-
-    Args:
-        latitude: Latitude of the location
-        longitude: Longitude of the location
-    """
-    points_data = await make_nws_request(f"{NWS_API_BASE}/points/{latitude},{longitude}")
-    if not points_data:
-        return "Unable to fetch forecast data for this location."
-    try:
-        forecast_url = points_data["properties"]["forecast"]
-    except KeyError:
-        return "Unable to determine forecast URL for this location."
-
-    forecast_data = await make_nws_request(forecast_url)
-    if not forecast_data:
-        return "Unable to fetch detailed forecast."
-
-    forecasts = []
-    for p in forecast_data["properties"]["periods"][:5]:
-        forecasts.append(
-            f"{p['name']}:\n"
-            f"  Temperature: {p['temperature']}°{p['temperatureUnit']}\n"
-            f"  Wind: {p['windSpeed']} {p['windDirection']}\n"
-            f"  Forecast: {p['detailedForecast']}"
-        )
-    return "\n---\n".join(forecasts)
-
-
-mcp_app = mcp.streamable_http_app()
-
-@asynccontextmanager
-async def lifespan(app):
-    async with mcp_app.router.lifespan_context(mcp_app):
-        yield
-
-app = FastAPI(title="Weather MCP Server", version="1.0.0", lifespan=lifespan)
-
-@app.get("/health")
-async def health_check():
-    return {"status": "healthy"}
-
-
-class ApiKeyAuthMiddleware:
-    """Pure ASGI middleware that validates an X-API-Key header on protected paths.
-
-    Uses raw ASGI (not BaseHTTPMiddleware) so streaming responses (SSE) work correctly.
-    """
-
-    def __init__(self, app, api_key: str, protected_paths: list[str] = None):
-        self.app = app
-        self.api_key = api_key
-        self.protected_paths = protected_paths or ["/mcp"]
-
-    async def __call__(self, scope, receive, send):
-        if scope["type"] != "http":
-            await self.app(scope, receive, send)
-            return
-
-        if not any(scope["path"].startswith(p) for p in self.protected_paths):
-            await self.app(scope, receive, send)
-            return
-
-        headers = dict(scope["headers"])
-        key = headers.get(b"x-api-key")
-
-        if not key or not hmac.compare_digest(key.decode(), self.api_key):
-            resp = JSONResponse(
-                status_code=401,
-                content={"detail": "Missing or invalid API key. Provide 'X-API-Key' header."}
-            )
-            await resp(scope, receive, send)
-            return
-
-        await self.app(scope, receive, send)
-
-
-# Mount MCP app and wrap everything with auth middleware
-app.mount("/", mcp_app)
-app = ApiKeyAuthMiddleware(app, api_key=API_KEY, protected_paths=["/mcp"])
-
-
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
-```
-
-### Task 3: Update the MCP Client to send the API Key
-
-The only change to your existing client is passing the API key header when creating the MCP tool. Use `MCPStreamableHTTPTool` with an `httpx.AsyncClient` that carries the auth header:
-
-```python
-"""Secure MCP Client - connects to a remote MCP server with API key auth."""
-
-import asyncio
-import os
-import httpx
-from agent_framework import Agent, MCPStreamableHTTPTool
-from agent_framework.azure import AzureOpenAIResponsesClient
-from dotenv import load_dotenv
-
-load_dotenv()
-
-
-async def main():
-    chat_client = AzureOpenAIResponsesClient(
-        endpoint=os.environ["AZURE_OPENAI_ENDPOINT"],
-        api_key=os.environ["AZURE_OPENAI_API_KEY"],
-        deployment_name=os.environ["AZURE_OPENAI_DEPLOYMENT_NAME"],
-        api_version="latest"
-    )
-
-    # The only change vs. an unsecured client: pass the API key via headers
-    server_url = os.getenv("MCP_SERVER_URL", "http://localhost:8000/mcp")
-    http_client = httpx.AsyncClient(headers={"x-api-key": os.environ["API_KEY"]})
-    mcp_tool = MCPStreamableHTTPTool(
-        name="WeatherMCP",
-        url=server_url,
-        http_client=http_client
-        # Once agent-framework 1.0.0 is released, you should be able to
-        # pass headers here directly, instead of an http_client, like this:
-        # headers={"x-api-key": os.environ["API_KEY"]}
-    )
-
-    async with Agent(
-        client=chat_client,
-        name="WeatherAgent",
-        instructions="You are a helpful weather assistant with access to weather tools.",
-        tools=[mcp_tool]
-    ) as agent:
-        query = "What's the weather forecast for New York?"
-        print(f"Query: {query}\n")
-        async for update in agent.run(query, stream=True):
-            if update.text:
-                print(update.text, end="", flush=True)
-        print()
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
-```
-
-### Task 4: Verify secure communication between MCP Client and Server
-
-To complete this challenge, make sure your MCP client is configured to include the API key in the request headers when communicating with the remote, secured MCP server. After updating your client, test the connection by sending requests to the server:
-
-- If the API key is missing or incorrect, the server should respond with an authentication error (HTTP 401 Unauthorized).
-- If the API key is valid, your client should receive successful responses from the protected MCP endpoints.
-
-Verify that only requests with the correct API key are processed, confirming that your authentication mechanism is working as intended. This demonstrates secure communication between your MCP client and the remote server.
+Start with Handoff, then see what other workflows would work here and implement those as well.
 
 ## Success Criteria
-- ✅ Requests without API keys are rejected (authentication enforced)
-- ✅ Only valid API keys can access protected endpoints (authorization verified)
-- ✅ API key authentication system is implemented and functional
-- ✅ All MCP endpoints require valid authentication
-- ✅ MCP client successfully connects to the remote secured server
+
+To successfully complete this challenge, you must demonstrate:
+
+### ✅ **Agent Implementation**
+
+- [ ] Created 5 specialized agents with distinct roles and capabilities
+- [ ] Each agent has appropriate system instructions and prompts
+- [ ] Agents are properly configured with AI models and tools
+- [ ] Agent responses are contextually appropriate for their roles
+
+### ✅ **Orchestration Patterns**
+
+- [ ] Built an orchestration workflow other than the provided `HandoffBuilder`, with all specialist agents as participants
+- [ ] Coordinator agent is set as the start agent
+- [ ] Implemented a multi-turn interaction loop that calls `workflow.run()` to emit `WorkflowEvent`, processes agent responses, and feeds user replies back into subsequent `workflow.run(responses=...)` calls
+- [ ] Demonstrated runtime management and cleanup
+
+### ✅ **Travel Planning Functionality**
+
+- [ ] Application accepts user input for travel requirements
+- [ ] Weather agent provides relevant forecast and recommendations
+- [ ] Budget agent calculates costs and suggests alternatives
+- [ ] Activity agent recommends relevant attractions and activities
+- [ ] Restaurant agent suggests appropriate dining options
+- [ ] Coordinator agent synthesizes all information into a coherent plan
+- [ ] By typing in 'policy', the Travel Policy Agent running in Microsoft Foundry checks the trip summary against company policy
+
+### ✅ **Code Quality and Architecture**
+
+- [ ] Clean, well-structured code with proper separation of concerns
+- [ ] Appropriate error handling and logging
+- [ ] Proper async/await patterns for agent coordination
+- [ ] Configuration management for API keys and settings
 
 ## Learning Resources
 
-- [Starlette Middleware](https://www.starlette.io/middleware/)
-- [OWASP API Security Best Practices](https://owasp.org/www-project-api-security/)
-- [Azure Key Vault for Secrets Management](https://learn.microsoft.com/en-us/azure/key-vault/)
-- [HTTP Security Headers](https://owasp.org/www-project-secure-headers/)
-- [Model Context Protocol Security Guidelines](https://modelcontextprotocol.io/docs/security)
-- [Python HMAC for Constant-Time Comparison](https://docs.python.org/3/library/hmac.html)
-- [uvicorn Documentation](https://www.uvicorn.org/)
-- [httpx HTTP Client](https://www.python-httpx.org/)
-- [Async Python Security Patterns](https://python.readthedocs.io/en/stable/library/asyncio.html)
+### Official Microsoft Documentation
+
+- [Microsoft Agent Framework Workflows Orchestrations](https://learn.microsoft.com/en-us/agent-framework/user-guide/workflows/orchestrations/overview)
+- [Understand Agent Orchestration](https://learn.microsoft.com/en-us/training/modules/orchestrate-semantic-kernel-multi-agent-solution/3-understand-agent-orchestration)
+- [AI Agent Orchestration Patterns](https://learn.microsoft.com/en-us/azure/architecture/ai-ml/guide/ai-agent-design-patterns)
+- [Agents in Workflows](https://learn.microsoft.com/en-us/agent-framework/tutorials/workflows/agents-in-workflows?pivots=programming-language-csharp)
+- [Amadeus for Developers](https://developers.amadeus.com/)
+- [Amadeus Open AI Specification](https://github.com/amadeus4dev/amadeus-open-api-specification/tree/main/spec/json)
