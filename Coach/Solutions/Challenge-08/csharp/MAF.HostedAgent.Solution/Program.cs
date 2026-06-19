@@ -1,10 +1,13 @@
 using Azure.AI.AgentServer.Core;
+using Azure.AI.AgentServer.Responses;
+using Azure.AI.AgentServer.Responses.Models;
 using Azure.AI.Projects;
 using Azure.Identity;
 using Microsoft.Agents.AI;
 using Microsoft.Agents.AI.Foundry.Hosting;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using ModelContextProtocol.Client;
 
 // Challenge 08 Solution - Host the Challenge 6 weather + remote MCP agent as a Foundry Hosted Agent.
@@ -50,7 +53,26 @@ AIAgent agent = new AIProjectClient(projectEndpoint, new DefaultAzureCredential(
 
 // 3. Host the agent behind the Foundry Responses protocol (OpenAI-compatible /responses endpoint).
 builder.Services.AddFoundryResponses(agent);
+
+// Local development only: `azd ai agent invoke --local` and plain curl don't send the
+// x-agent-user-isolation-key / x-agent-chat-isolation-key headers that the Foundry platform injects
+// at runtime, so the default provider returns null and the request fails with HTTP 500. Register a
+// fallback provider that supplies fixed isolation keys. In production the platform provider reads the
+// real per-user / per-chat headers, so this is only registered when DOTNET_ENVIRONMENT=Development.
+if (string.Equals(Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT"), "Development", StringComparison.OrdinalIgnoreCase))
+{
+    builder.Services.AddSingleton<HostedSessionIsolationKeyProvider, LocalDevelopmentIsolationKeyProvider>();
+}
+
 builder.RegisterProtocol("responses", endpoints => endpoints.MapFoundryResponses());
 
 var app = builder.Build();
 app.Run();
+
+// Supplies fixed isolation keys for local testing when the Foundry platform headers are absent.
+sealed class LocalDevelopmentIsolationKeyProvider : HostedSessionIsolationKeyProvider
+{
+    public override ValueTask<HostedSessionContext?> GetKeysAsync(
+        ResponseContext context, CreateResponse request, CancellationToken cancellationToken)
+        => ValueTask.FromResult<HostedSessionContext?>(new HostedSessionContext("local-user", "local-chat"));
+}
