@@ -4,9 +4,10 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using Azure.AI.Projects;
+using Azure.AI.Projects.Agents;
 using Azure.Identity;
 using Azure;
-using Azure.AI.Projects.OpenAI;
+using Azure.AI.Extensions.OpenAI;
 using OpenAI.Responses;
 
 namespace AgentServiceFileSearch;
@@ -36,10 +37,13 @@ class Program
 
         try
         {
+            var microsoftFoundryEndpoint = configuration["AIAgentService:MicrosoftFoundryEndpoint"];
+            var agentName = configuration["AIAgentService:AgentName"];
+
             Console.WriteLine("🔍 Azure Agent Service File Search Console Application");
             Console.WriteLine("===============================================");
 
-            await RunAgentConversation(configuration["AgentService:Endpoint"], configuration["AgentService:AgentName"]);
+            await RunAgentConversation(microsoftFoundryEndpoint, agentName);
         }
         catch (Exception ex)
         {
@@ -52,14 +56,12 @@ private static async Task RunAgentConversation(string projectEndpoint, string ag
         AIProjectClient projectClient = new(endpoint, new DefaultAzureCredential());
 
         // Optional Step: Create a conversation to use with the agent
-        ProjectConversation conversation = projectClient.OpenAI.Conversations.CreateProjectConversation();
+        ProjectConversation conversation = projectClient.ProjectOpenAIClient.GetProjectConversationsClient().CreateProjectConversation();
 
-        AgentRecord agentRecord = projectClient.Agents.GetAgent(agentName);
-        Console.WriteLine($"Agent retrieved (name: {agentRecord.Name}, id: {agentRecord.Id})");
-
-        // Get the response client for the agent and conversation
-        ProjectResponsesClient responsesClient = projectClient.OpenAI.GetProjectResponsesClientForAgent(defaultAgent: agentName, defaultConversationId: conversation.Id);
-
+        // Get the response client for the agent and conversation       
+        ProjectResponsesClient responsesClient = projectClient.ProjectOpenAIClient.GetProjectResponsesClientForAgent(
+            defaultAgent: agentName,
+            defaultConversationId: conversation.Id);
 
         await RunInteractiveSessionAsync(responsesClient);
     }
