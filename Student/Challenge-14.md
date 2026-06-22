@@ -35,10 +35,14 @@ Azure API Center is a centralized platform for managing your organization's API 
 For Model Context Protocol servers specifically, Azure API Center enables you to:
 
 - Maintain a centralized inventory of MCP servers alongside traditional APIs.
-- Register both custom and partner MCP servers with the "MCP" API type.
-- Provide discovery capabilities for AI developers through the API Center portal.
-- Configure environments, deployments, and definitions for MCP servers.
-- Leverage the same governance and management capabilities as traditional APIs.
+- Register **remote** MCP servers (by runtime URL) and **local** MCP servers (by package registry such as `npm` or `pypi`) as inventory assets.
+- Register **partner** MCP servers from a curated list of Microsoft and third‑party services (Azure Logic Apps, GitHub, and others).
+- Automatically generate OpenAPI definitions (an **SSE** definition and a **Streamable** definition) for registered remote MCP servers.
+- Provide discovery capabilities for AI developers through the API Center portal, including a built‑in **test console** and one‑click install into Visual Studio Code.
+- Expose an **MCP registry endpoint** that tools like Visual Studio Code and GitHub Copilot can use to discover and connect to your inventory.
+- Leverage the same governance, access control, and metadata capabilities as traditional APIs.
+
+> **Tip**: MCP servers registered in your API center can be integrated with [Microsoft Foundry tool catalogs](https://learn.microsoft.com/en-us/azure/ai-foundry/agents/concepts/tool-catalog), letting you govern MCP tools and make them available to AI agents.
 
 ## Description
 
@@ -86,10 +90,10 @@ In your Azure API Management instance:
 
 - ✅ An Azure API Center instance is successfully created and configured with portal access.
 - ✅ Appropriate environments, deployments, and access controls are set up.
-- ✅ At least one custom MCP server is registered with API type "MCP".
-- ✅ At least one partner MCP server is registered from the curated list (Microsoft Learn, GitHub, etc.).
+- ✅ At least one custom MCP server is registered as an inventory **asset** (remote runtime URL or local package).
+- ✅ At least one partner MCP server is registered from the curated **Discover → MCP** list (Azure Logic Apps, GitHub, etc.).
 - ✅ The API Center portal is accessible and functional for developers.
-- ✅ MCP servers are discoverable in the portal with proper filtering and browsing capabilities.
+- ✅ MCP servers are discoverable in the portal with proper filtering and browsing capabilities, and the built‑in test console can run a tool.
 - ✅ MCP servers have appropriate descriptions and metadata for governance.
 - ✅ API Management synchronization is working with automated import of MCP servers.
 
