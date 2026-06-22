@@ -6,7 +6,7 @@
 
 In previous challenges, you have built MCP servers and clients, implemented security with API keys, and deployed them remotely. While those implementations provide basic protection, enterprise scenarios require more sophisticated patterns, including centralized authentication, authorization policies, rate limiting, and comprehensive monitoring. Azure API Management provides a powerful gateway layer that can secure, govern, and monitor access to your MCP servers at scale.
 
-In this challenge, you will use Azure API Management to secure access to MCP servers by implementing **inbound security** (protecting your MCP server from unauthorized clients). This enterprise-grade approach provides centralized security management, detailed analytics, and robust protection for your agentic AI applications.
+In this challenge, you will use Azure API Management to secure access to MCP servers. API Management can secure both **inbound access** (from MCP clients to API Management) and **outbound access** (from API Management to the MCP server backend); this challenge focuses primarily on **inbound security** (protecting your MCP server from unauthorized clients). This enterprise-grade approach provides centralized security management, detailed analytics, and robust protection for your agentic AI applications.
 
 ## Concepts
 
@@ -25,12 +25,32 @@ Azure API Management supports exposing MCP servers in two primary ways:
 - Support servers built with LangChain, LangServe, Azure Logic Apps, Azure Functions, and more
 - Centralize security, monitoring, and access control for distributed MCP servers
 
-#### 2. REST API as MCP Server (covered in upcoming challenges)
+#### 2. REST API as MCP Server
 
-- Expose any REST API managed in API Management as an MCP server
+- Expose any REST API managed in API Management as an MCP server, including REST APIs imported from Azure resources
 - API operations automatically become MCP tools
 - Transform existing RESTful endpoints into agent-compatible tools
 - Leverage existing API investments for AI scenarios
+
+### MCP Server Endpoints and Transport
+
+Azure API Management supports the **remote MCP server** mode over HTTP-based transports:
+
+| Transport type | Endpoint | Notes |
+| --- | --- | --- |
+| Streamable HTTP | `/mcp` | Recommended. Replaces the HTTP + SSE transport |
+| SSE (server-sent events) | `/sse`, `/messages` | Deprecated as of protocol version `2024-11-05` |
+
+> **Note**: Use the **Streamable HTTP** (`/mcp`) endpoint for new work. The SSE transport is deprecated and is retained only for backward compatibility.
+
+### Availability
+
+MCP server management features are available in the following API Management tiers:
+
+- **Classic tiers**: Developer, Basic, Standard, Premium
+- **v2 tiers**: Basic v2, Standard v2, Premium v2
+
+> **Note**: API Management currently supports MCP server **tools**, but doesn't support MCP **resources** or **prompts**. Policies apply to all API operations exposed as tools in the MCP server.
 
 ### Azure API Management for MCP Servers
 
@@ -53,6 +73,13 @@ graph TB
     B -->|Analytics| F[Monitoring & Logging]   
 ```
 
+### Inbound and Outbound Security
+
+API Management can secure access in two directions:
+
+- **Inbound access** (MCP client → API Management): authenticate and authorize incoming requests using subscription keys or OAuth 2.1 / JWT validation. This is the focus of this challenge.
+- **Outbound access** (API Management → MCP server backend): securely inject OAuth 2.0 credentials for backend calls using API Management's [credential manager](https://learn.microsoft.com/en-us/azure/api-management/credentials-overview) together with the `get-authorization-context` and `set-header` policies.
+
 ### Authentication Methods
 
 #### Subscription Key Authentication
@@ -62,12 +89,14 @@ graph TB
 - Suitable for service-to-service scenarios
 - Built-in rate limiting and analytics
 
-#### OAuth 2.0 with Microsoft Entra ID
+#### OAuth 2.1 with Microsoft Entra ID
 
-- Standards-based authentication
+- Standards-based authentication (OAuth 2.1)
 - Support for user and application identities
-- Token validation and claims-based authorization
+- Token (JWT) validation and claims-based authorization with the `validate-azure-ad-token` policy
 - Integration with enterprise identity systems
+
+> **Note**: Request headers are automatically forwarded (with certain exclusions) to MCP tool invocations. If you require explicit forwarding of the `Authorization` header, define it as a required header and forward it in an `Outbound` policy, or use credential manager to securely attach the token.
 
 ### API Management Policies
 
@@ -147,7 +176,7 @@ Apply comprehensive governance policies specifically designed for MCP servers.
 
    This policy ensures every request to the MCP server includes a valid API key (subscription key) and securely passes it to the backend MCP server for further validation if required.
 
-2. **Optional: Implement OAuth 2.0 with Entra ID**:
+2. **Optional: Implement OAuth 2.1 with Entra ID**:
 
    For enterprise scenarios, replace the subscription key with OAuth:
 
@@ -177,14 +206,14 @@ Configure your MCP client to work with the secured API Management gateway.
 1. **Update MCP Client for Subscription Key Authentication**:
 
    ```csharp
-   var clientTransport = new SseClientTransport(new SseClientTransportOptions()
-   {
-       Endpoint = new Uri("https://<your-apim-name>.azure-api.net/weather-mcp/sse"),
-       AdditionalHeaders = new Dictionary<string, string>
-       {
-           { "Ocp-Apim-Subscription-Key", "<your-subscription-key>" }
-       }
-   });
+   var clientTransport = new HttpClientTransport(new HttpClientTransportOptions()
+  {
+      Endpoint = new Uri(remoteMCP),
+      AdditionalHeaders = new Dictionary<string, string>
+      {
+          { "X-API-Key", "SuperSecureSecretUsedAsApiKey1" }
+      }
+  });
    ```
 
 2. **For OAuth 2.0 Authentication** (if implemented):
@@ -199,9 +228,9 @@ Configure your MCP client to work with the secured API Management gateway.
 
    var result = await app.AcquireTokenForClient(new[] { scope }).ExecuteAsync();
 
-   var clientTransport = new SseClientTransport(new SseClientTransportOptions()
+   var clientTransport = new HttpClientTransport(new HttpClientTransportOptions()
    {
-       Endpoint = new Uri("https://<your-apim-name>.azure-api.net/weather-mcp/sse"),
+       Endpoint = new Uri("https://<your-apim-name>.azure-api.net/weather-mcp/mcp"),
        AdditionalHeaders = new Dictionary<string, string>
        {
            { "Authorization", $"Bearer {result.AccessToken}" }
@@ -254,7 +283,7 @@ Verify your security implementation and explore monitoring capabilities.
 - ✅ MCP client successfully authenticates and communicates through API Management
 - ✅ Security monitoring and analytics are enabled and functional
 - ✅ Unauthorized access attempts are properly blocked and logged
-- ✅ Optional: OAuth 2.0 authentication with Entra ID is implemented
+- ✅ Optional: OAuth 2.1 authentication with Entra ID is implemented
 
 ## Learning Resources
 
