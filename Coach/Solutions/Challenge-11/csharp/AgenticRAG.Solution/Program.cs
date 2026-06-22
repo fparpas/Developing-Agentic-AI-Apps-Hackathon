@@ -17,7 +17,6 @@ using Azure.Search.Documents.Agents.Models;
 class Program
 {
     private static IConfiguration? _configuration;
-    private static KnowledgeAgentRetrievalClient? _agentClient;
     static async Task Main(string[] args)
     {
         var agentInstructions = @"A Q&A agent that can answer questions about the Earth at night. If you don't have the answer, respond with ""I don't know"".";
@@ -48,7 +47,7 @@ class Program
 
     private static async Task<SearchIndexClient> RegisterAgenticSearch(string indexDataContentUrl)
     {
-        var aoaiEndpoint = _configuration["AzureOpenAI:Endpoint"] ?? throw new InvalidOperationException("Azure OpenAI endpoint is required");
+        var aoaiEndpoint = _configuration!["AzureOpenAI:Endpoint"] ?? throw new InvalidOperationException("Azure OpenAI endpoint is required");
         var aoaiKey = _configuration["AzureOpenAI:ApiKey"] ?? throw new InvalidOperationException("Azure OpenAI API key is required");
         var aoaiGptModel = _configuration["AzureOpenAI:Model"] ?? throw new InvalidOperationException("Azure OpenAI deployment name is required");
         var aoaiGptDeployment = _configuration["AzureOpenAI:DeploymentName"] ?? throw new InvalidOperationException("Azure OpenAI deployment name is required");
@@ -203,7 +202,7 @@ class Program
 
     private static async Task CleanUpResources(SearchIndexClient indexClient)
     {
-        var indexName = _configuration["AzureAISearch:IndexName"] ?? throw new InvalidOperationException("Azure Search AI index name is required");
+        var indexName = _configuration!["AzureAISearch:IndexName"] ?? throw new InvalidOperationException("Azure Search AI index name is required");
         var knowledgeSourceName = _configuration["AzureAISearch:KnowledgeSourceName"] ?? throw new InvalidOperationException("Azure Search AI knowledge source name is required");
         var knowledgeAgentName = _configuration["AzureAISearch:KnowledgeAgentName"] ?? throw new InvalidOperationException("Azure Search AI knowledge agent name is required");
 
@@ -221,7 +220,7 @@ class Program
 
     private static async Task StartInteractiveChat(string instructions)
     {
-        var searchEndpoint = _configuration["AzureAISearch:Endpoint"] ?? throw new InvalidOperationException("Azure Search AI endpoint is required");
+        var searchEndpoint = _configuration!["AzureAISearch:Endpoint"] ?? throw new InvalidOperationException("Azure Search AI endpoint is required");
        var knowledgeAgentName = _configuration["AzureAISearch:KnowledgeAgentName"] ?? throw new InvalidOperationException("Azure Search AI knowledge agent name is required");
         
 
@@ -281,7 +280,7 @@ class Program
                 messages.Add(new Dictionary<string, string>
             {
                 { "role", "assistant" },
-                { "content", (retrievalResult.Value.Response[0].Content[0] as KnowledgeAgentMessageTextContent).Text }
+                { "content", (retrievalResult.Value.Response[0].Content[0] as KnowledgeAgentMessageTextContent)!.Text }
             });
                 ReviewResponseActivityAndResults(retrievalResult);
                 Console.WriteLine();
@@ -303,7 +302,7 @@ class Program
         // Print the response, activity, and results
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.WriteLine("Response:");
-        Console.WriteLine((retrievalResult.Value.Response[0].Content[0] as KnowledgeAgentMessageTextContent).Text);
+        Console.WriteLine((retrievalResult.Value.Response[0].Content[0] as KnowledgeAgentMessageTextContent)!.Text);
         Console.ResetColor();
 
         Console.ForegroundColor = ConsoleColor.DarkGray;

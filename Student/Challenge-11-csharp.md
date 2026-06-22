@@ -20,7 +20,20 @@ Throughout the process, you can inspect activities to understand how the agent p
 
 ## Concepts
 
-Before diving into the implementation, let's understand the key concepts that make agentic retrieval powerful for modern AI applications.
+In Azure AI Search, **agentic retrieval** is a multi-query pipeline designed for the complex questions that users and agents ask in chat and copilot apps. It's built for retrieval-augmented generation (RAG) patterns and agent-to-agent workflows.
+
+At a high level, agentic retrieval:
+
+- Uses a large language model (LLM) to break a complex query into smaller, focused **subqueries** for better coverage across your proprietary and external content. Subqueries can include chat history for extra context.
+- Runs the subqueries **in parallel**, semantically reranking each one to promote the most relevant matches.
+- Combines the best results into a **unified response** that an LLM can use to generate grounded answers.
+- Optionally returns **source references** and an **activity log** alongside the merged content, so you can use just the grounding data or pass it to an LLM for a full answer.
+
+The trade-off is added latency compared to a single-query pipeline, in exchange for handling complexity that a single query can't.
+
+The following example shows how agentic retrieval handles implied context and an intentional typo in a single complex query:
+
+![Example of a complex query handled by agentic retrieval](./Resources/Diagrams/agentric-retrieval-example.png)
 
 ### Agentic Retrieval vs. Traditional RAG
 
@@ -31,52 +44,52 @@ Before diving into the implementation, let's understand the key concepts that ma
 - Static chunk retrieval (one-shot)
 - Blind concatenation of results
 
-**Agentic Retrieval** enables:
+**Agentic retrieval** instead handles query complexity such as:
 
-- **Dynamic Query Planning** – the agent decomposes or reformulates queries
-- **Iterative Refinement** – additional searches when gaps remain
-- **Contextual Reasoning** – awareness of sufficiency vs. insufficiency
-- **Grounded Synthesis** – combines sources while preserving attribution
+- **Multi-part questions** – for example, "find a hotel near the beach, with airport transportation, and within walking distance of vegetarian restaurants."
+- **Conversation-dependent questions** – queries that rely on earlier turns in the chat.
+- **Queries that benefit from rewriting** – synonym maps and LLM-generated paraphrasing expand coverage across your content.
+- **Spelling mistakes** – the LLM can correct and reformulate the query.
 
-### Agentic Retrieval Workflow
+### How Agentic Retrieval Works
 
-```mermaid
-graph TD
-    A[User Query] --> B[Agent Planning]
-    B --> C[Dynamic Search Query Generation]
-    C --> D[Knowledge Source Retrieval]
-    D --> E[Result Evaluation]
-    E --> F{Need More Info?}
-    F -->|Yes| C
-    F -->|No| G[Synthesis & Response]
-    G --> H[User Response with Sources]
-```
-### Azure AI Search Knowledge Agents
+The pipeline runs in four stages:
 
-Azure AI Search provides native support for agentic retrieval through the following capabilities:
+1. **Workflow initiation** – Your application calls the knowledge base with a *retrieve* action that supplies the query and conversation history.
+2. **Query planning** – At `low` and `medium` retrieval reasoning effort, the knowledge base sends the query and conversation history to an LLM, which generates focused subqueries. At `minimal` effort this step is skipped and queries go directly to the knowledge sources. Reasoning effort defaults to `low` and is configured on the knowledge base.
+3. **Query execution** – The subqueries run against the knowledge sources simultaneously, using keyword, vector, or hybrid search. Each subquery is semantically reranked, and references are extracted and retained for citation.
+4. **Result synthesis** – The system merges the results into a unified response. Merged content is always returned; source references and an execution activity log are optional.
 
-- **Knowledge Sources**: Structured data repositories an agent can query
-- **Knowledge Agents**: Orchestrators that retrieve, reason, and synthesize
-- **Retrieval Orchestration**: Coordination of multi-step query execution
-- **Activity Tracking**: Logs of decision paths and retrieval operations
+![Agentic retrieval architecture and workflow](./Resources/Diagrams/agentic-retrieval-architecture.png)
 
+### Pipeline Components
 
-### Enterprise Knowledge Integration
+For any agentic retrieval scenario you need a knowledge base and at least one knowledge source; the remaining components depend on your configuration.
 
-Agentic retrieval enables enterprise scenarios such as:
+| Component | Service | Role |
+| --- | --- | --- |
+| **Knowledge base** | Azure AI Search | Orchestrates the pipeline, managing knowledge sources and query parameters. |
+| **Knowledge source** | Azure AI Search | Defines the content used in the pipeline. Can be *indexed* (backed by a search index) or *remote* (retrieved at query time from an external platform). |
+| **Search index** | Azure AI Search | Stores searchable content (text and vectors) with a semantic configuration. Required for indexed knowledge sources only. |
+| **Semantic ranker** | Azure AI Search | Reranks subquery results for relevance (L2 reranking) inside the pipeline. |
+| **LLM** | Azure OpenAI | Plans queries and selects knowledge sources. Used at `low` and `medium` reasoning effort; bypassed at `minimal`. |
 
-- **Multi-Source Knowledge**: Unified retrieval across documents, databases, APIs
-- **Contextual Understanding**: Domain-aware reasoning about user intent
-- **Auditability**: Trace how each answer was formed
-- **Source Attribution**: Cite underlying documents for verification
-- **Security Alignment**: Honor data governance and access control boundaries
+> **Terminology note:** In the latest Azure AI Search API the pipeline orchestrator is called a **knowledge base**. The preview `Azure.Search.Documents` SDK used in this challenge's code path still exposes it as a **knowledge agent** (`KnowledgeAgent`) — they refer to the same component.
+
 
 ## Description
-In this challenge, you'll complete a partially implemented agentic RAG system that demonstrates how AI agents can intelligently search through a knowledge base about "Earth at Night" using NASA data. The system showcases advanced retrieval capabilities in which the agent decides what to search for and how to synthesize the results.
+In this challenge, you'll build an agentic RAG system that intelligently searches a knowledge base about "Earth at Night" using NASA data. The system showcases advanced retrieval capabilities in which the agent decides what to search for and how to synthesize the results.
 
-You'll work with the [starter project](./Resources/Challenge-11/csharp/AgenticRAG). The conversational interface is already implemented; your objective is to complete the core agentic retrieval workflow powered by Azure AI Search.
+Optionally, you can instead complete the provided [starter project](./Resources/Challenge-11/csharp/AgenticRAG) to build the same pipeline with code (Task 2). The conversational interface is already implemented; your objective there is to fill in the core agentic retrieval workflow powered by Azure AI Search.
 
-### Task 1: Set Up Azure Resources
+
+### Task 1: Implement Agentic retrieval in the Portal
+
+Follow the [Agentic retrieval in the Azure portal quickstart](https://learn.microsoft.com/en-us/azure/search/get-started-portal-agentic-retrieval) to create the Azure AI Search **index**, **knowledge source**, and **knowledge agent** entirely through the portal, no code required.
+
+### (Optional) Task 2: Implement Agentic retrieval with code
+
+#### (Optional) Task 2.1: Set Up Azure Resources
 
 Create and configure the required Azure services for agentic retrieval.
 
@@ -86,9 +99,9 @@ Create and configure the required Azure services for agentic retrieval.
 
 2. **Deploy required models**:
     - Chat completion model (for reasoning and synthesis), for example `gpt-4o`
-    - Embedding model (for vector search), for example `text-embedding-ada-002`
+    - Embedding model (for vector search), for example `text-embedding-3-large` (the starter index expects 3072-dimension vectors)
 
-### Task 2: Configure Access and Set Up Permissions
+#### (Optional) Task 2.2: Configure Access and Set Up Permissions
 
 Azure AI Search agentic retrieval requires that the Search service can call Azure OpenAI. Configure these permissions:
 
@@ -100,14 +113,15 @@ For **Azure AI Search**:
 For **Azure OpenAI**:
 - Assign the `Cognitive Services OpenAI User` role to the Search service's managed identity.
 
-### Task 3: Configure the Application
+
+#### (Optional) Task 2.3: Configure the Application
 
 Navigate to the starter project and configure your Azure service settings.
 
 1. **Open the starter project**:
 
 ```bash
-cd Student/Resources/Challenge-11/AgenticRAG
+cd Student/Resources/Challenge-11/csharp/AgenticRAG
 ```
 
 2. **Update `appsettings.json`** with your Azure service configurations:
@@ -119,8 +133,8 @@ cd Student/Resources/Challenge-11/AgenticRAG
        "ApiKey": "your-openai-api-key",
        "DeploymentName": "gpt-4o",
        "Model": "gpt-4o",
-       "EmbeddingsDeploymentName": "text-embedding-ada-002",
-       "EmbeddingsModel": "text-embedding-ada-002"
+       "EmbeddingsDeploymentName": "text-embedding-3-large",
+       "EmbeddingsModel": "text-embedding-3-large"
      },
      "AzureAISearch": {
        "Endpoint": "https://your-search-service.search.windows.net",
@@ -132,7 +146,7 @@ cd Student/Resources/Challenge-11/AgenticRAG
    }
    ```
 
-### Task 4: Implement Agentic Retrieval Components
+#### (Optional) Task 2.4: Implement Agentic Retrieval Components
 
 Implement four core components:
 
@@ -141,9 +155,9 @@ Implement four core components:
 3. **Knowledge Source** – Reference the index and specify included fields.
 4. **Knowledge Agent** – Bridge OpenAI deployments and knowledge source for multi-step retrieval & synthesis.
 
-> **Reference Guide**: For detailed implementation steps and code examples, you can reference the [Azure AI Search agentic retrieval quickstart guide](https://learn.microsoft.com/en-us/azure/search/search-get-started-agentic-retrieval?tabs=search-perms%2Csearch-endpoint&pivots=programming-language-csharp) which provides comprehensive examples for each component.
+> **Reference Guide**: This optional task is a code-based alternative to the portal setup in Task 1. For detailed implementation steps and code examples, reference the [Azure AI Search agentic retrieval (code) quickstart](https://learn.microsoft.com/en-us/azure/search/search-get-started-agentic-retrieval?tabs=windows&pivots=csharp) which provides comprehensive examples for each component.
 
-#### 4.1 Create a Search Index
+##### (Optional) Task 2.4.1: Create a Search Index
 
 Create a search index. The index schema contains fields for document identification and page content, embeddings, and numbers. The schema also includes configurations for semantic ranking and vector search, which uses your embeddings deployment to vectorize text and match documents based on semantic or conceptual similarity.
 
@@ -222,7 +236,7 @@ await indexClient.CreateOrUpdateIndexAsync(index);
 Console.WriteLine($"Index '{indexName}' created or updated successfully.");
 ```
 
-#### 4.2 Upload Data to the Index
+##### (Optional) Task 2.4.2: Upload Data to the Index
 
 You can upload data to your Azure AI Search index in two main ways:
 
@@ -253,7 +267,7 @@ await searchIndexingBufferedSender.FlushAsync();
 Console.WriteLine($"Documents uploaded to index '{indexName}' successfully.");
 ```
 
-#### 4.3 Create a Knowledge Source
+##### (Optional) Task 2.4.3: Create a Knowledge Source
 
 Configure a knowledge source that the agent can query.
 A knowledge source is a reusable reference to your source data. The following code defines a knowledge source that targets your index.
@@ -271,7 +285,7 @@ await indexClient.CreateOrUpdateKnowledgeSourceAsync(indexKnowledgeSource);
 Console.WriteLine($"Knowledge source '{knowledgeSourceName}' created or updated successfully.");
 ```
 
-#### 4.4 Create a Knowledge Agent
+##### (Optional) Task 2.4.4: Create a Knowledge Agent
 
 Set up the intelligent agent that will perform agentic retrieval.
 
@@ -314,7 +328,7 @@ await indexClient.CreateOrUpdateKnowledgeAgentAsync(agent);
 Console.WriteLine($"Knowledge agent '{knowledgeAgentName}' created or updated successfully.");
 ```
 
-### Task 5: Execute Agentic Retrieval and Get Results
+##### (Optional) Task 2.4.5: Execute Agentic Retrieval and Get Results
 
 You can now run agentic retrieval by sending a user query (single or multi-part) to your knowledge agent. Given conversation history and retrieval parameters, the agent:
 
@@ -358,8 +372,7 @@ messages.Add(new Dictionary<string, string>
     { "content", (retrievalResult.Value.Response[0].Content[0] as KnowledgeAgentMessageTextContent).Text }
 });
 ```
-
-### Task 6: Analyze Retrieval Intelligence
+##### (Optional) Task 2.4.6: Analyze Retrieval Intelligence
 
 Inspect the agent’s internal reasoning and retrieval trace. Key elements:
 
@@ -422,7 +435,7 @@ Pay attention to:
 ## Success Criteria
 
 - ✅ Azure AI Search and Azure OpenAI services are provisioned and accessible
-- ✅ Application configuration is complete, including endpoints, API keys, and deployment names
+- ✅ The index, knowledge source, and knowledge agent are created (via the portal in Task 1, or with code in Task 2)
 - ✅ Search index is created with vector and semantic settings, and NASA data is successfully ingested
 - ✅ Knowledge source and knowledge agent are set up and working
 - ✅ Agent performs multi-step retrieval, as shown in the activity log
@@ -432,6 +445,7 @@ Pay attention to:
 ## Learning Resources
 
 - [Agentic Retrieval Concepts | Microsoft Learn](https://learn.microsoft.com/azure/search/search-agentic-retrieval-concept)
-- [Get Started with Agentic Retrieval | Microsoft Learn](https://learn.microsoft.com/azure/search/search-get-started-agentic-retrieval?tabs=search-perms%2Csearch-endpoint&pivots=programming-language-csharp)
+- [Agentic retrieval in the Azure portal quickstart | Microsoft Learn](https://learn.microsoft.com/en-us/azure/search/get-started-portal-agentic-retrieval)
+- [Get Started with Agentic Retrieval (code) | Microsoft Learn](https://learn.microsoft.com/en-us/azure/search/search-get-started-agentic-retrieval?tabs=windows&pivots=csharp)
 - [Azure AI Search .NET SDK | Microsoft Learn](https://learn.microsoft.com/dotnet/api/overview/azure/search.documents-readme)
 - [RAG Solution Design & Evaluation Guide | Microsoft Learn](https://learn.microsoft.com/azure/architecture/ai-ml/guide/rag/rag-solution-design-and-evaluation-guide)
