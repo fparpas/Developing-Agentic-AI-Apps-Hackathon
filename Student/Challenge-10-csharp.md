@@ -48,7 +48,11 @@ In this challenge, you will upgrade the existing Weather MCP server so it requir
 5. Updating your MCP client to send the API key header.
 
 
-> ℹ️ While API keys are a simple way to secure your server, it is generally more secure to authenticate clients using an identity provider such as Microsoft Entra ID (formerly Azure AD) with OAuth 2.0 or OpenID Connect flows. These modern methods provide stronger security, user and application identities, token expiration, and advanced access controls. For production scenarios, consider integrating with an identity provider instead of relying solely on API keys. Refer to the solution in the `Coach/` directory for an example of implementing OAuth 2.0 authentication with Entra ID.
+> ℹ️ While API keys are a simple way to secure your server, it is generally more secure to authenticate clients using an identity provider such as Microsoft Entra ID (formerly Azure AD) with OAuth 2.0 or OpenID Connect flows. These modern methods provide stronger security, user and application identities, token expiration, and advanced access controls. For production scenarios, consider integrating with an identity provider instead of relying solely on API keys.
+>
+> For a complete, working example of OAuth 2.0 / OpenID Connect authentication with Microsoft Entra ID, reference the Entra ID implementation in the Coach solution for Challenge 10:
+> - Server: `Coach/Solutions/Challenge-10/csharp/MCP.Server.EntraID.SecureWeather.Solution`
+> - Client: `Coach/Solutions/Challenge-10/csharp/MCP.Client.EntraID.SecureWeather.Solution`
 
 ### Task 1: Convert MCP Server to Remote MCP Server
 
@@ -257,7 +261,7 @@ Verify that only requests with the correct API key are processed. This confirms 
 - [Azure Key Vault for Secrets Management](https://docs.microsoft.com/en-us/azure/key-vault/)
 - [HTTP Security Headers](https://owasp.org/www-project-secure-headers/)
 - [CORS in ASP.NET Core](https://docs.microsoft.com/en-us/aspnet/core/security/cors)
-- [Model Context Protocol Security Guidelines](https://modelcontextprotocol.io/docs/security)
-- [HTTPS Enforcement in ASP.NET Core](https://docs.microsoft.com/en-us/aspnet/core/security/enforcing-ssl)
+- [Model Context Protocol Authorization](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [Understanding Authorization in MCP](https://modelcontextprotocol.io/docs/tutorials/security/authorization)
 - [Rate Limiting in ASP.NET Core](https://docs.microsoft.com/en-us/aspnet/core/performance/rate-limit)
- 
+- [C# SDK samples](https://github.com/modelcontextprotocol/csharp-sdk/tree/main/samples)

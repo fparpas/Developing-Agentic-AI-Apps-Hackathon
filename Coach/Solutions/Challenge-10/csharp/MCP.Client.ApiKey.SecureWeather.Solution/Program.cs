@@ -11,9 +11,9 @@ using Microsoft.Extensions.Options;
 
 class Program
 {
-    public static AzureOpenAIClient openAIClient = null;
-    public static IClientTransport clientTransport = null;
-    public static IMcpClient mcpClient = null;
+    public static AzureOpenAIClient openAIClient = null!;
+    public static IClientTransport clientTransport = null!;
+    public static McpClient mcpClient = null!;
 
     public static async Task Main(string[] args)
     {
@@ -87,7 +87,7 @@ class Program
             else
             {
                 // Make sure that Weather MCP server is running
-                clientTransport = new SseClientTransport(new SseClientTransportOptions()
+                clientTransport = new HttpClientTransport(new HttpClientTransportOptions()
                 {
                     Endpoint = new Uri(remoteMCP),
                     AdditionalHeaders = new Dictionary<string, string>
@@ -99,7 +99,7 @@ class Program
                
 
             //Initialize MCP client
-            mcpClient = await McpClientFactory.CreateAsync(clientTransport!);
+            mcpClient = await McpClient.CreateAsync(clientTransport!);
 
             //Load MCP tools from server
             var tools = await mcpClient.ListToolsAsync();
