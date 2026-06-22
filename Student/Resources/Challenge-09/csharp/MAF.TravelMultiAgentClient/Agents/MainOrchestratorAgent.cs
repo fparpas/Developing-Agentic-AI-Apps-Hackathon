@@ -1,11 +1,6 @@
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
-using Microsoft.Extensions.Logging;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Agents;
-using Microsoft.SemanticKernel.ChatCompletion;
 using ModelContextProtocol.Protocol;
-using OpenAI.Chat;
 using System.ComponentModel;
   
 
@@ -14,7 +9,6 @@ namespace TravelMultiAgentClient.Agents;
 
 public class OrchestratorAgent
 {
-    private readonly ILogger<TransferAgent> _logger;
     private readonly AIAgent _agent;
     const string SourceName = "WorkflowSample";
     public AIAgent Agent
@@ -25,7 +19,7 @@ public class OrchestratorAgent
     public OrchestratorAgent(IChatClient chatClient, AIAgent[] agentsAsTools)
     {
 
-        _agent = chatClient.CreateAIAgent(
+        _agent = chatClient.AsAIAgent(
             name: "OrchestratorAgent",
             description: "A specialized agent for orchestrating travel plans and itineraries.",
             tools: LoadAgentsAsTools(agentsAsTools).ToArray(),

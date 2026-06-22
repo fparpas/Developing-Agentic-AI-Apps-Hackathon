@@ -1,9 +1,5 @@
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
-using Microsoft.Extensions.Logging;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Agents;
-using Microsoft.SemanticKernel.ChatCompletion;
 using ModelContextProtocol.Client;
 using System.ComponentModel;
 using TravelMultiAgentClient.Services;
@@ -13,7 +9,6 @@ namespace TravelMultiAgentClient.Agents;
 public class TransferAgent
 {
     private readonly McpClientService _mcpClient;
-    private readonly ILogger<TransferAgent> _logger;
     private readonly AIAgent _agent;
     
     public AIAgent Agent
@@ -28,7 +23,7 @@ public class TransferAgent
         //Get only transfer tools from MCP server
         var mcpTransferTools = mcpClient.McpTools.Where(t => t.Description.StartsWith("[TRANSFER]")).ToList();
 
-        _agent = chatClient.CreateAIAgent(
+        _agent = chatClient.AsAIAgent(
             name: "TransferAgent",
             description: "A specialized agent for handling ground transportation and transfer services.",
             tools: mcpTransferTools.Cast<AITool>().ToArray(),

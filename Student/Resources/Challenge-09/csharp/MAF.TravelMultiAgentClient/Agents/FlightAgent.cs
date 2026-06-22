@@ -1,9 +1,5 @@
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
-using Microsoft.Extensions.Logging;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Agents;
-using Microsoft.SemanticKernel.ChatCompletion;
 using ModelContextProtocol.Client;
 using System.ComponentModel;
 using TravelMultiAgentClient.Services;
@@ -13,7 +9,6 @@ namespace TravelMultiAgentClient.Agents;
 public class FlightAgent
 {
     private readonly McpClientService _mcpClient;
-    private readonly ILogger<FlightAgent> _logger;
     private readonly AIAgent _agent;
 
     const string SourceName = "WorkflowSample";
@@ -29,7 +24,7 @@ public class FlightAgent
         //Get only flight tools from MCP server
         var mcpFlightTools = mcpClient.McpTools.Where(t => t.Description.StartsWith("[FLIGHT]")).ToList();
 
-        _agent = chatClient.CreateAIAgent(
+        _agent = chatClient.AsAIAgent(
             name: "FlightAgent",
             description: "A specialized agent for handling flight-related queries and bookings.",
             tools: mcpFlightTools.Cast<AITool>().ToArray(),

@@ -62,29 +62,17 @@ Multi-agent orchestration in Microsoft Agent Framework provides a flexible, scal
 
 ### Starting the Travel MCP Server
 
-The Travel MCP Server provides the travel booking APIs (Amadeus) that the agents will use. Make sure it's running before starting this challenge:
+The Travel MCP Server provides the travel booking APIs (Amadeus) that the agents will use. It is already deployed in Azure for this challenge.
 
-Before starting the Travel MCP Server, you need to register for an Amadeus API key:
-1. Visit the [Amadeus for Developers portal](https://developers.amadeus.com/)
-2. Create an account or sign in
-3. Register your application to obtain your API key and secret
-4. Configure these credentials in your Travel MCP Server settings
+**Ask your coach to provide you the MCP URL of the Travel MCP Server already deployed in Azure.** You do not need to run or deploy the server yourself.
 
-To start the Travel MCP Server, open a terminal and navigate to the Travel MCP Server project directory:
+### Pointing the client at the server
 
-```powershell
-# Navigate to the Travel MCP Server directory
-cd Student\Resources\Challenge-09\csharp\MCP.Server.Travel.Solution
-
-# Run the server
-dotnet run
-```
-
-The server should start on `http://localhost:8080` (or the port specified in your configuration).
+Set the `TravelMcpServer:BaseUrl` value in the client's `Student\Resources\Challenge-09\csharp\MAF.TravelMultiAgentClient\appsettings.json` to the MCP URL provided by your coach (for example `https://travelmcp-server.<region>.azurecontainerapps.io`).
 
 ## Description
 
-In this challenge, you will build a sophisticated multi-agent application using Microsoft Agent Framework. A starter project with pre-built specialized travel agents has been provided [here](./Resources/Challenge-09/csharp/MAF.TravelMultiAgentClient). Your task is to implement orchestration workflows that enable these agents to work together in a multi-turn conversational experience.
+In this challenge, you will explore a sophisticated multi-agent application built with Microsoft Agent Framework. A starter project with pre-built specialized travel agents and orchestration workflows has been provided [here](./Resources/Challenge-09/csharp/MAF.TravelMultiAgentClient). Your task is to review the orchestration workflows, run them, and decide which pattern best enables these agents to work together in a multi-turn conversational experience.
 
 ### Provided Agents
 
@@ -96,11 +84,12 @@ The starter project includes the following specialized agents, each with specifi
 4. **TransferAgent** - Handles ground transportation, airport transfers, and rental car bookings using Amadeus transfer APIs
 5. **ReferenceAgent** - Provides reference data such as airport codes, airline information, city details, and travel insights using Amadeus reference APIs
 6. **TravelPolicyAgent** - Validates travel plans against company policies using Azure AI Foundry Agent Service (persistent agent with file search)
-7. **TravelCoordinatorAgent** - Acts as the main interface with customers and orchestrates the overall travel planning workflow
+7. **CoordinatorAgent** - Acts as the main customer interface in the workflow patterns (sequential, concurrent, handoff) and coordinates the specialized agents
+8. **OrchestratorAgent** - Main orchestrator used in the Agents-as-Tools pattern; calls the specialized agents as callable tools
 
 ### Your Task
 
-Your goal is to create **multi-agent orchestration workflows** that enable these agents to collaborate in a natural, multi-turn conversation. You'll implement different orchestration patterns to demonstrate how agents can work together in various ways:
+The starter project already implements **multi-agent orchestration workflows** that enable these agents to collaborate in a natural, multi-turn conversation. Your goal is to explore and run the different orchestration patterns to understand how agents can work together in various ways:
 
 - **Sequential Orchestration** - Process travel requests in a step-by-step pipeline
 - **Concurrent Orchestration** - Gather information from multiple agents in parallel
@@ -112,18 +101,18 @@ Your goal is to create **multi-agent orchestration workflows** that enable these
    - Understand each agent's capabilities and MCP tool integration
    - Review the agent instructions and system prompts
 
-#### Task 2: **Implement Orchestration Patterns**:
-Examine and decide which orchestration pattern is more suitable for the given scenario
-   - **Sequential Workflow**: Create a pipeline where agents execute one after another in a defined order
-   - **Concurrent Workflow**: Implement parallel execution where multiple agents run simultaneously
-   - **Handoff Workflow**: Build a dynamic workflow where agents can transfer control to each other based on context
-   - **Agents as Tools Pattern**: Create a main orchestrator that uses specialized agents as callable tools
+#### Task 2: **Explore the Orchestration Patterns**:
+All four orchestration patterns are already implemented in `Program.cs`. Review each one and decide which is most suitable for the given scenario. You can switch the active pattern by changing which `StartInteractiveChat(...)` call is uncommented at the end of `Main`:
+   - **Sequential Workflow**: A pipeline where agents execute one after another in a defined order (`AgentWorkflowBuilder.BuildSequential`)
+   - **Concurrent Workflow**: Parallel execution where multiple agents run simultaneously (`AgentWorkflowBuilder.BuildConcurrent`)
+   - **Handoff Workflow**: A dynamic workflow where agents transfer control based on context (`AgentWorkflowBuilder.CreateHandoffBuilderWith`)
+   - **Agents as Tools Pattern**: A main orchestrator (`OrchestratorAgent`) that uses the specialized agents as callable tools
 
-#### Task 3: **Enable Multi-Turn Conversations**:
-   - Implement conversation state management to maintain context across turns
-   - Allow users to refine their requests based on agent responses
-   - Support follow-up questions and iterative planning
-   - Maintain conversation history throughout the session
+#### Task 3: **Review the Multi-Turn Conversation Implementation**:
+Multi-turn conversation support is already implemented in the starter project (see the `StartInteractiveChat` methods in `Program.cs`). Review how it works:
+   - Examine how conversation state is maintained across turns (an `AgentSession` is reused for agent runs, and a `List<ChatMessage>` history is maintained for workflow runs)
+   - Notice how users can refine their requests and ask follow-up questions within the same session
+   - Observe how conversation history is passed back into each turn so agents build on previous responses
 
 ## Success Criteria
 
@@ -148,11 +137,12 @@ To successfully complete this challenge, you must demonstrate:
 
 ### ✅ **Multi-Turn Conversation Capability**
 
-- Application maintains conversation context across multiple turns
-- Users can ask follow-up questions and refine their requests
-- Conversation history is properly managed and passed between agents
-- Agents build upon previous responses in the conversation
-- Session state is maintained throughout the interaction
+- Reviewed the already-implemented multi-turn conversation support in `Program.cs`
+- Understood how the application maintains conversation context across multiple turns (reused `AgentSession` and/or `List<ChatMessage>` history)
+- Demonstrated asking follow-up questions and refining requests within the same session
+- Can explain how conversation history is managed and passed back into each turn so agents build on previous responses
+- Can explain how session state is maintained throughout the interaction
+
 ### ✅ **Testing and Demonstration**
 
 - Successfully demonstrated the selected orchestration pattern to your coach as a multi-turn conversation

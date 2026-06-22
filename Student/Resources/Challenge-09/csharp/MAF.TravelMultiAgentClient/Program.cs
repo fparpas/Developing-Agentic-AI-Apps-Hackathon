@@ -1,7 +1,7 @@
 using System.ClientModel;
 using System.Security.Principal;
-using Azure.AI.Agents.Persistent;
 using Azure.AI.OpenAI;
+using Azure.AI.Projects;
 using Azure.Identity;
 using Microsoft.Agents.AI;
 using Microsoft.Agents.AI.Workflows;
@@ -36,7 +36,7 @@ class Program
         var deploymentName = configurationService.GetValue("AzureOpenAI:ModelId", "gpt-4o");
         var apiKey = configurationService.GetRequiredValue("AzureOpenAI:ApiKey");
         var otlpEndpoint = configurationService.GetRequiredValue("Observability:AspireUrl");
-        var foundryAgentId = configurationService.GetRequiredValue("FoundryAgentService:AgentId");
+        var foundryAgentName = configurationService.GetRequiredValue("FoundryAgentService:AgentName");
         var foundryEndpoint = configurationService.GetRequiredValue("FoundryAgentService:Endpoint");
         var appInsightsConnectionString = configurationService.GetRequiredValue("Observability:AppInsightsConnectionString");
         
@@ -57,15 +57,15 @@ class Program
                 .GetChatClient(deploymentName)
                 .AsIChatClient());
 
-        // Add a persistent agents client to the service collection. The Persistent Agents Client is used to interact with Foundry Agent Service.
-        // For local development, use AzureCliCredential (requires 'az login')
-        builder.Services.AddSingleton(new PersistentAgentsClient(
-            foundryEndpoint,
-            new DefaultAzureCredential()));
+        // Add an AI Project client to the service collection. The AIProjectClient is used to interact with Foundry Agent Service.
+        // For local development, use DefaultAzureCredential (requires 'az login').
+        builder.Services.AddSingleton(new AIProjectClient(
+            endpoint: new Uri(foundryEndpoint),
+            tokenProvider: new DefaultAzureCredential()));
 
         //Get required services
         var chatClient = builder.Services.BuildServiceProvider().GetRequiredService<IChatClient>();
-        var persistentAgentsClient = builder.Services.BuildServiceProvider().GetRequiredService<PersistentAgentsClient>();
+        var projectClient = builder.Services.BuildServiceProvider().GetRequiredService<AIProjectClient>();
         var mcpClientService = builder.Services.BuildServiceProvider().GetRequiredService<McpClientService>();
         var logger = builder.Services.BuildServiceProvider().GetRequiredService<ILogger<Program>>();
 
@@ -76,7 +76,7 @@ class Program
         builder.Services.AddSingleton<TransferAgent>();
         builder.Services.AddSingleton<ReferenceAgent>();
         builder.Services.AddSingleton<CoordinatorAgent>();
-        builder.Services.AddSingleton(new TravelPolicyAgent(persistentAgentsClient, foundryAgentId));
+        builder.Services.AddSingleton(new TravelPolicyAgent(projectClient, foundryAgentName));
 
         //Get agents
         var flightAgent = builder.Services.BuildServiceProvider().GetRequiredService<FlightAgent>();
@@ -175,15 +175,15 @@ class Program
             logger.LogError(ex, "❌ An error occurred while running the application");
         }
     }
-
+    
     private static async Task StartInteractiveChat(AIAgent aIAgent)
     {
         Console.WriteLine("\n=== Agent Framework with MCP Tools ===");
         Console.WriteLine("You can ask questions and I'll use the available MCP tools to help you.");
         Console.WriteLine("Type 'exit' to quit.\n");
 
-        AgentThread agentThread = aIAgent.GetNewThread();
-        var messages = new List<ChatMessage>();
+        AgentSession session = await aIAgent.CreateSessionAsync();
+
         while (true)
         {
             Console.ForegroundColor = ConsoleColor.Cyan;
@@ -191,7 +191,6 @@ class Program
             Console.ResetColor();
 
             var userInput = Console.ReadLine();
-            messages.Add(new(ChatRole.User, userInput));
 
             if (string.IsNullOrWhiteSpace(userInput) || userInput.Equals("exit", StringComparison.OrdinalIgnoreCase))
             {
@@ -205,11 +204,8 @@ class Program
                 Console.Write("Assistant: ");
                 Console.ResetColor();
 
-                agentThread = aIAgent.GetNewThread();
-
-                // Run agent with user input and agent thread
-                var response = await aIAgent.RunAsync(messages, agentThread);
-                messages.AddRange(response.Messages);
+                // Run agent with user input and agent session
+                var response = await aIAgent.RunAsync(userInput, session);
 
                 Console.WriteLine(response);
             }
@@ -221,8 +217,10 @@ class Program
                 Console.WriteLine();
             }
         }
+
+        Console.WriteLine("Goodbye!");
     }
-    
+
     private static async Task StartInteractiveChat(Workflow workflow)
     {
         Console.WriteLine("\n=== Agent Framework with MCP Tools ===");
@@ -240,7 +238,7 @@ class Program
             Console.ResetColor();
 
             // Read user input
-            userInput = Console.ReadLine();
+            userInput = Console.ReadLine() ?? string.Empty;
 
             if (string.IsNullOrWhiteSpace(userInput) || userInput.Equals("exit", StringComparison.OrdinalIgnoreCase))
             {
@@ -257,13 +255,13 @@ class Program
                 var result = string.Empty;
 
                 // Execute workflow and process events
-                await using StreamingRun run = await InProcessExecution.StreamAsync(workflow, messages).ConfigureAwait(false);
+                await using StreamingRun run = await InProcessExecution.RunStreamingAsync(workflow, messages).ConfigureAwait(false);
                 await run.TrySendMessageAsync(new TurnToken(emitEvents: true));
                 
                 List<ChatMessage> newMessages = new();
                 await foreach (WorkflowEvent evt in run.WatchStreamAsync().ConfigureAwait(false))
                 {
-                    if (evt is AgentRunUpdateEvent e)
+                    if (evt is AgentResponseUpdateEvent e)
                     {
                         // Console.WriteLine($"{e.ExecutorId}: {e.Data}");
                         Console.Write(e.Data);

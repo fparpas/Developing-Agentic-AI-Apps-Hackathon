@@ -9,7 +9,7 @@ public class ConfigurationService
     public ConfigurationService()
     {
         Configuration = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
+            .SetBasePath(AppContext.BaseDirectory)
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
             .AddJsonFile("appsettings.Development.json", optional: true)
             .AddUserSecrets<ConfigurationService>()

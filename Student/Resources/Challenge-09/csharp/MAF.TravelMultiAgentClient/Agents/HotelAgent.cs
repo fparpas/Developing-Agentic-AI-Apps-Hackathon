@@ -1,6 +1,5 @@
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
-using Microsoft.Extensions.Logging;
 using TravelMultiAgentClient.Services;
 
 namespace TravelMultiAgentClient.Agents;
@@ -8,7 +7,6 @@ namespace TravelMultiAgentClient.Agents;
 public class HotelAgent
 {
     private readonly McpClientService _mcpClient;
-    private readonly ILogger<HotelAgent> _logger;
     private readonly AIAgent _agent;
     
     public AIAgent Agent
@@ -23,7 +21,7 @@ public class HotelAgent
         //Get only hotel tools from MCP server
         var mcpHotelTools = mcpClient.McpTools.Where(t => t.Description.StartsWith("[HOTEL]")).ToList();
 
-        _agent = chatClient.CreateAIAgent(
+        _agent = chatClient.AsAIAgent(
             name: "HotelAgent",
             description: "A specialized agent for handling hotel-related queries and bookings.",
             tools: mcpHotelTools.Cast<AITool>().ToArray(),

@@ -1,16 +1,12 @@
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Client;
-using OpenAI.Responses;
-using System.Text;
 using System.Text.Json;
 
 namespace TravelMultiAgentClient.Services;
 
 public class McpClientService
 {
-    private IMcpClient _mcpClient;
-    private ILogger<McpClientService> _logger;
+    private McpClient? _mcpClient;
     private string _baseUrl;
 
     public McpClientService(IConfiguration configuration)
@@ -20,14 +16,13 @@ public class McpClientService
 
         // Note: Constructors cannot be async, so initialize _mcpClient synchronously or move async initialization elsewhere.
         // If async initialization is required, consider using a separate async Init method or a factory pattern.
-        _mcpClient = McpClientFactory.CreateAsync(
-            new SseClientTransport(
-                new SseClientTransportOptions
-                {
-                    Endpoint = new Uri(baseUrl),
-                    ConnectionTimeout = TimeSpan.FromMinutes(5), // Increase MCP connection timeout to 5 minutes
-                }
-            )
+                _mcpClient = McpClient.CreateAsync(
+           new HttpClientTransport(
+               new HttpClientTransportOptions()
+               {
+                   Endpoint = new Uri(_baseUrl)
+               }
+           )
         ).GetAwaiter().GetResult();
     }
 
@@ -37,13 +32,13 @@ public class McpClientService
 
     public IList<McpClientTool> GetMcpTools()
     {
-        var tools = _mcpClient.ListToolsAsync().GetAwaiter().GetResult();
+        var tools = _mcpClient!.ListToolsAsync().GetAwaiter().GetResult();
         return tools;
     }
 
         public async Task<IList<McpClientTool>> GetMcpToolsAsync()
     {
-        var tools = await _mcpClient.ListToolsAsync();
+        var tools = await _mcpClient!.ListToolsAsync();
         return tools;
     }
 }

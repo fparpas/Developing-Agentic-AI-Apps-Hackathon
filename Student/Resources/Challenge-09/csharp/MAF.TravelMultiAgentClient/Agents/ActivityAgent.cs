@@ -1,9 +1,5 @@
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
-using Microsoft.Extensions.Logging;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Agents;
-using Microsoft.SemanticKernel.ChatCompletion;
 using ModelContextProtocol.Client;
 using System.ComponentModel;
 using TravelMultiAgentClient.Services;
@@ -13,7 +9,6 @@ namespace TravelMultiAgentClient.Agents;
 public class ActivityAgent
 {
     private readonly McpClientService _mcpClient;
-    private readonly ILogger<ActivityAgent> _logger;
     private readonly AIAgent _agent;
     
     public AIAgent Agent
@@ -28,7 +23,7 @@ public class ActivityAgent
         //Get only activity tools from MCP server
         var mcpActivityTools = mcpClient.McpTools.Where(t => t.Description.StartsWith("[ACTIVITIES]")).ToList();
 
-        _agent = chatClient.CreateAIAgent(
+        _agent = chatClient.AsAIAgent(
             name: "ActivityAgent",
             description: "A specialized agent for handling activities and experiences queries.",
             tools: mcpActivityTools.Cast<AITool>().ToArray(),

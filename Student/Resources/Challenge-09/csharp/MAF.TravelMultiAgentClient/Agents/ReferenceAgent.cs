@@ -1,9 +1,5 @@
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
-using Microsoft.Extensions.Logging;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Agents;
-using Microsoft.SemanticKernel.ChatCompletion;
 using ModelContextProtocol.Client;
 using System.ComponentModel;
 using TravelMultiAgentClient.Services;
@@ -13,7 +9,6 @@ namespace TravelMultiAgentClient.Agents;
 public class ReferenceAgent
 {
     private readonly McpClientService _mcpClient;
-    private readonly ILogger<ReferenceAgent> _logger;
     private readonly AIAgent _agent;
     
     public AIAgent Agent
@@ -28,7 +23,7 @@ public class ReferenceAgent
         //Get only reference tools from MCP server
         var mcpReferenceTools = mcpClient.McpTools.Where(t => t.Description.StartsWith("[REFERENCE]")).ToList();
 
-        _agent = chatClient.CreateAIAgent(
+        _agent = chatClient.AsAIAgent(
             name: "ReferenceAgent",
             description: "A specialized agent for providing reference data and travel intelligence.",
             tools: mcpReferenceTools.Cast<AITool>().ToArray(),

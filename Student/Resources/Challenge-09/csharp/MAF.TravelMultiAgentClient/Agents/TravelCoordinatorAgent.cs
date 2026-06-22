@@ -1,9 +1,5 @@
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
-using Microsoft.Extensions.Logging;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Agents;
-using Microsoft.SemanticKernel.ChatCompletion;
 using System.ComponentModel;
   
 
@@ -12,7 +8,6 @@ namespace TravelMultiAgentClient.Agents;
 
 public class CoordinatorAgent
 {
-    private readonly ILogger<TransferAgent> _logger;
     private readonly AIAgent _agent;
     
     public AIAgent Agent
@@ -23,7 +18,7 @@ public class CoordinatorAgent
     public CoordinatorAgent(IChatClient chatClient)
     {
 
-        _agent = chatClient.CreateAIAgent(
+        _agent = chatClient.AsAIAgent(
             name: "CoordinatorAgent",
             description: "A specialized agent for coordinating travel plans and itineraries.",
             instructions: """
