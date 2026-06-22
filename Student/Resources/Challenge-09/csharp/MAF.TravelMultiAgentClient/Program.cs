@@ -116,12 +116,13 @@ class Program
         #region Handoff Workflow
         // Create a handoff workflow where the coordinator can hand off to any other agent, and
         var handOffWorkflow = AgentWorkflowBuilder.CreateHandoffBuilderWith(coordinatorAgent.Agent) // Start with the coordinator agent
-        .WithHandoffs(coordinatorAgent.Agent, new[] { flightAgent.Agent, hotelAgent.Agent, activityAgent.Agent, transferAgent.Agent, referenceAgent.Agent })      // Coordinator can hand off to all agents
+        .WithHandoffs(coordinatorAgent.Agent, new[] { flightAgent.Agent, hotelAgent.Agent, activityAgent.Agent, transferAgent.Agent, referenceAgent.Agent, travelPolicyAgent.Agent })      // Coordinator can hand off to all agents
         .WithHandoff(flightAgent.Agent, coordinatorAgent.Agent)
         .WithHandoff(hotelAgent.Agent, coordinatorAgent.Agent)
         .WithHandoff(activityAgent.Agent, coordinatorAgent.Agent)
         .WithHandoff(transferAgent.Agent, coordinatorAgent.Agent)
         .WithHandoff(referenceAgent.Agent, coordinatorAgent.Agent)
+        .WithHandoff(travelPolicyAgent.Agent, coordinatorAgent.Agent)        
         .Build();
         #endregion
         
@@ -134,7 +135,8 @@ class Program
             hotelAgent.Agent,
             activityAgent.Agent,
             transferAgent.Agent,
-            referenceAgent.Agent
+            referenceAgent.Agent,
+            travelPolicyAgent.Agent
         };
 
         // Create and register the main orchestrator agent, add the other agents as tools
