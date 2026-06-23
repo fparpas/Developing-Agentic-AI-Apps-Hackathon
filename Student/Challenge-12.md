@@ -1,132 +1,299 @@
-# Challenge 12 - Optional - Expose REST API in API Management as an MCP server
+# Challenge 12 - Optional - Secure access to MCP servers in API Management
 
-[< Previous Challenge](./Challenge-11.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-13.md)
+< Previous Challenge ([C#](./Challenge-11-csharp.md) - [Python](./Challenge-11-python.md)) - **[Home](../README.md)** - [Next Challenge >](./Challenge-13.md)
 
 ## Introduction
 
-In the previous challenge, you secured access to existing MCP servers using Azure API Management. You can also transform any REST API managed in Azure API Management into an MCP server.
+In previous challenges, you have built MCP servers and clients, implemented security with API keys, and deployed them remotely. While those implementations provide basic protection, enterprise scenarios require more sophisticated patterns, including centralized authentication, authorization policies, rate limiting, and comprehensive monitoring. Azure API Management provides a powerful gateway layer that can secure, govern, and monitor access to your MCP servers at scale.
 
-This challenge covers the second major MCP use case in Azure API Management: automatically exposing REST APIs as MCP servers so AI agents can use them as tools without custom MCP code. API operations automatically become MCP tools that agents can discover and invoke.
-
-You will work with the **National Weather Service API** (`api.weather.gov`), a public REST API that provides forecasts, alerts, and observational data across the United States. It illustrates how an existing API can become a powerful agent tool without additional server implementation.
+In this challenge, you will use Azure API Management to secure access to MCP servers. API Management can secure both **inbound access** (from MCP clients to API Management) and **outbound access** (from API Management to the MCP server backend); this challenge focuses primarily on **inbound security** (protecting your MCP server from unauthorized clients). This enterprise-grade approach provides centralized security management, detailed analytics, and robust protection for your agentic AI applications.
 
 ## Concepts
 
-### Transforming a REST API into an MCP Server
+### Model Context Protocol (MCP) Overview
 
-Azure API Management can automatically transform any REST API into an MCP (Model Context Protocol) server, enabling AI agents to use existing APIs as tools without custom code. The transformation leverages OpenAPI specifications to generate MCP tools that map directly to REST API operations.
+The Model Context Protocol (MCP) is an open standard that connects AI models and agents with external data sources such as databases, APIs, and other services. It enables LLMs and AI agents to access external capabilities through a standardized protocol, solving the limitation of models being isolated from real-time or external data.
 
-### OpenAPI Specification Import
+### MCP Server Types in API Management
 
-OpenAPI specifications provide machine‑readable descriptions of REST APIs, including endpoints, parameters, request/response schemas, and authentication methods. API Management can import these specifications to create fully managed API proxies with automatic documentation, validation, and governance.
+Azure API Management supports exposing MCP servers in two primary ways:
 
-### MCP Tool Generation
+#### 1. Existing MCP Server (Proxy Mode)
 
-When exposing a REST API as an MCP server, each API operation automatically becomes an MCP tool:
+- Expose MCP-compatible servers hosted externally through API Management
+- Add a governance layer to existing MCP implementations
+- Support servers built with LangChain, LangServe, Azure Logic Apps, Azure Functions, and more
+- Centralize security, monitoring, and access control for distributed MCP servers
 
-- **Tool Names**: Generated from operation IDs or endpoint paths
-- **Parameters**: Mapped from OpenAPI parameter definitions
-- **Schemas**: Request and response schemas are preserved for validation
-- **Documentation**: API descriptions become tool descriptions for AI agents
+#### 2. REST API as MCP Server
 
-### Agent Tool Discovery
+- Expose any REST API managed in API Management as an MCP server, including REST APIs imported from Azure resources
+- API operations automatically become MCP tools
+- Transform existing RESTful endpoints into agent-compatible tools
+- Leverage existing API investments for AI scenarios
 
-AI agents discover available weather tools through the MCP protocol:
+### MCP Server Endpoints and Transport
 
-- **Tool listing**: Query available tools and their capabilities.
-- **Parameter schemas**: Understand required and optional parameters.
-- **Response formats**: Know the data shape returned by each tool.
-- **Tool chaining**: Combine multiple tools to answer multi‑step queries.
+Azure API Management supports the **remote MCP server** mode over HTTP-based transports:
 
-### API Management Integration Benefits
+| Transport type | Endpoint | Notes |
+| --- | --- | --- |
+| Streamable HTTP | `/mcp` | Recommended. Replaces the HTTP + SSE transport |
+| SSE (server-sent events) | `/sse`, `/messages` | Deprecated as of protocol version `2024-11-05` |
 
-Exposing REST APIs through API Management provides enterprise‑grade capabilities:
+> **Note**: Use the **Streamable HTTP** (`/mcp`) endpoint for new work. The SSE transport is deprecated and is retained only for backward compatibility.
 
-- **Security**: Authentication, authorization, and API key management.
-- **Governance**: Rate limiting, quotas, and usage policies.
-- **Monitoring**: Analytics, logging, and performance metrics.
-- **Reliability**: Caching, retry logic, and circuit breaker patterns.
-- **Documentation**: Automatic API documentation and developer portal integration.
+### Availability
+
+MCP server management features are available in the following API Management tiers:
+
+- **Classic tiers**: Developer, Basic, Standard, Premium
+- **v2 tiers**: Basic v2, Standard v2, Premium v2
+
+> **Note**: API Management currently supports MCP server **tools**, but doesn't support MCP **resources** or **prompts**. Policies apply to all API operations exposed as tools in the MCP server.
+
+### Azure API Management for MCP Servers
+
+Azure API Management acts as a secure gateway between MCP clients and your MCP servers, providing:
+
+- **Centralized Security**: Single point for authentication, authorization, and security policies
+- **Traffic Management**: Rate limiting, throttling, and load balancing
+- **Monitoring & Analytics**: Detailed insights into API usage and performance  
+- **Policy Enforcement**: Apply consistent security and transformation policies
+- **Developer Portal**: Self-service API discovery and documentation
+
+### MCP Security Architecture
+
+```mermaid
+graph TB
+    A[MCP Client] -->|Authenticated Request| B[Azure API Management]
+    B -->|Policy Validation| C[Rate Limiting & Throttling]
+    C -->|Authorization| D[MCP Server]
+    D -->|Outbound Calls| E[External APIs]
+    B -->|Analytics| F[Monitoring & Logging]   
+```
+
+### Inbound and Outbound Security
+
+API Management can secure access in two directions:
+
+- **Inbound access** (MCP client → API Management): authenticate and authorize incoming requests using subscription keys or OAuth 2.1 / JWT validation. This is the focus of this challenge.
+- **Outbound access** (API Management → MCP server backend): securely inject OAuth 2.0 credentials for backend calls using API Management's [credential manager](https://learn.microsoft.com/en-us/azure/api-management/credentials-overview) together with the `get-authorization-context` and `set-header` policies.
+
+### Authentication Methods
+
+#### Subscription Key Authentication
+
+- Simple, API Management-specific keys
+- Passed in `Ocp-Apim-Subscription-Key` header
+- Suitable for service-to-service scenarios
+- Built-in rate limiting and analytics
+
+#### OAuth 2.1 with Microsoft Entra ID
+
+- Standards-based authentication (OAuth 2.1)
+- Support for user and application identities
+- Token (JWT) validation and claims-based authorization with the `validate-azure-ad-token` policy
+- Integration with enterprise identity systems
+
+> **Note**: Request headers are automatically forwarded (with certain exclusions) to MCP tool invocations. If you require explicit forwarding of the `Authorization` header, define it as a required header and forward it in an `Outbound` policy, or use credential manager to securely attach the token.
+
+### API Management Policies
+
+Policies are XML-based configurations that modify request/response behavior:
+
+- **Inbound**: Applied before forwarding to backend MCP server
+- **Backend**: Applied when communicating with backend MCP server
+- **Outbound**: Applied before returning response to MCP client
+- **On-Error**: Applied when errors occur during MCP tool execution
+
+#### Common MCP Governance Patterns
+
+- **Rate limiting**: Prevent abuse with `rate-limit-by-key` policies based on client IP or user identity
+- **Authentication**: Validate API keys, OAuth tokens, or subscription keys
+- **IP filtering**: Restrict access based on client IP addresses
+- **Request validation**: Ensure proper request format and size limits
+- **Response caching**: Cache tool responses to improve performance
 
 ## Description
 
-In this challenge, you will import the National Weather Service API into Azure API Management using its OpenAPI specification, then expose that REST API as an MCP server. This enables AI agents to access real‑time weather data through standardized MCP tools.
+In this challenge, you will secure your MCP Weather Server using Azure API Management. You'll implement inbound authentication (protecting access to your MCP server) and explore how API Management provides enterprise-grade security and monitoring capabilities. This builds upon your previous work while adding centralized security management.
 
-The National Weather Service offers a free API with current conditions, forecasts, alerts, and station observation data for the United States.
+### Task 1: Create and Configure Azure API Management Instance
 
-### Task 1: Import National Weather Service API into API Management
+Set up Azure API Management to act as a secure gateway for your MCP server.
 
-Import the weather API using its OpenAPI specification to create a managed API in Azure API Management.
+If you don't already have an API Management instance, complete the following quickstart: [Create an Azure API Management instance](https://learn.microsoft.com/en-us/azure/api-management/get-started-create-service-instance)
 
-1. **Access Your API Management Instance**:
-   - Navigate to your Azure API Management instance from previous challenges
-   - If you don't have one, follow the [API Management quickstart](https://learn.microsoft.com/en-us/azure/api-management/get-started-create-service-instance)
+### Task 2: Expose an Existing MCP Server
 
-2. **Import the OpenAPI Specification**:
-   - Import the API using the OpenAPI specification from: `https://api.weather.gov/openapi.json`
-   - Configure with display name "National Weather Service API" and URL suffix "weather"
+Expose and govern an existing MCP server through API Management.
 
-3. **Verify API Import**:
-   - Confirm operations import successfully, including endpoints for coordinates, forecasts, alerts, and observations.
-   - Review automatically generated documentation for completeness and accuracy.
+1. **Prepare Your Existing Remote MCP Server created in previous challenges**:
+   - Verify it supports Streamable HTTP transport
+   - Note the base URL of your existing MCP server
+   - Gather authentication credentials (API keys, OAuth tokens, etc.)
 
-4. **Test the API**:
-   - Use the **Test** tab to verify connectivity.
-   - Send a sample request.
-   - Confirm valid responses are returned from the National Weather Service.
+2. **Create MCP Server in API Management**:
+   - In the Azure portal, navigate to your API Management instance
+   - Go to **APIs** → **MCP servers** → **+ Create MCP server**
+   - Select **Expose an existing MCP server**
+   - Configure the backend MCP server:
+     - **Base URL**: Enter your existing MCP server URL (e.g., `https://your-function-app.azurewebsites.net/api/mcp`)
+     - **Transport type**: Select **Streamable HTTP** (default)
+   - Configure the new MCP server in API Management:
+     - **Name**: Enter a descriptive name (e.g., "Weather Tools MCP Server")
+     - **Base path**: Enter a route prefix for tools (e.g., `weather-tools`)
+     - **Description**: Optional description for documentation
+   - Click **Create**
 
-### Task 2: Create MCP Server from REST API
+3. **Verify MCP Server Creation**:
+   - The MCP server should appear in the **MCP Servers** list
+   - Note the **Server URL** which will be used by MCP clients
+   - Format: `https://<your-apim-name>.azure-api.net/<base-path>/mcp`
 
-Transform your imported REST API into an MCP server that AI agents can discover and use.
+### Task 3: Configure MCP Server Governance Policies
 
-1. **Create MCP Server from API**:
-   - Navigate to **MCP servers** in your API Management instance
-   - Create a new MCP server by exposing the National Weather Service API as an MCP server
-   - Configure the server with name "Weather Tools Server", base path "weather-tools", and appropriate description
+Apply comprehensive governance policies specifically designed for MCP servers.
 
-2. **Review Generated MCP Tools**:
-   - Verify that API operations convert to MCP tools with descriptive names.
-   - Confirm parameter schemas are mapped from the OpenAPI specification.
-   - Note key tools such as `get_points_by_coordinates`, `get_gridpoint_forecast`, `get_alerts`, and `get_station_observations`.
+1. **Create MCP Policy to Authenticate with an API Key**:
 
-3. **Configure Tool Documentation**:
-   - Review and enhance tool descriptions for AI agent consumption
-   - Ensure parameter descriptions are clear and response schemas are properly documented
+   Navigate to the MCP server's **Policies** section and add the following policy to require an API key (subscription key) for authentication and forward it to the backend MCP server:
 
-### Task 3: Test MCP Server with MCP Inspector
+   ```xml
+   <policies>
+     <inbound>
+       <base />
+       <!-- Require API key via subscription key header -->
+       <check-header name="Ocp-Apim-Subscription-Key" failed-check-httpcode="401" failed-check-error-message="API key (subscription key) required" ignore-case="true" />
+       <!-- Forward API key to backend if needed -->
+       <set-header name="X-API-Key" exists-action="override">
+         <value>@(context.Request.Headers.GetValueOrDefault("Ocp-Apim-Subscription-Key"))</value>
+       </set-header>
+     </inbound>
+   </policies>
+   ```
 
-Verify that your weather MCP server works correctly with MCP clients.
+   This policy ensures every request to the MCP server includes a valid API key (subscription key) and securely passes it to the backend MCP server for further validation if required.
 
-1. **Connect MCP Inspector**:
-   - Launch MCP Inspector and connect to your MCP server URL: `https://<your-apim-name>.azure-api.net/weather-tools/mcp`
+2. **Optional: Implement OAuth 2.1 with Entra ID**:
 
-2. **Validate Weather Tools**:
-   - Explore available tools and verify documentation quality.
-   - Test key operations: location metadata, forecasts, current conditions, and alerts.
-   - Confirm responses contain valid, current weather data with accurate timestamps and location information.
+   For enterprise scenarios, replace the subscription key with OAuth:
 
-### Optional Task 4: Integrate with AI Agents
+   ```xml
+   <policies>
+     <inbound>
+       <validate-azure-ad-token tenant-id="your-entra-tenant-id"
+                   header-name="Authorization"
+                   failed-validation-httpcode="401"
+                   failed-validation-error-message="Unauthorized. Access token is missing or invalid.">
+         <client-application-ids>
+           <application-id>your-client-application-id</application-id>
+         </client-application-ids>
+       </validate-azure-ad-token>
+       <!-- Forward token to backend -->
+       <set-header name="Authorization" exists-action="override">
+         <value>@(context.Request.Headers.GetValueOrDefault("Authorization"))</value>
+       </set-header>
+     </inbound>
+   </policies>
+   ```
 
-Create an AI agent that can use your weather MCP server to answer weather-related questions and provide intelligent recommendations.
+### Task 4: Update MCP Client Configuration
+
+Configure your MCP client to work with the secured API Management gateway.
+
+1. **Update MCP Client for Subscription Key Authentication**:
+
+   ```csharp
+   var clientTransport = new HttpClientTransport(new HttpClientTransportOptions()
+  {
+      Endpoint = new Uri(remoteMCP),
+      AdditionalHeaders = new Dictionary<string, string>
+      {
+          { "X-API-Key", "SuperSecureSecretUsedAsApiKey1" }
+      }
+  });
+   ```
+
+2. **For OAuth 2.0 Authentication** (if implemented):
+
+   ```csharp
+   // Acquire token from Entra ID
+   var app = ConfidentialClientApplicationBuilder
+       .Create(clientId)
+       .WithClientSecret(clientSecret)
+       .WithAuthority(new Uri($"https://login.microsoftonline.com/{tenantId}"))
+       .Build();
+
+   var result = await app.AcquireTokenForClient(new[] { scope }).ExecuteAsync();
+
+   var clientTransport = new HttpClientTransport(new HttpClientTransportOptions()
+   {
+       Endpoint = new Uri("https://<your-apim-name>.azure-api.net/weather-mcp/mcp"),
+       AdditionalHeaders = new Dictionary<string, string>
+       {
+           { "Authorization", $"Bearer {result.AccessToken}" }
+       }
+   });
+   ```
+
+3. **Visual Studio Code MCP Configuration**:
+
+   Update VS Code settings to use the secured endpoint with authentication:
+
+   ```json
+   {
+     "mcp": {
+       "servers": {
+         "weather-secure": {
+           "name": "Secure Weather MCP Server",
+           "type": "remote",
+           "url": "https://<your-apim-name>.azure-api.net/weather-mcp",
+           "transport": "streamable-http",
+           "headers": {
+             "Ocp-Apim-Subscription-Key": "<your-subscription-key>"
+           }
+         }
+       }
+     }
+   }
+   ```
+
+### Task 5: Test Security and Monitor Usage
+
+Verify your security implementation and explore monitoring capabilities.
+
+1. **Test Authentication**:
+   - Try accessing the MCP server without authentication (should fail)
+   - Verify successful access with valid credentials
+   - Test rate limiting by exceeding configured limits
+
+2. **Monitor API Usage**:
+   - Navigate to **Analytics** in API Management
+   - Review request volumes, response times, and error rates
+   - Examine security events and blocked requests
+
 
 ## Success Criteria
 
-- ✅ National Weather Service API is successfully imported into API Management using OpenAPI specification
-- ✅ REST API operations are properly imported with correct parameters and documentation
-- ✅ MCP server is created from the imported REST API with all tools properly configured
-- ✅ Weather tools are available and functional through MCP Inspector
-- ✅ Tools can retrieve real-time weather data including forecasts, current conditions, and alerts
-- ✅ MCP server correctly handles location-based queries with coordinate parameters
-- ✅ AI agents can successfully discover, call, and receive valid responses from weather tools
-
+- ✅ Azure API Management instance is deployed and accessible
+- ✅ MCP Weather Server is imported and secured with API Management policies
+- ✅ Subscription key authentication is implemented and working
+- ✅ MCP client successfully authenticates and communicates through API Management
+- ✅ Security monitoring and analytics are enabled and functional
+- ✅ Unauthorized access attempts are properly blocked and logged
+- ✅ Optional: OAuth 2.1 authentication with Entra ID is implemented
 
 ## Learning Resources
 
-### Azure API Management
+- [Secure access to MCP servers in API Management](https://learn.microsoft.com/en-us/azure/api-management/secure-mcp-servers)
+- [Expose and govern an existing MCP server](https://learn.microsoft.com/en-us/azure/api-management/expose-existing-mcp-server)
 - [Quickstart: Create a new Azure API Management instance by using the Azure portal](https://learn.microsoft.com/en-us/azure/api-management/get-started-create-service-instance)
-- [Import an OpenAPI specification | Microsoft Learn](https://learn.microsoft.com/en-us/azure/api-management/import-api-from-oas?tabs=portal)
-- [Expose REST API in API Management as an MCP server | Microsoft Learn](https://learn.microsoft.com/en-us/azure/api-management/export-rest-mcp-server)
 - [About MCP servers in Azure API Management](https://learn.microsoft.com/en-us/azure/api-management/mcp-server-overview)
+- [API Management Policies Reference](https://docs.microsoft.com/en-us/azure/api-management/api-management-policies)
+- [API Management Security Features](https://docs.microsoft.com/en-us/azure/api-management/api-management-security-controls)
+- [Credential Manager in API Management](https://learn.microsoft.com/en-us/azure/api-management/credentials-overview)
+- [Remote MCP Server Samples with API Management](https://github.com/Azure-Samples/remote-mcp-apim-functions-python)
+- [MCP Client Authorization Lab](https://github.com/Azure-Samples/AI-Gateway/tree/main/labs/mcp-client-authorization)
 
-### National Weather Service API
-- [National Weather Service API Documentation](https://www.weather.gov/documentation/services-web-api)

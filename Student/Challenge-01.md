@@ -50,7 +50,7 @@ Plan Mode is best suited for cases where:
 
 Example prompt:
 
-> "Plan an update to migrate our data access layer to use async methods, add logging, and include unit tests. Do not modify code yet—just produce the plan."
+> "Plan an update to migrate our data access layer to use async methods, add logging, and include unit tests. Do not modify code yet, just produce the plan."
 
 After reviewing the plan, you can instruct Copilot to proceed (optionally step‑by‑step) or request revisions for greater precision.
 
@@ -84,12 +84,12 @@ Demonstrate Copilot's different modes by completing a simple coding task: create
 
 #### Agent Mode
 - In Copilot Chat, use an agent command such as:  
-  *"@workspace Create a function in JavaScript that adds two numbers and write a test for it."*
+  *"Create a function in JavaScript that adds two numbers and write a test for it."*
 
 #### Plan Mode
 
 - In Copilot Chat, request a plan first:  
-  *"@workspace Plan creating a function in Python that adds two numbers, then implement it and write a unit test. Produce only the plan."*  
+  *"Plan creating a function in Python that adds two numbers, then implement it and write a unit test. Produce only the plan."*  
 - Review, reorder, or refine the proposed steps (e.g., create file, implement function, add test). Approve the plan before allowing Copilot to execute changes.
 
 Try these examples in your editor to see how Copilot assists you differently in each mode.
@@ -124,7 +124,6 @@ Using Playwright, interact in Copilot Chat to automate Google Maps and obtain dr
 
 - ✅ GitHub Copilot configured in VS Code
 - ✅ Inline code suggestions demonstrated
-- ✅ Interaction with @workspace, @vscode, and @terminal agents demonstrated
 - ✅ Appropriate use cases for each Copilot mode explained
 - ✅ Plan Mode used to generate and review a task plan before execution
 - ✅ MCP integration used to fetch a Microsoft Docs article
@@ -133,7 +132,6 @@ Using Playwright, interact in Copilot Chat to automate Google Maps and obtain dr
 ## Learning Resources
 
 - [Set up GitHub Copilot in VS Code](https://code.visualstudio.com/docs/copilot/setup)
-- [GitHub Copilot in VS Code](https://code.visualstudio.com/docs/editor/artificial-intelligence)
 - [Use MCP servers in VS Code](https://code.visualstudio.com/docs/copilot/customization/mcp-servers)
 - [GitHub Copilot Chat Documentation](https://docs.github.com/en/copilot/using-github-copilot/asking-github-copilot-questions-in-your-ide)
 - [Model Context Protocol (MCP) Overview](https://modelcontextprotocol.io/)

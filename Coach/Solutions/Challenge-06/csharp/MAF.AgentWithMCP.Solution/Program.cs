@@ -1,4 +1,3 @@
-using Azure.AI.Agents.Persistent;
 using Azure.AI.OpenAI;
 using Azure.AI.Projects;
 using Azure.Core;
@@ -16,6 +15,7 @@ using System.ComponentModel;
 using System.Text.Json;
 
 #pragma warning disable OPENAI001
+// #pragma warning disable CS0618 // GetAIAgentAsync is obsolete but replacement API is not yet stable
 
 class Program
 {
@@ -40,17 +40,13 @@ class Program
             // Create AI Weather Agent and register MCP Weather tools. 
             var weatherAgent = await CreateWeatherAIAgentAndRegisterMCPTools("WeatherAgent", "You are a helpful assistant that can provide weather information using the available tools.");
 
-            // Get Classic Foundry Agent Service Agent 
-            var agentServiceClassicFoundry = await GetAIAgentServiceAgent_ClassicFoundry();
-
-            // Get New Foundry Agent Service Agent
-            var agentServiceNewFoundry = await GetAIAgentServiceAgent_NewFoundry();
+            // Get Foundry Agent Service Travel Agent
+            var agentService = await GetAIAgentServiceAgent();
             
             // Start interactive chat
             // await StartInteractiveChat(timeAgent);
             // await StartInteractiveChat(weatherAgent);
-            //await StartInteractiveChat(agentServiceClassicFoundry);
-            await StartInteractiveChat(agentServiceNewFoundry);
+            await StartInteractiveChat(agentService);
         }
         catch (Exception ex)
         {
@@ -144,36 +140,20 @@ class Program
         return agent;
     }  
 
-    private static async Task<AIAgent> GetAIAgentServiceAgent_ClassicFoundry()
-    {
-        var endpoint = _configuration["AzureOpenAI:Endpoint"] ?? throw new InvalidOperationException("Azure OpenAI endpoint is required");
-        var apiKey = _configuration["AzureOpenAI:ApiKey"] ?? throw new InvalidOperationException("Azure OpenAI API key is required");
-        var deploymentName = _configuration["AzureOpenAI:DeploymentName"] ?? throw new InvalidOperationException("Azure OpenAI deployment name is required");
+    
 
-        var agentServiceEndpoint = _configuration["AgentService:Endpoint"] ?? throw new InvalidOperationException("Azure OpenAI agent service endpoint is required");
-        var agentId = _configuration["AgentService:AgentId_ClassicFoundry"] ?? throw new InvalidOperationException("Azure OpenAI agent service identity is required");
-
-        var persistentAgentsClient = new PersistentAgentsClient(agentServiceEndpoint, new DefaultAzureCredential());
-
-        // Retrieve the agent that was just created as an AIAgent using its ID
-        var persistentAgent = persistentAgentsClient.AsIChatClient(agentId).AsAIAgent();
-
-        return persistentAgent;
-    } 
-
-        private static async Task<AIAgent> GetAIAgentServiceAgent_NewFoundry()
+        private static async Task<AIAgent> GetAIAgentServiceAgent()
         {
             var endpoint = _configuration["AzureOpenAI:Endpoint"] ?? throw new InvalidOperationException("Azure OpenAI endpoint is required");
             var apiKey = _configuration["AzureOpenAI:ApiKey"] ?? throw new InvalidOperationException("Azure OpenAI API key is required");
             var deploymentName = _configuration["AzureOpenAI:DeploymentName"] ?? throw new InvalidOperationException("Azure OpenAI deployment name is required");
 
             var agentServiceEndpoint = _configuration["AgentService:Endpoint"] ?? throw new InvalidOperationException("Azure OpenAI agent service endpoint is required");
-            var agentNameNewFoundry = _configuration["AgentService:AgentName_NewFoundry"] ?? throw new InvalidOperationException("Azure OpenAI agent service identity is required");
+            var agentName = _configuration["AgentService:AgentName"] ?? throw new InvalidOperationException("Azure OpenAI agent service identity is required");
 
-        AIProjectClient projectClient = new(endpoint: new Uri(agentServiceEndpoint), tokenProvider: new DefaultAzureCredential());
+            AIProjectClient projectClient = new(endpoint: new Uri(agentServiceEndpoint), tokenProvider: new DefaultAzureCredential());
 
-            var foundryAgent = await projectClient.Agents.GetAgentAsync(agentNameNewFoundry);
-            AIAgent aiAgent = projectClient.AsAIAgent(foundryAgent);  
+            AIAgent aiAgent = await projectClient.GetAIAgentAsync(agentName);
             return aiAgent; 
         } 
 

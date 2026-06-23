@@ -47,13 +47,13 @@ Microsoft Agent Framework provides a structured approach to AI agent development
 
 The Microsoft Agent Framework offers different components that can be used individually or combined.
 
-- **Chat clients** - provide abstractions for connecting to AI services from different providers under a common interface. Supported providers include Azure OpenAI, OpenAI, Anthropic, and more through the BaseChatClient abstraction.
+- **Chat clients** - provide abstractions for connecting to AI services from different providers under a common interface. Any inference service that provides a `Microsoft.Extensions.AI.IChatClient` implementation can be used to build an agent via the `ChatClientAgent` class. Supported providers include Azure OpenAI, OpenAI, Anthropic, and more.
 
 - **Function tools** - containers for custom functions that extend agent capabilities. Agents can automatically invoke functions with your own logic and integrate also with MCP servers and services.
 
 - **Built-in tools** - prebuilt capabilities including Code Interpreter for Python execution, File Search for document analysis, and Web Search for internet access.
 
-- **Conversation management** - structured message system with roles (USER, ASSISTANT, SYSTEM, TOOL) and AgentThread for persistent conversation context across interactions.
+- **Conversation management** - structured message system with roles (USER, ASSISTANT, SYSTEM, TOOL) and AgentSession for persistent conversation context across interactions.
 
 - **Workflow orchestration** - supports sequential workflows, concurrent execution, handoff and Magentic patterns for complex multi-agent collaboration.
 
@@ -62,17 +62,18 @@ The Microsoft Agent Framework provides support for several types of agents to ac
 
 All agents are derived from a common base class, AIAgent, which provides a consistent interface for all agent types. This allows for building common, agent agnostic, higher level functionality such as multi-agent orchestrations.
 
-| Agent Type                  | Description                                                        | Service Chat History storage supported | Custom Chat History storage supported |
+| Agent Type                  | Description                                                        | Service Chat History storage supported | InMemory/Custom Chat History storage supported |
 |-----------------------------|--------------------------------------------------------------------|----------------------------------------|---------------------------------------|
-| Azure AI Foundry Agent      | An agent that uses the Azure AI Foundry Agents Service as its backend. | Yes                                    | No                                    |
-| Azure AI Foundry Models ChatCompletion | An agent that uses any of the models deployed in the Azure AI Foundry Service as its backend via ChatCompletion. | No                                     | Yes                                   |
-| Azure AI Foundry Models Responses | An agent that uses any of the models deployed in the Azure AI Foundry Service as its backend via Responses. | Yes                                    | Yes                                   |
+| Microsoft Foundry Agent     | An agent that uses the Foundry Agent Service as its backend.        | Yes                                    | No                                    |
+| Foundry Models ChatCompletion | An agent that uses any of the models deployed in the Foundry Service as its backend via ChatCompletion. | No                                     | Yes                                   |
+| Foundry Models Responses    | An agent that uses any of the models deployed in the Foundry Service as its backend via Responses. | Yes                                    | Yes                                   |
+| Foundry Anthropic           | An agent that uses a Claude model via the Foundry Anthropic Service as its backend. | No                                     | Yes                                   |
 | Azure OpenAI ChatCompletion | An agent that uses the Azure OpenAI ChatCompletion service.         | No                                     | Yes                                   |
 | Azure OpenAI Responses      | An agent that uses the Azure OpenAI Responses service.              | Yes                                    | Yes                                   |
+| Anthropic                   | An agent that uses a Claude model via the Anthropic Service as its backend. | No                                     | Yes                                   |
 | OpenAI ChatCompletion       | An agent that uses the OpenAI ChatCompletion service.               | No                                     | Yes                                   |
 | OpenAI Responses            | An agent that uses the OpenAI Responses service.                    | Yes                                    | Yes                                   |
-| OpenAI Assistants           | An agent that uses the OpenAI Assistants service.                   | Yes                                    | No                                    |
-| Any other ChatClient        | You can also use any other Microsoft.Extensions.AI.IChatClient implementation to create an agent. | Varies                                 | Varies                                |
+| Any other `IChatClient`     | You can also use any other Microsoft.Extensions.AI.IChatClient implementation to create an agent. | Varies                                 | Varies                                |
 
 ### Integration with Model Context Protocol (MCP)
 
@@ -87,15 +88,15 @@ Microsoft Agent Framework can integrate with MCP servers to extend functionality
 
 This challenge will guide you through the process of developing your first intelligent app with Microsoft Agent Framework.
 
-To help you get started, a starter project is available at `Student/resources/challenge-06/csharp`. Use this as your foundation and implement the tasks outlined below by completing the relevant sections of the starter project.
+To help you get started, a starter project is available at `Student/Resources/Challenge-06/csharp`. Use this as your foundation and implement the tasks outlined below by completing the relevant sections of the starter project.
 
 ### Task 1: Current time tool
 
-In this task, you will create a tool that allows the AI agent to display the current time. Since large language models (LLMs) are trained on past data and do not have real-time capabilities, they cannot provide the current time on their own.
+In this task, you will create an agent and a tool that lets the agent display the current time. Since large language models (LLMs) are trained on past data and do not have real-time capabilities, they cannot provide the current time on their own.
 
-By creating this tool, you will enable the AI agent to call a function that retrieves and displays the current time.
+By creating this function tool, you will enable the AI agent to call a function that retrieves and displays the current time.
 
-#### Create a Current Time Tool
+#### Create a time agent that has Current Time function tool
 
 Add a method to retrieve the current time and register it as a tool in your agent.
 
@@ -125,37 +126,19 @@ AIAgent agent = new AzureOpenAIClient(
             );
 ```
 
+#### Run the agent
+
+```csharp
+AgentSession session = await agent.CreateSessionAsync();
+var response = await agent.RunAsync("What time is it now?", session);
+Console.WriteLine(response);
+```
+
 Now, when you interact with your agent, you can ask for the current time and the agent will call this tool to provide an accurate response.
 
-### Task 2A: Integrate with Azure AI Foundry Agents Service (Classic Foundry)
+### Task 2: Integrate with Weather Remote MCP server
 
-In this task, you will integrate the Agent Service into your Microsoft Agent Framework application created in previous challenge. This will allow your agent to leverage the capabilities of the Microsoft Foundry(Classic Foundry)Agent Service and check for travel policy compliance.
-
-To integrate with the Agent Service, you will need to set up the `PersistentAgentsClient` and retrieve the agent using its ID.
-
-```csharp
- var persistentAgentsClient = new PersistentAgentsClient(agentServiceEndpoint, new DefaultAzureCredential());
-
-// Retrieve the agent that was just created as an AIAgent using its ID
-AIAgent agent = await persistentAgentsClient.GetAIAgentAsync(agentServiceId);
-```
-
-### Task 2B: Integrate with Azure AI Foundry Agents Service (New Foundry)
-
-In this task, you will integrate the Agent Service into your Microsoft Agent Framework application created in previous challenge. This will allow your agent to leverage the capabilities of the Microsoft Foundry (New Foundry) Agent Service and check for travel policy compliance.
-
-To integrate with the Agent Service, you will need to set up the `AIProjectClient` and retrieve the agent using its name.
-
-```csharp
-AIProjectClient projectClient = new(endpoint: new Uri(agentServiceEndpoint), tokenProvider: new DefaultAzureCredential());
-
-var foundryAgent = await projectClient.Agents.GetAgentAsync(agentNameNewFoundry);
-AIAgent aiAgent = projectClient.AsAIAgent(foundryAgent);  
-```
-
-### Task 3: Integrate with Weather Remote MCP server
-
-In this task you will integrate the Weather MCP Remote server completed in the previous challenge and add it as tools in Microsoft Agent Framework.
+In this task you will create a weather agent in MAF and integrate the Weather MCP Remote server completed in the previous challenge and add it as tools in Microsoft Agent Framework.
 
 Initialize the MCP client with the following code:
 
@@ -185,7 +168,7 @@ foreach (var tool in mcpTools)
     Console.WriteLine($"- {tool.Name}: {tool.Description}");
 }
 
-// Register MCP tools with the agent
+// Create an agent and register MCP tools with the agent
  AIAgent agent = new AzureOpenAIClient(
             new Uri(endpoint),
             new ApiKeyCredential(apiKey))
@@ -197,13 +180,41 @@ foreach (var tool in mcpTools)
             );
 ```
 
+#### Run the agent
+
+```csharp
+AgentSession session = await agent.CreateSessionAsync();
+var response = await agent.RunAsync("What is the weather in New York?", session);
+Console.WriteLine(response);
+```
+
+### Task 3: Integrate with Azure AI Foundry Agents Service
+
+In this task, you will integrate the Agent Service into your Microsoft Agent Framework application created in previous challenge. This will allow your agent to leverage the capabilities of the Microsoft Foundry Agent Service and check for travel policy compliance.
+
+To integrate with the Agent Service, you will need to set up the `AIProjectClient` and retrieve the agent using its name.
+
+```csharp
+AIProjectClient projectClient = new(endpoint: new Uri(agentServiceEndpoint), tokenProvider: new DefaultAzureCredential());
+
+AIAgent aiAgent = await projectClient.GetAIAgentAsync(agentName);
+```
+
+#### Run the agent
+
+```csharp
+AgentSession session = await aiAgent.CreateSessionAsync();
+var response = await aiAgent.RunAsync("What is the maximum daily meal allowance for domestic travel?", session);
+Console.WriteLine(response);
+```
+
 ## Success Criteria
 
 - ✅ Ensure that your application is running and you are able to debug the application.
 - ✅ Ensure that you are able to request the current time and receive an accurate response.
 - ✅ Ensure that you are able to validate policy compliance functionality by ensuring the agent accurately answers travel policy questions
 - ✅ Set a break point in one of the tools and hit the break point with a user prompt
-- ✅ Debug and inspect the AgentThread object to see the sequence of tool calls and results.
+- ✅ Debug and inspect the AgentSession object to see the sequence of tool calls and results.
 - ✅ Integrate with MCP Remote server and get weather results.
 - ✅ Demonstrate that the user can ask questions about weather data through the integrated MCP server.
 

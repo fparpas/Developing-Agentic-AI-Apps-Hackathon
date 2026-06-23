@@ -9,8 +9,8 @@ using Microsoft.Extensions.Logging;
 
 class Program
 {
-    public static AzureOpenAIClient openAIClient = null;
-    public static IClientTransport clientTransport = null;
+
+    public static IClientTransport? clientTransport;
 
     public static async Task Main(string[] args)
     {

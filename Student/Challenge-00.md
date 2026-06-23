@@ -12,7 +12,7 @@ In this session, you will set up your computer and cloud environment with the mi
 - Active Azure Subscription with **Owner access** to create and modify resources, and manage role assignments
 - Access to Azure OpenAI in the desired Azure subscription.
 - Latest version of Azure CLI
-- GitHub Copilot (free tier with limitations available, or start a Copilot Pro trial for enhanced features)
+- GitHub Copilot
 - For C#/.NET track:
   - Latest version of Visual Studio Code
   - .NET 8.0 SDK or later version
@@ -26,7 +26,7 @@ Set up and configure the following tools:
 
 - Use your active Azure Subscription or the one provided for the hackathon.
 - Log into the [Azure Portal](https://portal.azure.com) and confirm that you have an active subscription to which you can deploy cloud services.
-- Set up [GitHub Copilot](https://github.com/features/copilot/plans) – if you don't have a license, start a Copilot Pro trial for enhanced AI assistance during development, or use the free tier with limited features.
+- Set up [GitHub Copilot](https://github.com/features/copilot/plans) – if you don't have a license, start a Copilot Pro for enhanced AI assistance.
 - Install the latest version of [Visual Studio Code](https://code.visualstudio.com) if you don't already have it installed.
 - Clone this GitHub repository onto your workstation.
 - For C#/.NET track:

@@ -1,0 +1,14 @@
+# Install requirements with --pre
+# to include beta versions of azure-search-documents
+
+azure-identity>=1.25.2
+azure-core>=1.38.2
+colorama>=0.4.6
+requests>=2.32.5
+python-dotenv>=1.0.0
+
+# Agentic retrieval is a preview feature.
+# Classes like KnowledgeBaseRetrievalClient,
+# KnowledgeBase, SearchIndexKnowledgeSource, and related models
+# only exist in this beta version
+azure-search-documents>=11.7.0b2

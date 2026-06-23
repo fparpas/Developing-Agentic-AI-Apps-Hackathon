@@ -1,290 +1,377 @@
-# Challenge 09 Solution - Secure your MCP remote server using an API key
+# Challenge 09 Solution - Multi-Agent Travel Planning Assistant (Python)
 
-This directory contains the complete Python solution for Challenge 09, which demonstrates how to secure an MCP server with API key authentication and build a client that connects to it securely.
+## Overview
 
-## What's Included
-
-- **secure_weather_server.py**: Secure MCP server with API key authentication
-- **secure_weather_client.py**: MCP client that authenticates with the secured server
-- **requirements.txt**: All dependencies for both server and client
-- **.env.example**: Configuration template with all necessary environment variables
-
-## Solution Overview
-
-This solution demonstrates:
-
-1. **API Key Authentication**: Implementing secure header-based authentication
-2. **Middleware Protection**: Using FastAPI/Starlette middleware for centralized auth
-3. **Remote MCP Server**: Converting stdio MCP server to HTTP/SSE transport
-4. **Secure Client**: Building a client that includes authentication credentials
-5. **Security Best Practices**: Following security guidelines for production deployment
-6. **Agent Integration**: Using Microsoft Agent Framework for natural language queries
-
-## Key Security Features
-
-- **API Key Authentication**: Custom ASGI middleware validates X-API-Key header
-- **Protected Endpoints**: MCP endpoints require authentication
-- **Public Endpoints**: Health checks remain accessible for monitoring
-- **Environment Variables**: Secrets stored securely, not in code
-- **HTTPS Ready**: Works with HTTPS endpoints for encrypted communication
-- **Error Handling**: Proper error messages without leaking sensitive data
-- **MCP Debug Logging**: Orange [MCP] messages to stderr for connection tracking
+This solution demonstrates **multi-agent orchestration** using Microsoft Agent Framework. It implements a **Handoff Workflow Pattern** where specialized agents collaborate to plan comprehensive travel itineraries.
 
 ## Architecture
 
-```mermaid
-graph TD
-    A[MCP Client] -->|HTTPS Request<br/>with X-API-Key| B[Secure MCP Server]
-    B -->|Authentication<br/>Middleware| C{Valid API Key?}
-    C -->|Yes| D[Weather Tools]
-    C -->|No| E[401 Unauthorized]
-    D --> F[get_forecast]
-    D --> G[get_alerts]
+### Orchestration Pattern: Handoff Workflow
+
+The **Handoff Workflow** is the optimal pattern for travel planning because:
+
+✅ **Multi-Turn Conversational** - Travel planning is iterative and conversational
+✅ **Context-Aware Routing** - Dynamically routes to appropriate specialists
+✅ **Natural Interaction** - Mimics real-world travel agency experiences
+✅ **Flexible and Adaptive** - No predetermined execution order
+✅ **Resource Efficient** - Only activates agents when needed
+
+```
+┌─────────────────────────────────────────────┐
+│              User Interface                 │
+└──────────────────┬──────────────────────────┘
+                   │
+                   ▼
+      ┌────────────────────────┐
+      │  CoordinatorAgent      │◄────┐
+      │  (Entry Point)         │     │
+      └───────┬────────────────┘     │
+              │                      │
+     ┌────────┼────────┐             │
+     │        │        │             │
+     ▼        ▼        ▼             │
+┌────────┐ ┌────────┐ ┌────────┐     │
+│Flight  │ │Hotel   │ │Activity│─────┘
+│Agent   │ │Agent   │ │Agent   │
+└────┬───┘ └────┬───┘ └────┬───┘
+     │          │          │
+     └──────────┴──────────┘
+     Handoff back to Coordinator
 ```
 
-The client sends requests with an X-API-Key header to the remote server. The server validates the key via middleware before allowing access to MCP tools. This architecture enables secure remote access while maintaining the MCP protocol's functionality.
+### Specialized Agents
 
-## Getting Started
-
-### Prerequisites
-
-1. **Python 3.10+**: Modern Python version with async support
-2. **Azure OpenAI Resource**: Deployed GPT-4 or GPT-4o model (for client)
-3. **pip**: Package installer for Python dependencies
-
-### Installation
-
-```bash
-# Create virtual environment (recommended)
-python -m venv .venv
-
-# Activate virtual environment
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-
-# Install all dependencies
-pip install -r requirements.txt
-```
-
-### Configuration
-
-```bash
-# Copy the example environment file
-cp .env.example .env
-```
-
-Edit `.env` and configure the following:
-
-**Server Settings:**
-```bash
-API_KEY=SuperSecureSecretUsedAsApiKey1  # Authentication key
-PORT=5000                                # Server port (optional)
-```
-
-**Client Settings:**
-```bash
-# Azure OpenAI
-AZURE_OPENAI_ENDPOINT=https://your-resource-name.openai.azure.com/
-AZURE_OPENAI_API_KEY=your_azure_openai_api_key_here
-AZURE_OPENAI_DEPLOYMENT_NAME=gpt-4
-
-# MCP Server
-USE_LOCAL_MCP=false
-MCP_SERVER_URL=http://localhost:5000
-API_KEY=SuperSecureSecretUsedAsApiKey1  # Must match server
-```
-
-**Important**: The `API_KEY` must be identical in both server and client configurations.
-
-## Running the Solution
-
-### Step 1: Start the Server
-
-In one terminal:
-
-```bash
-python secure_weather_server.py
-```
-
-Expected output:
-```
-====================================================================
-Secure Weather MCP Server - Challenge 09 Solution
-====================================================================
-Starting server on port 5000
-API Key authentication: ENABLED
-Protected endpoints: /mcp/*
-Public endpoints: /, /health
-====================================================================
-INFO:     Uvicorn running on http://0.0.0.0:5000
-```
-
-### Step 2: Test the Server (Optional)
-
-```bash
-# Test public endpoints (no auth required)
-curl http://localhost:5000/health
-curl http://localhost:5000/
-
-# Test protected endpoint without API key (should fail)
-curl http://localhost:5000/mcp/tools
-
-# Test protected endpoint with API key (should succeed)
-curl -H "X-API-Key: SuperSecureSecretUsedAsApiKey1" \
-     http://localhost:5000/mcp/tools
-```
-
-### Step 3: Run the Client
-
-In another terminal (with server still running):
-
-```bash
-python secure_weather_client.py
-```
-
-Expected output:
-```
-====================================================================
-Secure MCP Weather Client - Challenge 09 Solution
-====================================================================
-
-[OK] Configuration loaded
-  - MCP Server: http://localhost:5000/mcp
-  - Azure OpenAI: gpt-4
-
-[OK] Azure OpenAI client initialized
-[OK] Secure MCP tool configured with API key authentication
-[OK] Agent initialized with secure MCP access
-
-Ask weather questions like:
-  - What's the weather in Seattle?
-  - Are there any alerts for California?
-  - Get forecast for latitude 40.7128, longitude -74.0060
-
-Type 'exit' or 'quit' to end the session
-====================================================================
-
-You:
-```
-
-You'll also see orange `[MCP]` debug messages on stderr showing:
-- Connection to MCP server with host and port
-- Tool calls and arguments when agent uses MCP tools
-- Tool responses when data is received from server
-
-## Usage Examples
-
-**Get Weather Forecast:**
-```
-You: What's the weather forecast for Seattle?
-Agent: [Calls get_forecast tool and returns detailed weather information]
-```
+| Agent | Role | Capabilities |
+|-------|------|--------------|
+| **CoordinatorAgent** | Main interface & orchestrator | Routes requests, synthesizes results, provides summaries |
+| **FlightAgent** | Flight search specialist | Uses the `[FLIGHT] search_flight_offers` MCP tool to fetch real itineraries |
+| **HotelAgent** | Accommodation specialist | Calls `[HOTEL] search_hotel_offers` for live pricing and availability |
+| **ActivityAgent** | Local attractions expert | Provides recommendations via reasoning (no MCP tool) |
+| **TransferAgent** | Ground transportation | Shares transport guidance via reasoning (no MCP tool) |
+| **ReferenceAgent** | Reference data provider | Airport codes, time zones, location information |
+| **TravelPolicyAgent** | Policy compliance (optional) | Validates trips against company policies (Azure AI Foundry) |
 
 ## How It Works
 
-### Server Implementation
+### Event-Driven Interaction Loop
 
-**Authentication Middleware:**
-```python
-class ApiKeyAuthMiddleware:
-    """Pure ASGI middleware for API key validation."""
-    async def __call__(self, scope, receive, send):
-        # Check if path requires authentication
-        # Validate X-API-Key header from scope["headers"]
-        # Return 401 if invalid, or proceed if valid
+The system uses `HandoffBuilder` with an event-driven request/response cycle:
+
+1. **First turn**: `workflow.run(user_message, stream=True)` starts the workflow
+2. **Events arrive**: agents respond and emit `request_info` events with `HandoffAgentUserRequest`
+3. **Display**: Agent messages are extracted from `event.data.agent_response.messages`
+4. **Respond**: `workflow.run(responses={req_id: HandoffAgentUserRequest.create_response(text)}, stream=True)`
+5. **Repeat**: The loop continues until the user exits
+
+### Example Conversation Flow
+
+```
+User: "I want to travel to Paris next month"
+→ CoordinatorAgent: Greets, gathers requirements
+
+User: "Show me flights from New York on June 15"
+→ [HANDOFF] FlightAgent: Searches, presents options
+→ [HANDOFF BACK] CoordinatorAgent
+
+User: "I'll take the morning flight. Need a hotel near Eiffel Tower"
+→ [HANDOFF] HotelAgent: Searches hotels in that area
+→ [HANDOFF BACK] CoordinatorAgent
+
+User: "What can I do there?"
+→ [HANDOFF] ActivityAgent: Recommends attractions
+→ [HANDOFF BACK] CoordinatorAgent
+
+User: "summary"
+→ CoordinatorAgent: Provides complete itinerary
 ```
 
-**Protected Routes:**
-- `/mcp/*` - Requires X-API-Key header
-- `/` and `/health` - Public, no authentication required
+## Prerequisites
 
-**Weather Tools:**
-- `get_forecast(latitude, longitude)` - Get detailed weather forecast
-- `get_alerts(state)` - Get active weather alerts for a US state
+1. **Azure OpenAI** resource with a deployed model (e.g., `gpt-4o`)
+2. **Python 3.11+**
+3. **Amadeus API credentials** - Register at [Amadeus for Developers](https://developers.amadeus.com/) for real flight and hotel data
+4. **(Optional)** Azure AI Foundry project with a persistent Travel Policy Agent from Challenge-05
 
-### Client Implementation
+## Setup Instructions
 
-**API Key Injection:**
+### 1. Install Dependencies
+
+```bash
+# Create Python Virtual Environment
+cd Coach/Solutions/Challenge-09/python
+python -m venv .venv # or uv venv
+source .venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt # or uv pip install -r requirements.txt
+```
+
+### 2. Configure Environment
+
+Copy the example environment file:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` with your Azure credentials:
+
+```env
+# Required - Azure OpenAI
+AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
+AZURE_OPENAI_API_KEY=your-api-key-here
+AZURE_OPENAI_DEPLOYMENT_NAME=gpt-4o
+AZURE_OPENAI_API_VERSION=2024-08-01-preview
+
+# Required - Amadeus Travel API
+AMADEUS_API_KEY=your-amadeus-api-key-here
+AMADEUS_API_SECRET=your-amadeus-api-secret-here
+
+# Optional (for Policy Agent)
+AZURE_AI_FOUNDRY_PROJECT_ENDPOINT=https://your-project.api.azureml.ms
+AZURE_AI_AGENT_ID=your-agent-id-here
+```
+
+### 3. Run the Application
+
+```bash
+python multi_agent_travel_planner.py
+```
+
+### 4. (Optional) Sanity-Test the Data Path
+
+Use the lightweight harness to exercise both the raw Amadeus SDK and the MCP
+server with the same query before launching the orchestrator:
+
+```bash
+python test_amadeus_vs_mcp.py
+```
+
+The script prints two blocks so you can compare the direct SDK response with the
+`search_flight_offers` tool output.
+
+## Usage
+
+### Interactive Commands
+
+- **Normal conversation** - Ask about flights, hotels, activities, etc.
+- **`summary`** - Display accumulated trip details
+- **`policy`** - Check trip against company policy (if configured)
+- **`exit`** or **`quit`** - End session
+
+### Example Queries
+
+```
+"I need to fly from Seattle to Tokyo in December"
+"Find hotels near Shibuya station under $200/night"
+"What are the must-see attractions in Tokyo?"
+"How do I get from Narita Airport to my hotel?"
+"What's the airport code for Tokyo?"
+```
+
+## Key Features
+
+### Real Travel Data via Amadeus API
+
+This solution uses **real flight and hotel data** from the Amadeus Travel API via an MCP server:
+
+- **FlightAgent** - Real-time flight search, pricing, and availability
+- **HotelAgent** - Actual hotel search and offers with live pricing
+- **MCP Integration** - Travel data accessed through Model Context Protocol tools
+
+The `travel_mcp_server` provides Amadeus API integration using the official Python SDK:
+- **Official Amadeus SDK** (`amadeus>=8.1.0`) - Reliable, maintained API client
+- `[FLIGHT] search_flight_offers` – Returns up to five itineraries with price summaries (accepts either city names or IATA codes)
+- `[HOTEL] search_hotel_offers` – Lists hotel options for a city/date range (auto-resolves common city names to codes)
+- Automatic authentication and error handling
+
+### Intelligent Handoffs
+
+The `HandoffBuilder` injects handoff tools into each agent. Agents decide
+when to hand off based on the conversation context. No keyword parsing or
+manual marker detection is needed.
+
+### Bidirectional Communication
+
+- Coordinator → Specialist (forward handoff)
+- Specialist → Coordinator (return handoff)
+- Maintains conversation continuity
+
+### Trip Summary
+
+Use the `summary` command to see accumulated trip details from all agents.
+
+### Policy Compliance (Optional)
+
+If configured with Azure AI Foundry agent:
+- Type `policy` to validate trip against company policies
+- Uses persistent agent from Challenge-05
+- Provides compliance feedback
+
+## Code Structure
+
 ```python
-mcp_tool = MCPStreamableHTTPTool(
-    name="WeatherMCP",
-    url=remote_server_url,
-    headers={"X-API-Key": api_key}  # Automatically added to every request
+class TravelAgentOrchestrator:
+    """Main orchestrator using HandoffBuilder."""
+
+    async def initialize_agents(self):
+        """Create agents via chat_client.as_agent() and build HandoffBuilder workflow."""
+
+    async def process_events(self, event_stream):
+        """Consume workflow events, display responses, collect pending requests."""
+
+    async def run_handoff_workflow(self):
+        """Event-driven interaction loop using run_stream/run."""
+
+    async def check_travel_policy(self, trip_details: str):
+        """Validate against Azure AI Foundry policy agent."""
+```
+
+## Educational Notes
+
+### Why Handoff Pattern?
+
+This solution uses the **Handoff Workflow** because travel planning is:
+
+1. **Conversational** - Users iteratively refine choices
+2. **Non-linear** - Order of operations varies by user
+3. **Contextual** - Decisions depend on previous choices
+4. **Flexible** - Not all users need all services
+
+### Alternative Patterns (Not Used Here)
+
+**Sequential Workflow** - Too rigid; forces all steps in order
+**Concurrent Workflow** - Can't handle dependencies between agents
+**Agents as Tools** - Works, but less natural for multi-turn conversations
+
+See the C# README for detailed pattern comparison.
+
+## Design Principles
+
+### Separation of Concerns
+Each agent has a **single, well-defined responsibility**.
+
+### Agent Instructions
+Each agent has **specialized system instructions** tailored to its role.
+
+### Loose Coupling
+Agents communicate through the coordinator, not directly with each other.
+
+### Context Preservation
+Conversation history is maintained across handoffs.
+
+### Lazy Activation
+Agents are only invoked when needed, not pre-emptively.
+
+## Extending the Solution
+
+### Add New Agents
+
+1. Create a new agent with `chat_client.as_agent()`
+2. Add it to the `participants` list in the `HandoffBuilder` call
+3. That's it! The builder handles tool injection and routing
+
+### Example: Adding a Weather Agent
+
+```python
+weather = chat_client.as_agent(
+    name="WeatherAgent",
+    description="Provides forecasts and travel weather advice.",
+    instructions="You are a weather specialist. Provide forecasts and climate info.",
 )
-```
 
-**Agent Integration:**
-- Uses Microsoft Agent Framework
-- Automatic tool selection based on queries
-- Streaming responses for real-time feedback
+# Just add to participants:
+participants = [coordinator, flight, hotel, activity, transfer, reference, weather]
+```
 
 ## Troubleshooting
 
-### Server Issues
+### Issue: Agents not handing off
 
-**Port already in use:**
-```bash
-# Change PORT in .env file
-PORT=5000
-```
-### Client Issues
+**Solution:** Verify agent `description` fields clearly indicate each agent's domain. The `HandoffBuilder` uses descriptions to generate handoff tool metadata that helps agents decide routing.
 
-**401 Unauthorized:**
-- Verify `API_KEY` gets the same value in both server/client
-- Check for extra spaces or quotes in the key
-- Ensure server is running and accessible
+### Issue: Policy agent not working
 
-**Connection refused:**
-- Confirm server is running
-- Verify `MCP_SERVER_URL` points to correct address
-- Check port number matches
+**Solution:** Ensure:
+1. Azure AI Foundry endpoint is correct
+2. Agent ID is valid
+3. You have proper Azure credentials configured
+4. The persistent agent exists in your Azure AI Foundry project
 
-**Azure OpenAI errors:**
-- Validate all `AZURE_OPENAI_*` variables are set
-- Check endpoint URL format (include trailing slash)
-- Verify API key is correct
+### Issue: API rate limits
 
-## Security Considerations
+**Solution:** Add delays between requests or upgrade your Azure OpenAI tier.
 
-### Development
-- API keys stored in .env file (git-ignored)
-- Clear separation between public and protected endpoints
-- Proper HTTP status codes and error messages
+## Learning Outcomes
 
-### Production
-- Use Azure Key Vault or similar for secret storage
-- Always use HTTPS, never HTTP
-- Implement rate limiting per API key
-- Add comprehensive logging and monitoring
-- Support key rotation with multiple active keys
-- Consider upgrading to OAuth 2.0/OIDC
+After completing this solution, you should understand:
 
-## Project Structure
-
-```
-Challenge-09/python/
-├── secure_weather_server.py    # MCP server with authentication
-├── secure_weather_client.py    # MCP client with authentication
-├── requirements.txt             # All dependencies
-├── .env.example                 # Configuration template
-├── .env                         # Your config (git-ignored)
-├── .gitignore                   # Protects secrets
-└── README.md                    # This file
-```
-
-## Next Steps
-
-After completing this solution, consider:
-
-1. **Deploy to Cloud**: Azure Container Apps or Azure Functions
-2. **Add Key Management**: Integrate with Azure Key Vault
-3. **Upgrade Authentication**: Implement OAuth 2.0/OIDC
-4. **Add Rate Limiting**: Protect against abuse
-5. **Implement Logging**: Comprehensive audit logging
-6. **Add More Tools**: Expand MCP server functionality
+- Multi-agent orchestration patterns
+- Handoff workflow implementation
+- Agent specialization and role design
+- Context management in conversations
+- Integration with Azure AI Foundry persistent agents
+- When to use different orchestration patterns
 
 ## Additional Resources
 
-- [FastAPI Documentation](https://fastapi.tiangolo.com/)
-- [MCP Specification](https://modelcontextprotocol.io/)
-- [Microsoft Agent Framework](https://github.com/microsoft/agents)
-- [Azure OpenAI Service](https://azure.microsoft.com/en-us/products/ai-services/openai-service)
+- [Microsoft Agent Framework Documentation](https://learn.microsoft.com/en-us/agent-framework/)
+- [AI Agent Orchestration Patterns](https://learn.microsoft.com/en-us/azure/architecture/ai-ml/guide/ai-agent-design-patterns)
+- [Workflows and Orchestrations](https://learn.microsoft.com/en-us/agent-framework/user-guide/workflows/orchestrations/overview)
+
+## Success Criteria
+
+- [x] Created 6+ specialized agents with distinct roles
+- [x] Implemented Handoff Workflow pattern
+- [x] Coordinator orchestrates agent collaboration
+- [x] Dynamic routing based on conversation context
+- [x] **Real travel data from Amadeus API**
+- [x] **MCP server integration for flight and hotel tools**
+- [x] Travel planning functionality (flights, hotels, activities, transfers)
+- [x] Optional policy compliance integration
+- [x] Clean, educational code structure
+- [x] Comprehensive documentation
+
+---
+
+## Architecture
+
+```
+┌─────────────────────────────────────┐
+│   Multi-Agent Travel Planner        │
+│                                     │
+│  ┌─────────────────────────────┐   │
+│  │  FlightAgent + HotelAgent   │   │
+│  │  (with MCP tools)           │   │
+│  └──────────┬──────────────────┘   │
+│             │                       │
+└─────────────┼───────────────────────┘
+              │ MCP Protocol
+              ▼
+┌─────────────────────────────────────┐
+│     Travel MCP Server                │
+│                                     │
+│  ┌─────────────────────────────┐   │
+│  │  Amadeus Auth Service       │   │
+│  ├─────────────────────────────┤   │
+│  │  Flight Tools               │   │
+│  │  - search_flight_offers     │   │
+│  ├─────────────────────────────┤   │
+│  │  Hotel Tools                │   │
+│  │  - search_hotel_offers      │   │
+│  └──────────┬──────────────────┘   │
+└─────────────┼───────────────────────┘
+              │ HTTPS
+              ▼
+┌─────────────────────────────────────┐
+│     Amadeus Travel API              │
+│     (Real flight & hotel data)      │
+└─────────────────────────────────────┘
+```
+
+**Note:** This solution demonstrates production-ready orchestration patterns with real travel APIs. For additional production features, consider adding:
+- Enhanced error handling and retries
+- Comprehensive logging and telemetry
+- State persistence and session management
+- More sophisticated handoff logic
+- User authentication and authorization
+- Cost tracking and budget management
+- Caching for frequently accessed data

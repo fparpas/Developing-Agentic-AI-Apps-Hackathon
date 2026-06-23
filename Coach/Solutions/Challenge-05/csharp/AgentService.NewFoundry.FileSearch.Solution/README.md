@@ -12,53 +12,38 @@ A C# console application that connects to Azure OpenAI Agent Service and perform
 
 ## Prerequisites
 
-- .NET 8.0 SDK
-- Azure OpenAI resource with Assistants API enabled
-- Azure OpenAI Assistant configured with file search capabilities
+- .NET 9.0 SDK
+- Azure AI Foundry project with an Agent configured with file search capabilities
 - Vector store with uploaded files
 
 ## Setup
 
-### 1. Configure Azure OpenAI
+### 1. Configure Azure AI Foundry
 
-You need to set up the following in your Azure OpenAI resource:
-- Create an Assistant with file search tools enabled
+You need to set up the following in your Azure AI Foundry project:
+- Create an Agent with file search tools enabled
 - Create a Vector Store and upload files to it
-- Note down the Assistant ID and Vector Store ID
+- Note down the Agent Name and project endpoint
 
 ### 2. Configure Application Settings
 
 #### Option A: User Secrets (Recommended for development)
 
 ```bash
-cd AgentServiceFileSearch
-dotnet user-secrets set "AzureOpenAI:Endpoint" "https://your-resource.openai.azure.com/"
-dotnet user-secrets set "AzureOpenAI:ApiKey" "your-api-key"
-dotnet user-secrets set "AzureOpenAI:AssistantId" "your-assistant-id"
-dotnet user-secrets set "AzureOpenAI:VectorStoreId" "your-vector-store-id"
+cd AgentService.NewFoundry.FileSearch.Solution
+dotnet user-secrets set "AgentService:Endpoint" "https://your-resource.services.ai.azure.com/api/projects/your-project"
+dotnet user-secrets set "AgentService:AgentName" "your-agent-name"
 ```
 
-#### Option B: Environment Variables
-
-```bash
-set AZUREOPENAI__ENDPOINT=https://your-resource.openai.azure.com/
-set AZUREOPENAI__APIKEY=your-api-key
-set AZUREOPENAI__ASSISTANTID=your-assistant-id
-set AZUREOPENAI__VECTORSTOREID=your-vector-store-id
-```
-
-#### Option C: appsettings.json (Not recommended for production)
+#### Option B: appsettings.json
 
 Update the `appsettings.json` file:
 
 ```json
 {
-  "AzureOpenAI": {
-    "Endpoint": "https://your-resource.openai.azure.com/",
-    "ApiKey": "your-api-key",
-    "ModelId": "gpt-4o",
-    "AssistantId": "your-assistant-id",
-    "VectorStoreId": "your-vector-store-id"
+  "AgentService": {
+    "Endpoint": "https://your-resource.services.ai.azure.com/api/projects/your-project",
+    "AgentName": "your-agent-name"
   }
 }
 ```
@@ -92,56 +77,38 @@ File types (comma-separated, e.g., pdf,txt,docx): pdf,docx
 - `advanced` - Advanced search with filters
 - `exit` - Quit the application
 
-## Configuration Options
+## Key Dependencies
 
-### appsettings.json
-```json
-{
-  "AzureOpenAI": {
-    "Endpoint": "https://your-resource.openai.azure.com/",
-    "ApiKey": "your-api-key",
-    "ModelId": "gpt-4o",
-    "AssistantId": "your-assistant-id",
-    "VectorStoreId": "your-vector-store-id"
-  },
-  "FileSearch": {
-    "MaxResults": 10,
-    "SearchTimeout": 30000
-  }
-}
-```
-
-### Search Configuration
-- `MaxResults`: Default maximum number of results to return
-- `SearchTimeout`: Timeout in milliseconds for search operations
+| Package | Version | Purpose |
+|---|---|---|
+| `Azure.AI.Projects` | 2.0.1 | Azure AI Foundry project client |
+| `Azure.AI.Extensions.OpenAI` | 2.0.0 | Responses API (ProjectResponsesClient, conversations) |
+| `Azure.AI.Projects.Agents` | 2.0.0 | Agent administration (ProjectsAgentRecord) |
+| `Azure.Identity` | 1.21.0 | DefaultAzureCredential authentication |
 
 ## Architecture
 
-### Services
-- **AzureAgentService**: Handles Azure OpenAI Assistants API communication
-- **VectorStoreService**: Manages vector store search operations
-
-### Models
-- **FileSearchRequest**: Search request parameters
-- **FileSearchResult**: Individual search result
-- **FileSearchResponse**: Complete search response with metadata
+The application uses the Azure AI Foundry v2 SDK:
+- **AIProjectClient** → connects to the Foundry project
+- **AgentAdministrationClient** → retrieves the agent by name
+- **ProjectOpenAIClient** → creates conversations and response clients
+- **ProjectResponsesClient** → sends user messages and receives agent responses
 
 ## Troubleshooting
 
 ### Common Issues
 
 1. **Connection Failed**
-   - Verify your Azure OpenAI endpoint and API key
-   - Ensure the Assistants API is enabled in your region
+   - Verify your Azure AI Foundry project endpoint
+   - Ensure you are logged in with `az login` (DefaultAzureCredential is used)
 
 2. **No Search Results**
-   - Verify your Vector Store ID is correct
-   - Ensure files are uploaded to the vector store
-   - Check that your Assistant has file search tools enabled
+   - Ensure files are uploaded to the vector store linked to your agent
+   - Check that your Agent has file search tools enabled
 
-3. **Assistant Not Found**
-   - Verify your Assistant ID is correct
-   - Ensure the assistant exists in your Azure OpenAI resource
+3. **Agent Not Found**
+   - Verify your Agent name is correct in `appsettings.json`
+   - Ensure the agent exists in your Azure AI Foundry project
 
 ### Logging
 The application uses structured logging. Set the log level in `appsettings.json`:

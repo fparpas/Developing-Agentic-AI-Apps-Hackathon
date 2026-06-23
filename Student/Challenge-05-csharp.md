@@ -31,14 +31,14 @@ File search capability enables your agent to retrieve relevant information from 
 - **Retrieval-Augmented Generation (RAG)**: Combine document retrieval with AI generation for accurate, contextual responses
 - **Document Processing**: Automatic handling of various file formats (PDF, DOCX, TXT, etc.)
 
-### Persistent Agents and Threads
+### Agent Conversations and Responses
 
 Understanding the agent interaction model:
 
-- **Persistent Agents**: AI agents that maintain their configuration and capabilities across sessions
-- **Threads**: Conversation contexts that preserve message history and state
-- **Runs**: Individual executions of agent processing within a thread
-- **Messages**: User inputs and agent responses within a conversation thread
+- **Agents**: AI agents configured with instructions, tools, and model deployments in Azure AI Foundry
+- **Conversations**: Managed conversation contexts that preserve message history and state across interactions
+- **Responses**: Agent replies generated via the Responses API, supporting streaming and structured output
+- **ProjectResponsesClient**: The client used to send user messages and receive agent responses within a conversation
 
 ## Description
 
@@ -49,14 +49,6 @@ This challenge is divided into two main tasks that will guide you through creati
 You'll build a specialized AI agent that acts as a compliance advisor for company travel policies. 
 
 The agent will use the company travel policy document as its knowledge base to provide accurate, policy-compliant guidance to employees.
-
-**Core Capabilities:**
-
-- **Policy Interpretation**: Explain complex policy rules in simple terms
-- **Expense Validation**: Check if expenses comply with policy limits
-- **Booking Guidance**: Provide recommendations for compliant travel bookings
-- **Exception Handling**: Explain when and how to request policy exceptions
-
 
 ### Task 1: Create and Configure the Agent in Azure AI Foundry
 
@@ -91,9 +83,31 @@ Your first task is to set up the AI agent using the Azure AI Foundry portal:
 - "Can I book first-class flights?"
 - "What documents do I need to submit for expense reimbursement?"
 
-### Task 2: Build the Console Application
+### Task 2: Create an Agent-Level Guardrail
 
-Your second task is to create a C# console application that integrates with your configured agent:
+Add a guardrail at the agent level to protect against sensitive data exposure in the agent's interactions:
+
+1. **Create a New Guardrail**
+   - In Azure AI Foundry, create a new guardrail and apply it at the agent level
+   - Leave all default values as they are
+
+2. **Enable PII Sensitive Data Leakage Protection**
+   - Enable **PII (sensitive data) leakage** protection
+   - Within the PII protection settings, enable **email** protection
+
+3. **Validate the Guardrail**
+   - Test the guardrail in the Azure AI Foundry playground using a prompt that contains an email address
+   - Confirm that the guardrail detects and blocks/masks the email
+
+   **Sample Validation Prompt:**
+
+   ```text
+   My email is john.doe@contoso.com. Can you confirm my domestic meal allowance?
+   ```
+
+### Task 3: Build the Console Application
+
+Your next task is to create a C# console application that integrates with your configured agent:
 
 **Project Starter Available:**
 A starter project is provided [here](../Student/Resources/Challenge-05/csharp/AgentService.FileSearch/Program.cs) to help you get started. However, you'll need to complete the code implementation to establish the conversation flow with your Agent created in previous task
@@ -115,7 +129,7 @@ A starter project is provided [here](../Student/Resources/Challenge-05/csharp/Ag
 
 **Sample C# Code to Get Started:**
 
-Use this code as a foundation for your console application. Remember to replace the endpoint URL and agent ID with your actual values from previous task.
+Use this code as a foundation for your console application. Remember to replace the endpoint URL and agent name with your actual values from previous task.
 
 **💡 Tip:** You can also find similar code samples by clicking the **"View Code"** button in the Azure AI Foundry Agent playground after testing your agent.
 
@@ -123,62 +137,35 @@ Use this code as a foundation for your console application. Remember to replace 
 using Azure;
 using Azure.Identity;
 using Azure.AI.Projects;
-using Azure.AI.Agents.Persistent;
+using Azure.AI.Projects.Agents;
+using Azure.AI.Extensions.OpenAI;
+using OpenAI.Responses;
 
 async Task RunAgentConversation()
 {
-    var endpoint = new Uri("<YOUR_AZURE_AI_FOUNDRY_PROJECT_ENDPOINT<>");
-    AIProjectClient projectClient = new(endpoint, new DefaultAzureCredential());
+   // Retrieve configuration values for Azure AI Foundry endpoint and agent name
+   var microsoftFoundryEndpoint = configuration["AIAgentService:MicrosoftFoundryEndpoint"];
+   var agentName = configuration["AIAgentService:AgentName"];
 
-    PersistentAgentsClient agentsClient = projectClient.GetPersistentAgentsClient();
+   // Initialize the AI Project client with Azure credentials for authentication
+   AIProjectClient projectClient = new(endpoint, new DefaultAzureCredential());
 
-    PersistentAgent agent = agentsClient.Administration.GetAgent("<Your_Agent_ID>");
+   // Optional Step: Create a conversation to use with the agent
+   // This maintains the conversation context and message history
+   ProjectConversation conversation = projectClient.ProjectOpenAIClient.GetProjectConversationsClient().CreateProjectConversation();
+
+   // Get the response client for the agent and conversation
+   // This client is used to send messages and retrieve responses from the agent
+   ProjectResponsesClient responsesClient = projectClient.ProjectOpenAIClient.GetProjectResponsesClientForAgent(
+      defaultAgent: agentName,
+      defaultConversationId: conversation.Id);
+
+    // Send a message to the agent and receive the response
+    // The agent will search the file knowledge base and return relevant information
+    ResponseResult response = responsesClient.CreateResponse("Enter your prompt here");
     
-    PersistentAgentThread thread = agentsClient.Threads.CreateThread();
-    Console.WriteLine($"Created thread, ID: {thread.Id}");
-
-    PersistentThreadMessage messageResponse = agentsClient.Messages.CreateMessage(
-        thread.Id,
-        MessageRole.User,
-        "Hi AgentWorkshop");
-
-    ThreadRun run = agentsClient.Runs.CreateRun(
-        thread.Id,
-        agent.Id);
-
-    // Poll until the run reaches a terminal status
-    do
-    {
-        await Task.Delay(TimeSpan.FromMilliseconds(500));
-        run = agentsClient.Runs.GetRun(thread.Id, run.Id);
-    }
-    while (run.Status == RunStatus.Queued
-        || run.Status == RunStatus.InProgress);
-    if (run.Status != RunStatus.Completed)
-    {
-        throw new InvalidOperationException($"Run failed or was canceled: {run.LastError?.Message}");
-    }
-
-    Pageable<PersistentThreadMessage> messages = agentsClient.Messages.GetMessages(
-        thread.Id, order: ListSortOrder.Ascending);
-
-    // Display messages
-    foreach (PersistentThreadMessage threadMessage in messages)
-    {
-        Console.Write($"{threadMessage.CreatedAt:yyyy-MM-dd HH:mm:ss} - {threadMessage.Role,10}: ");
-        foreach (MessageContent contentItem in threadMessage.ContentItems)
-        {
-            if (contentItem is MessageTextContent textItem)
-            {
-                Console.Write(textItem.Text);
-            }
-            else if (contentItem is MessageImageFileContent imageFileItem)
-            {
-                Console.Write($"<image from ID: {imageFileItem.FileId}");
-            }
-            Console.WriteLine();
-        }
-    }
+    // Display the agent's response to the console
+    Console.Write(response.GetOutputText());
 }
 
 // Main execution
@@ -188,7 +175,7 @@ await RunAgentConversation();
 **Important Notes:**
 
 - Replace the endpoint URL with your Azure AI Foundry project endpoint
-- Replace the agent ID with the ID of the agent you created in Task 1
+- Replace the agent name with the name of the agent you created in Task 1
 - This code demonstrates a single conversation - extend it to create an interactive loop for continuous user input
 
 ### What You'll Deliver
@@ -219,13 +206,13 @@ Agent: "The travel policy requires you to book accommodations at approved corpor
 - ✅ Successfully created and configured an AI agent in Azure AI Foundry with file search capabilities and travel policy knowledge
 - ✅ Validated that you uploaded and indexed the travel policy document in a vector store for searchable content
 - ✅ Demonstrated agent functionality by testing it in the Azure AI Foundry playground to validate policy-based responses
+- ✅ Created an agent-level guardrail with default values, with PII (sensitive data) leakage protection enabled, including email protection
 - ✅ Successfully built a working console application that connects to your agent and provides an interactive interface
 - ✅ Validated policy compliance functionality by ensuring the agent accurately answers travel policy questions
 
 ## Learning Resources
 
 - [Azure AI Agents Service Overview](https://learn.microsoft.com/en-us/azure/ai-foundry/agents/overview)
-- [Azure AI Agents Service Concepts](https://learn.microsoft.com/en-us/azure/ai-foundry/agents/concepts/threads-runs-messages)
 - [File Search with AI Agents](https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/tools/file-search)
-- [Microsoft Foundry (classic) Quickstart](https://learn.microsoft.com/en-us/azure/ai-foundry/quickstarts/get-started-code?view=foundry-classic&tabs=csharp)
-- [Microsoft Foundry (new) Quickstart](https://learn.microsoft.com/en-us/azure/ai-foundry/quickstarts/get-started-code?view=foundry&preserve-view=true&tabs=python)
+- [Microsoft Foundry Quickstart](https://learn.microsoft.com/en-us/azure/ai-foundry/quickstarts/get-started-code?view=foundry&preserve-view=true&tabs=csharp)
+- [Guardrails and controls overview in Microsoft Foundry](https://learn.microsoft.com/en-us/azure/foundry/guardrails/guardrails-overview?view=foundry)
