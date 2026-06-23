@@ -6,14 +6,22 @@ This solution demonstrates the implementation of different multi-agent orchestra
 
 ## The Challenge Scenario
 
-The Travel Planning Assistant consists of seven specialized agents:
+The Travel Planning Assistant consists of eight agents:
 - **FlightAgent** - Flight searches and bookings
 - **HotelAgent** - Hotel searches and reservations
 - **ActivityAgent** - Tours and local attractions
 - **TransferAgent** - Ground transportation
 - **ReferenceAgent** - Location codes and travel data
-- **TravelPolicyAgent** - Policy validation (Azure AI Foundry persistent agent)
-- **TravelCoordinatorAgent** - Main customer interface
+- **TravelPolicyAgent** - Policy validation (Azure AI Foundry Agent Service agent, retrieved via `AIProjectClient`)
+- **TravelCoordinatorAgent** - Main customer interface in the workflow patterns (sequential, concurrent, handoff)
+- **MainOrchestratorAgent** - Main orchestrator used in the Agents-as-Tools pattern; calls the specialized agents as callable tools
+
+### Chat Client Agents vs. Foundry Agent Service Agents
+
+A key distinction in this scenario is the type of agent used:
+
+- **Chat client agents** (FlightAgent, HotelAgent, ActivityAgent, TransferAgent, ReferenceAgent, TravelCoordinatorAgent, MainOrchestratorAgent) are created from an `IChatClient` at runtime. They are **stateless** between sessions: their conversation context lives only in the messages passed to them on each run, and nothing is persisted on the service side.
+- **Foundry Agent Service agents** (TravelPolicyAgent) have their definition (instructions, tools, file search index) **created and stored server-side** in Azure AI Foundry, and are referenced by an agent ID. In this project the agent is retrieved with `AIProjectClient.GetAIAgentAsync(agentName)` from the `Azure.AI.Projects` library (matching the Challenge-06 pattern). The deprecated **persistent agents library** (`Azure.AI.Agents.Persistent` / `PersistentAgentsClient`) is **no longer used**. This makes the TravelPolicyAgent ideal for validating travel plans against company policy documents via file search.
 
 ## Solution Analysis: Choosing the Right Orchestration Pattern
 
@@ -69,6 +77,7 @@ var handOffWorkflow = AgentWorkflowBuilder
     .WithHandoff(activityAgent.Agent, coordinatorAgent.Agent)
     .WithHandoff(transferAgent.Agent, coordinatorAgent.Agent)
     .WithHandoff(referenceAgent.Agent, coordinatorAgent.Agent)
+    .WithHandoff(travelPolicyAgent.Agent, coordinatorAgent.Agent)
     .Build();
 ```
 
@@ -257,6 +266,20 @@ The **Concurrent Workflow** executes all agents **in parallel**, which creates s
 3. **Context Preservation**: Conversation state maintained across handoffs
 4. **Dynamic Routing**: Coordinator determines next agent based on user input
 5. **Multi-Turn Support**: Natural conversation flow with iterative refinement
+
+---
+
+## Multi-Turn Conversation Implementation
+
+Multi-turn support is implemented in the `StartInteractiveChat` methods in `Program.cs`. The mechanics differ slightly depending on whether you run a single agent or a workflow:
+
+- **Agent runs (Agents-as-Tools / single orchestrator)**: A single `AgentSession` is **created once and reused** across every turn. Because the session is reused, the agent automatically retains the full conversation context, so follow-up questions ("what about different dates?") build on previous responses without re-passing history manually.
+- **Workflow runs (sequential, concurrent, handoff)**: A `List<ChatMessage>` history is maintained by the loop. On each turn the new user message is appended, the entire history is passed into the workflow run, and the resulting assistant messages are appended back. This rolling history is what preserves state across turns and across handoffs between specialists.
+
+**Why this matters:**
+- Users can **refine and iterate** within the same session (e.g., adjust budget, change dates, add a hotel after picking a flight).
+- Each agent sees the **accumulated context**, so the Coordinator can route intelligently and specialists can reference earlier choices.
+- Session state (selected flights, destination, dates) is carried forward, avoiding the need for the user to repeat information.
 
 ---
 
