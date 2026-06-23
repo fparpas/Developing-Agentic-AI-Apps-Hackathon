@@ -83,9 +83,31 @@ Your first task is to set up the AI agent using the Azure AI Foundry portal:
 - "Can I book first-class flights?"
 - "What documents do I need to submit for expense reimbursement?"
 
-### Task 2: Build the Console Application
+### Task 2: Create an Agent-Level Guardrail
 
-Your second task is to create a C# console application that integrates with your configured agent:
+Add a guardrail at the agent level to protect against sensitive data exposure in the agent's interactions:
+
+1. **Create a New Guardrail**
+   - In Azure AI Foundry, create a new guardrail and apply it at the agent level
+   - Leave all default values as they are
+
+2. **Enable PII Sensitive Data Leakage Protection**
+   - Enable **PII (sensitive data) leakage** protection
+   - Within the PII protection settings, enable **email** protection
+
+3. **Validate the Guardrail**
+   - Test the guardrail in the Azure AI Foundry playground using a prompt that contains an email address
+   - Confirm that the guardrail detects and blocks/masks the email
+
+   **Sample Validation Prompt:**
+
+   ```text
+   My email is john.doe@contoso.com. Can you confirm my domestic meal allowance?
+   ```
+
+### Task 3: Build the Console Application
+
+Your next task is to create a C# console application that integrates with your configured agent:
 
 **Project Starter Available:**
 A starter project is provided [here](../Student/Resources/Challenge-05/csharp/AgentService.FileSearch/Program.cs) to help you get started. However, you'll need to complete the code implementation to establish the conversation flow with your Agent created in previous task
@@ -184,6 +206,7 @@ Agent: "The travel policy requires you to book accommodations at approved corpor
 - ✅ Successfully created and configured an AI agent in Azure AI Foundry with file search capabilities and travel policy knowledge
 - ✅ Validated that you uploaded and indexed the travel policy document in a vector store for searchable content
 - ✅ Demonstrated agent functionality by testing it in the Azure AI Foundry playground to validate policy-based responses
+- ✅ Created an agent-level guardrail with default values, with PII (sensitive data) leakage protection enabled, including email protection
 - ✅ Successfully built a working console application that connects to your agent and provides an interactive interface
 - ✅ Validated policy compliance functionality by ensuring the agent accurately answers travel policy questions
 
@@ -192,3 +215,4 @@ Agent: "The travel policy requires you to book accommodations at approved corpor
 - [Azure AI Agents Service Overview](https://learn.microsoft.com/en-us/azure/ai-foundry/agents/overview)
 - [File Search with AI Agents](https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/tools/file-search)
 - [Microsoft Foundry Quickstart](https://learn.microsoft.com/en-us/azure/ai-foundry/quickstarts/get-started-code?view=foundry&preserve-view=true&tabs=csharp)
+- [Guardrails and controls overview in Microsoft Foundry](https://learn.microsoft.com/en-us/azure/foundry/guardrails/guardrails-overview?view=foundry)
