@@ -1,4 +1,4 @@
-# Challenge 08 - Python - Develop Agentic AI Applications using Microsoft Agent Framework and Multi-Agent Architectures
+# Challenge 08 - Python - Optional - Host Your Agent as a Microsoft Foundry Hosted Agent
 
 [< Previous Challenge](./Challenge-07-python.md) - **[Home](../README.md)** - [Next Challenge >](./Challenge-09-python.md)
 
@@ -7,142 +7,193 @@
 
 ## Introduction
 
-In this challenge you'll practice how to use the powerful capabilities of Microsoft Agent Framework to design and orchestrate intelligent agents that work collaboratively to solve complex problems. You'll build a multi-agent application that leverages the strengths of different agents to achieve a common goal.
+So far you have built Microsoft Agent Framework agents that run as **local console applications**. In this challenge you will take the **weather agent that integrates the remote Weather MCP server** (the one you built in **Challenge 6, Task 2**) and deploy it to the cloud as a **Microsoft Foundry Hosted Agent**.
 
-You'll also learn about the different types of orchestration patterns available, and use the Microsoft Agent Framework to develop your own AI agents that can collaborate for a multi-agent solution.
+Hosted agents in Microsoft Foundry Agent Service let you deploy Agent Framework agents as **containerized applications** running on Microsoft-managed infrastructure. Instead of running an agent on your laptop, the platform packages your agent into a container, provisions compute, assigns it a dedicated identity, and exposes it through a managed, OpenAI-compatible endpoint. The platform handles scaling, session state persistence, security, observability, and lifecycle management so you can focus on your agent's logic.
 
-## Key Concepts
+By the end of this challenge you will have taken existing agent code, wrapped it with the Foundry hosting integration, run it locally on `http://localhost:8088`, and deployed it to Foundry Agent Service where it is reachable through its own dedicated endpoint.
 
-The Microsoft Agent Framework's agent orchestration framework makes it possible to design, manage, and scale complex multi-agent workflows without having to manually handle the details of agent coordination. Instead of relying on a single agent to manage every aspect of a task, you can combine multiple specialized agents. Each agent with a unique role or area of expertise can collaborate to create systems that are more robust, adaptive, and capable of solving real-world problems collaboratively.
+## Concepts
 
-By orchestrating agents together, you can take on tasks that would be too complex for a single agent—from running parallel analyses, to building multi-stage processing pipelines, to managing dynamic, context-driven handoffs between experts.
+### What is a hosted agent?
 
-### Why multi-agent orchestration matters
+A **hosted agent** is your own agent code (any framework — Microsoft Agent Framework, Semantic Kernel, LangGraph, or custom code) packaged as a container image and deployed to Foundry Agent Service. This is different from **prompt-based agents**, which are defined entirely through prompts and tool configuration in the Foundry portal.
 
-Traditional single-agent systems are limited in their ability to handle complex, multi-faceted tasks. By orchestrating multiple agents, each with specialized skills or roles, we can create systems that are more robust, adaptive, and capable of solving real-world problems collaboratively. Multi-agent orchestration in Microsoft Agent Framework provides a flexible foundation for building such systems, supporting a variety of coordination patterns.
+Choose hosted agents when you want to:
 
-### Supported orchestration patterns
+- **Bring your own code** — use any framework rather than prompt-only definitions.
+- **Use managed infrastructure** — no need to configure containers, web servers, or scaling rules yourself.
+- **Get built-in session management** — the platform persists `$HOME` and uploaded files across turns and idle periods.
+- **Get a dedicated agent identity** — every deployed agent receives its own Microsoft Entra identity for secure access to models, tools, and downstream services.
+- **Use OpenAI-compatible endpoints** — clients interact with your agent through the Responses protocol using any OpenAI-compatible SDK.
 
-Like well-known cloud design patterns, agent orchestration patterns are technology agnostic approaches to coordinating multiple agents to work together towards a common goal. To learn more about the patterns themselves, refer to the [AI agent orchestration patterns documentation](https://learn.microsoft.com/en-us/azure/architecture/ai-ml/guide/ai-agent-design-patterns).
+### How it works
 
-Microsoft Agent Framework supports you by implementing these orchestration patterns directly in the SDK. These patterns are available as part of the framework and can be easily extended or customized so you can tune your agent collaboration scenario.
-To learn more about the supported patterns, refer to the [Microsoft Agent Framework Workflows Orchestrations Patterns](https://learn.microsoft.com/en-us/agent-framework/user-guide/workflows/orchestrations/overview).
-| Pattern | Description | Typical Use Case |
-|---------|-------------|------------------|
-| **Concurrent** | Broadcasts a task to all agents, collects results independently | Parallel analysis, independent subtasks, ensemble decision making |
-| **Sequential** | Passes the result from one agent to the next in a defined order | Step-by-step workflows, pipelines, multi-stage processing |
-| **Group Chat** | Coordinates multiple agents in a collaborative conversation with a manager controlling speaker selection and flow. | Iterative refinement, collaborative problem-solving, content review. |
-| **Handoff** | Dynamically passes control between agents based on context or rules | Dynamic workflows, escalation, fallback, or expert handoff scenarios |
+You package your agent as a container image and push it to Azure Container Registry. When you deploy, Agent Service pulls the image, provisions compute, assigns a dedicated Microsoft Entra ID (the agent identity), and exposes a dedicated endpoint. At runtime your agent code handles requests and can call Foundry models, tools (including MCP servers), and downstream Azure services using its agent identity. Each session runs in a per-session, VM-isolated sandbox with a persistent filesystem, enabling scale-to-zero with stateful resume.
 
-### Agents as tools
-"Agents as Tools" is an architectural pattern in AI systems where specialized AI agents are wrapped as callable functions (tools) that can be used by other agents. This creates a hierarchical structure where:
+### Protocols: Responses vs. Invocations
 
- 1. A primary "orchestrator" agent handles user interaction and determines which specialized agent to call
- 2. Specialized "tool agents" perform domain-specific tasks when called by the orchestrator
+A hosted agent container exposes one or more **protocols**:
 
-This approach mimics human team dynamics, where a manager coordinates specialists, each bringing unique expertise to solve complex problems. Rather than a single agent trying to handle everything, tasks are delegated to the most appropriate specialized agent.
+- **Responses protocol** *(recommended, used in this challenge)* — exposes an OpenAI-compatible `/responses` endpoint. The platform automatically manages conversation history, streaming events, and session lifecycle. Ideal for conversational chatbots and assistants, which is exactly what our weather agent is.
+- **Invocations protocol** — gives you full control over the raw HTTP request and response. Use it for webhooks, non-conversational processing (classification, extraction, batch), or custom streaming protocols that aren't OpenAI-compatible.
 
-In some workflows, you may want a central agent to orchestrate a network of specialized agents, instead of handing off control. You can do this by modeling agents as tools.
+### Tooling and runtime environment variables
 
-### A unified orchestration workflow
+The **Azure Developer CLI (`azd`)** with the AI agent extension is the easiest way to scaffold, run, and deploy a hosted agent. Alternatively, the **Microsoft Foundry Toolkit for Visual Studio Code** provides the same experience inside VS Code.
 
-Regardless of which orchestration pattern you choose, the Microsoft Agent Framework  provides a consistent, developer-friendly interface for building and running them. The typical flow looks like this:
+When your agent runs inside Foundry, the hosting infrastructure automatically injects these environment variables into your container:
 
-1. Define your agents and describe their capabilities and tools
-2. Select and create an orchestration pattern, optionally adding a manager agent if needed
-3. Optionally configure callbacks or transforms for custom input and output handling
-4. Start a runtime to manage execution
-5. Invoke the orchestration with your task
-6. Retrieve results in an asynchronous, non-blocking way
+| Variable | Description |
+| --- | --- |
+| `FOUNDRY_PROJECT_ENDPOINT` | The endpoint URL for the Foundry project. |
+| `AZURE_AI_MODEL_DEPLOYMENT_NAME` | The model deployment name (configured during `azd ai agent init`). |
+| `APPLICATIONINSIGHTS_CONNECTION_STRING` | The Application Insights connection string for telemetry. |
 
-Because all patterns share the same core interface, you can easily experiment with different orchestration strategies without rewriting agent logic or learning new APIs. The SDK abstracts the complexity of agent communication, coordination, and result aggregation so you can focus on designing workflows that deliver results.
-
-Multi-agent orchestration in Microsoft Agent Framework provides a flexible, scalable way to build intelligent systems that combine the strengths of multiple specialized agents. With built-in orchestration patterns, a unified development model, and runtime features for managing execution, you can quickly prototype, refine, and deploy collaborative AI workflows. Whether you’re running agents in parallel, coordinating sequential steps, or enabling dynamic conversations, the framework gives you the tools to turn multiple agents into a cohesive problem-solving team.
-
-## Prerequisites
-
-### Starting the Travel MCP Server
-
-The Travel MCP Server provides the travel booking APIs (Amadeus) that the agents will use. Make sure it's running before starting this challenge:
-
-Before starting the Travel MCP Server, you need to register for an Amadeus API key:
-1. Visit the [Amadeus for Developers portal](https://developers.amadeus.com/)
-2. Create an account or sign in
-3. Register your application to obtain your API key and secret
-4. Configure these credentials in your Travel MCP Server settings
-
-Start your Travel MCP Server by opening a terminal and executing the command to run the local MCP server
+> **Note:** Foundry hosted agents are currently in **preview**. Review the [hosted agents documentation](https://learn.microsoft.com/en-us/azure/foundry/agents/concepts/hosted-agents) for the latest availability, limits, and pricing.
 
 ## Description
 
-In this challenge, you will build a sophisticated multi-agent application using Microsoft Agent Framework. You'll create specialized agents that work together to solve a complex business scenario requiring multiple areas of expertise.
+In this challenge you will create a **new project from scratch** (there is no starter project) that hosts the Challenge 6 weather + remote MCP agent as a Foundry Hosted Agent using the **Responses** protocol.
 
-Your task is to develop a **Travel Planning Assistant** that uses multiple agents to collaboratively plan a comprehensive trip. This scenario requires:
+### Prerequisites
 
-1. **Search Flights Agent** - Provides flight options and recommendations
-2. **Search Hotels Agent** - Provides hotel options and recommendations
-3. **Activity Agent** - Recommends activities and attractions based on interests
-4. **Travel Policy Compliance Agent** - Check if travelling complies with the company policies
-4. **Coordinator Agent** - Orchestrates the collaboration and provides final recommendations
+- A [Microsoft Foundry](https://learn.microsoft.com/en-us/azure/foundry/) project with a chat model deployment (for example, `gpt-4o` or `gpt-4.1-mini`).
+- The remote Weather MCP server endpoint from **Challenge 4 / Challenge 6** (an HTTP endpoint such as `https://<your-app>.azurecontainerapps.io`).
+- [Python 3.10 or later](https://www.python.org/downloads/).
+- [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli) installed and authenticated (`az login`).
+- [Azure Developer CLI (`azd`)](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/install-azd) with the AI agent extension:
+  ```bash
+  azd ext install microsoft.foundry
+  ```
+  *(Alternatively, install the [Microsoft Foundry Toolkit for VS Code](https://aka.ms/foundrytk).)*
 
-You'll implement different orchestration patterns to demonstrate how agents can work together in various ways:
+### Task 1: Scaffold a hosted agent project
 
-- Use **Sequential Orchestration** for the main planning pipeline
-- Use **Concurrent Orchestration** for gathering parallel information
+Create an empty folder and initialize a hosted agent project. The fastest way is to start from an Agent Framework sample manifest and select the **Responses** protocol:
 
-### Your Task
+```bash
+mkdir weather-hosted-agent && cd weather-hosted-agent
+azd ai agent init
+```
 
-Your goal is to create **multi-agent orchestration workflows** that enable these agents to collaborate in a natural, multi-turn conversation. You'll implement different orchestration patterns to demonstrate how agents can work together in various ways:
+The interactive flow prompts you for an agent name, your Foundry project, subscription, region, and model deployment. When complete, you will have an `azure.yaml` and a starter agent project (typically `main.py` and `requirements.txt`).
 
-- **Sequential Orchestration** - Process travel requests in a step-by-step pipeline
-- **Concurrent Orchestration** - Gather information from multiple agents in parallel
-- **Handoff Orchestration** - Enable dynamic handoffs between agents based on context
-- **Agents as Tools** - Use specialized agents as callable tools from a main orchestrator
+> If you prefer VS Code, open the Command Palette and run **Foundry Toolkit: Create new Hosted Agent**, choose **Python**, **Agent Framework**, and the **Responses API** protocol.
 
-Start with Handoff, then see what other workflows would work here and implement those as well.
+Install the hosting package and the Agent Framework into a virtual environment:
+
+```bash
+python -m venv .venv
+# Windows (PowerShell): .\.venv\Scripts\Activate.ps1
+source .venv/bin/activate
+pip install agent-framework agent-framework-foundry-hosting azure-identity
+```
+
+### Task 2: Host the Challenge 6 weather + MCP agent behind the Responses protocol
+
+Edit `main.py` so that it (1) connects to your **remote Weather MCP server** from Challenge 6, (2) registers the MCP tools on an agent backed by your Foundry model deployment, and (3) exposes that agent through the **Responses** protocol using `ResponsesHostServer`.
+
+```python
+import os
+
+from agent_framework import Agent, MCPStreamableHTTPTool
+from agent_framework.foundry import FoundryChatClient
+from agent_framework_foundry_hosting import ResponsesHostServer
+from azure.identity import DefaultAzureCredential
+
+# 1. Create a chat client backed by your Foundry model deployment.
+#    FOUNDRY_PROJECT_ENDPOINT and AZURE_AI_MODEL_DEPLOYMENT_NAME are injected
+#    automatically when the agent runs in Foundry; set them locally for testing.
+client = FoundryChatClient(
+    project_endpoint=os.environ["FOUNDRY_PROJECT_ENDPOINT"],
+    model=os.environ["AZURE_AI_MODEL_DEPLOYMENT_NAME"],
+    credential=DefaultAzureCredential(),
+)
+
+# 2. Connect to the remote Weather MCP server from Challenge 6.
+weather_mcp = MCPStreamableHTTPTool(
+    name="WeatherMCP",
+    url=os.environ["WEATHER_MCP_ENDPOINT"],
+)
+
+# 3. Build the weather agent and register the MCP tools.
+agent = Agent(
+    client=client,
+    name="weather-hosted-agent",
+    instructions="You are a helpful assistant that answers weather questions using the available MCP tools.",
+    tools=[weather_mcp],
+    # The hosting platform manages conversation history, so don't duplicate it.
+    default_options={"store": False},
+)
+
+# 4. Host the agent behind the Foundry Responses protocol.
+server = ResponsesHostServer(agent)
+server.run()
+```
+
+`ResponsesHostServer` wraps your agent and exposes it through the Foundry Responses protocol. Setting `store` to `False` avoids duplicating conversation history, since the hosting infrastructure manages history automatically.
+
+### Task 3: Run and test the agent locally
+
+Set the environment variables for local testing and start the agent host:
+
+```bash
+export FOUNDRY_PROJECT_ENDPOINT="https://<account>.services.ai.azure.com/api/projects/<project>"
+export AZURE_AI_MODEL_DEPLOYMENT_NAME="<your-model-deployment>"
+export WEATHER_MCP_ENDPOINT="https://<your-weather-mcp>.azurecontainerapps.io"
+
+azd ai agent run
+```
+
+The agent host starts on `http://localhost:8088`. (You can also run `python main.py` directly.) Send it a weather question:
+
+```bash
+azd ai agent invoke --local "What is the weather in New York?"
+```
+
+Or call the OpenAI-compatible Responses endpoint directly:
+
+```bash
+curl -sS -X POST http://localhost:8088/responses \
+  -H "Content-Type: application/json" \
+  -d '{"input": "What is the weather in New York?", "stream": false}'
+```
+
+Confirm that the agent calls the remote MCP weather tool and returns the weather for the requested city.
+
+### Task 4: Deploy to Microsoft Foundry Agent Service
+
+Provision resources (only needed if you don't already have a Foundry project) and deploy:
+
+```bash
+azd provision   # creates a Foundry project, model deployment, App Insights, and a container registry
+azd deploy       # packages the agent as a container, pushes it to ACR, and deploys it to Foundry
+```
+
+When deployment finishes, `azd` prints links to the **agent playground** and the **agent endpoint**. Invoke the deployed agent:
+
+```bash
+azd ai agent invoke "What is the weather in Seattle?"
+```
+
+Open the **agent playground** in the Foundry portal, ask another weather question, and confirm the hosted agent responds using the remote MCP tools.
+
+> **Clean up:** when you are finished, run `azd down` to delete the resource group and all resources you provisioned so you stop incurring charges.
 
 ## Success Criteria
 
-To successfully complete this challenge, you must demonstrate:
-
-### ✅ **Agent Implementation**
-
-- [ ] Created 5 specialized agents with distinct roles and capabilities
-- [ ] Each agent has appropriate system instructions and prompts
-- [ ] Agents are properly configured with AI models and tools
-- [ ] Agent responses are contextually appropriate for their roles
-
-### ✅ **Orchestration Patterns**
-
-- [ ] Built an orchestration workflow other than the provided `HandoffBuilder`, with all specialist agents as participants
-- [ ] Coordinator agent is set as the start agent
-- [ ] Implemented a multi-turn interaction loop that calls `workflow.run()` to emit `WorkflowEvent`, processes agent responses, and feeds user replies back into subsequent `workflow.run(responses=...)` calls
-- [ ] Demonstrated runtime management and cleanup
-
-### ✅ **Travel Planning Functionality**
-
-- [ ] Application accepts user input for travel requirements
-- [ ] Weather agent provides relevant forecast and recommendations
-- [ ] Budget agent calculates costs and suggests alternatives
-- [ ] Activity agent recommends relevant attractions and activities
-- [ ] Restaurant agent suggests appropriate dining options
-- [ ] Coordinator agent synthesizes all information into a coherent plan
-- [ ] By typing in 'policy', the Travel Policy Agent running in Microsoft Foundry checks the trip summary against company policy
-
-### ✅ **Code Quality and Architecture**
-
-- [ ] Clean, well-structured code with proper separation of concerns
-- [ ] Appropriate error handling and logging
-- [ ] Proper async/await patterns for agent coordination
-- [ ] Configuration management for API keys and settings
+- ✅ Scaffold a hosted agent project using `azd ai agent init` (or the Foundry Toolkit for VS Code) with the **Responses** protocol.
+- ✅ Install `agent-framework-foundry-hosting` and wrap an Agent Framework agent with `ResponsesHostServer`.
+- ✅ Reuse the Challenge 6 weather agent: connect to the remote Weather MCP server and register its tools on the agent.
+- ✅ Run the agent locally on `http://localhost:8088` and get a correct weather answer through `/responses` (via `azd ai agent invoke --local` or `curl`).
+- ✅ Deploy the agent to Foundry Agent Service with `azd deploy` and confirm it appears with a dedicated endpoint.
+- ✅ Invoke the **deployed** hosted agent and demonstrate it answers weather questions using the MCP tools (via `azd ai agent invoke` or the agent playground).
 
 ## Learning Resources
 
-### Official Microsoft Documentation
-
-- [Microsoft Agent Framework Workflows Orchestrations](https://learn.microsoft.com/en-us/agent-framework/user-guide/workflows/orchestrations/overview)
-- [Understand Agent Orchestration](https://learn.microsoft.com/en-us/training/modules/orchestrate-semantic-kernel-multi-agent-solution/3-understand-agent-orchestration)
-- [AI Agent Orchestration Patterns](https://learn.microsoft.com/en-us/azure/architecture/ai-ml/guide/ai-agent-design-patterns)
-- [Agents in Workflows](https://learn.microsoft.com/en-us/agent-framework/tutorials/workflows/agents-in-workflows?pivots=programming-language-csharp)
-- [Amadeus for Developers](https://developers.amadeus.com/)
-- [Amadeus Open AI Specification](https://github.com/amadeus4dev/amadeus-open-api-specification/tree/main/spec/json)
+- [Foundry Hosted Agents (Agent Framework) | MS Learn](https://learn.microsoft.com/en-us/agent-framework/hosting/foundry-hosted-agent?pivots=programming-language-python)
+- [Hosted agents in Foundry Agent Service – concepts | MS Learn](https://learn.microsoft.com/en-us/azure/foundry/agents/concepts/hosted-agents)
+- [Quickstart: Deploy your first hosted agent | MS Learn](https://learn.microsoft.com/en-us/azure/foundry/agents/quickstarts/quickstart-hosted-agent?pivots=vscode)
+- [Microsoft Agent Framework Overview | MS Learn](https://learn.microsoft.com/en-us/agent-framework/overview/agent-framework-overview)
+- [Foundry hosted agents – Python samples | GitHub](https://github.com/microsoft-foundry/foundry-samples/tree/main/samples/python/hosted-agents/agent-framework)

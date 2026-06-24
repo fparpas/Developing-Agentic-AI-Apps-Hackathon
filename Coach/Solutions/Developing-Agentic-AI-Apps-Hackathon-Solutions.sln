@@ -15,22 +15,22 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Challenge-06", "Challenge-0
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Challenge-05", "Challenge-05", "{E8EA2FBA-E613-8D0B-BAEA-99ECEA119737}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Challenge-09", "Challenge-09", "{6EEE77EA-B67D-B7B6-CD4A-496A89DF71B2}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Challenge-10", "Challenge-10", "{6EEE77EA-B67D-B7B6-CD4A-496A89DF71B2}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Challenge-04", "Challenge-04", "{BE375966-B930-D4F8-C1B5-5EBCC73B696B}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Challenge-08", "Challenge-08", "{55E0F9E6-A4F7-5284-2FFA-C7D83282290D}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Challenge-09", "Challenge-09", "{55E0F9E6-A4F7-5284-2FFA-C7D83282290D}"
 	ProjectSection(SolutionItems) = preProject
-		Challenge-08\csharp\README.md = Challenge-08\csharp\README.md
+		Challenge-09\csharp\README.md = Challenge-09\csharp\README.md
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Challenge-10", "Challenge-10", "{637BC86F-F9B7-3A01-35B5-6CC546CF6D7D}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Challenge-11", "Challenge-11", "{637BC86F-F9B7-3A01-35B5-6CC546CF6D7D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Student", "Student", "{BFC11E1C-20B1-D11C-26CE-963F140147E5}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Challenge-10", "Challenge-10", "{F4BA1443-3018-3CDF-68E7-8E79BF0689CA}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Challenge-11", "Challenge-11", "{F4BA1443-3018-3CDF-68E7-8E79BF0689CA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AgenticRAG", "..\..\Student\Resources\Challenge-10\csharp\AgenticRAG\AgenticRAG.csproj", "{F32E9E2A-B59D-4CE4-8F1D-41BD95E7EAD5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AgenticRAG", "..\..\Student\Resources\Challenge-11\csharp\AgenticRAG\AgenticRAG.csproj", "{F32E9E2A-B59D-4CE4-8F1D-41BD95E7EAD5}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Challenge-06", "Challenge-06", "{D0B8CDE9-75BF-2F49-E85E-D0D94C0B82D6}"
 EndProject
@@ -42,15 +42,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MAF.AgentWithMCP.Solution",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MAF.Observability.AgentWithMCP.Solution", "Challenge-07\csharp\MAF.Observability.AgentWithMCP.Solution\MAF.Observability.AgentWithMCP.Solution.csproj", "{FCCDBBC9-04AB-4DD1-A3C4-505F25817F16}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MCP.Client.ApiKey.SecureWeather.Solution", "Challenge-09\csharp\MCP.Client.ApiKey.SecureWeather.Solution\MCP.Client.ApiKey.SecureWeather.Solution.csproj", "{19869A7B-9DB2-4A17-9798-E8ABF7523DF1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MCP.Client.ApiKey.SecureWeather.Solution", "Challenge-10\csharp\MCP.Client.ApiKey.SecureWeather.Solution\MCP.Client.ApiKey.SecureWeather.Solution.csproj", "{19869A7B-9DB2-4A17-9798-E8ABF7523DF1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MCP.Client.EntraID.SecureWeather.Solution", "Challenge-09\csharp\MCP.Client.EntraID.SecureWeather.Solution\MCP.Client.EntraID.SecureWeather.Solution.csproj", "{48D9168D-CD09-478A-A97C-13A0D12225AE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MCP.Client.EntraID.SecureWeather.Solution", "Challenge-10\csharp\MCP.Client.EntraID.SecureWeather.Solution\MCP.Client.EntraID.SecureWeather.Solution.csproj", "{48D9168D-CD09-478A-A97C-13A0D12225AE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MCP.Server.ApiKey.SecureWeather.Solution", "Challenge-09\csharp\MCP.Server.ApiKey.SecureWeather.Solution\MCP.Server.ApiKey.SecureWeather.Solution.csproj", "{7BD3060A-3AD0-4101-B08C-D4D6588FC694}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MCP.Server.ApiKey.SecureWeather.Solution", "Challenge-10\csharp\MCP.Server.ApiKey.SecureWeather.Solution\MCP.Server.ApiKey.SecureWeather.Solution.csproj", "{7BD3060A-3AD0-4101-B08C-D4D6588FC694}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MCP.Server.EntraID.SecureWeather.Solution", "Challenge-09\csharp\MCP.Server.EntraID.SecureWeather.Solution\MCP.Server.EntraID.SecureWeather.Solution.csproj", "{B03CF79F-F01B-40FF-95DE-7DBE7047C3BE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MCP.Server.EntraID.SecureWeather.Solution", "Challenge-10\csharp\MCP.Server.EntraID.SecureWeather.Solution\MCP.Server.EntraID.SecureWeather.Solution.csproj", "{B03CF79F-F01B-40FF-95DE-7DBE7047C3BE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AgenticRAG.Solution", "Challenge-10\csharp\AgenticRAG.Solution\AgenticRAG.Solution.csproj", "{1A321F02-8553-4E3A-AC0A-0168450F73AB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AgenticRAG.Solution", "Challenge-11\csharp\AgenticRAG.Solution\AgenticRAG.Solution.csproj", "{1A321F02-8553-4E3A-AC0A-0168450F73AB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MCP.Server.Local.Weather.Solution", "Challenge-02\csharp\MCP.Server.Local.Weather.Solution\MCP.Server.Local.Weather.Solution.csproj", "{0ABF017C-4947-429E-B2F0-AA2AA35B871F}"
 EndProject
@@ -68,15 +68,19 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Challenge-05", "Challenge-0
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AgentService.FileSearch", "..\..\Student\Resources\Challenge-05\csharp\AgentService.FileSearch\AgentService.FileSearch.csproj", "{9D8AE7F5-3A79-4078-8915-A7A493A0D146}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Challenge-08", "Challenge-08", "{1CCC1ED5-B36D-5399-10A7-75716E3E18E7}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Challenge-09", "Challenge-09", "{1CCC1ED5-B36D-5399-10A7-75716E3E18E7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MAF.TravelMultiAgentClient", "..\..\Student\Resources\Challenge-08\csharp\MAF.TravelMultiAgentClient\MAF.TravelMultiAgentClient.csproj", "{70505AA0-D572-4FCE-A758-C7CF009BDE4B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MAF.TravelMultiAgentClient", "..\..\Student\Resources\Challenge-09\csharp\MAF.TravelMultiAgentClient\MAF.TravelMultiAgentClient.csproj", "{70505AA0-D572-4FCE-A758-C7CF009BDE4B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MCP.Server.Travel", "..\..\Student\Resources\Challenge-08\csharp\MCP.Server.Travel\MCP.Server.Travel.csproj", "{68EB30FB-0B06-4693-BA51-D8C1F861323D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MCP.Server.Travel", "..\..\Student\Resources\Challenge-09\csharp\MCP.Server.Travel\MCP.Server.Travel.csproj", "{68EB30FB-0B06-4693-BA51-D8C1F861323D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AgentService.ClassicFoundry.FileSearch.Solution", "Challenge-05\csharp\AgentService.ClassicFoundry.FileSearch.Solution\AgentService.ClassicFoundry.FileSearch.Solution.csproj", "{452A512A-429B-46E7-9F5B-34F69E8C923B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AgentService.NewFoundry.FileSearch.Solution", "Challenge-05\csharp\AgentService.NewFoundry.FileSearch.Solution\AgentService.NewFoundry.FileSearch.Solution.csproj", "{3CCCE370-79F4-47A6-8DD9-D50FF6F616A8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Challenge-08", "Challenge-08", "{13497039-5294-CFA5-DDC5-93AB0452325C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MAF.HostedAgent.Solution", "Challenge-08\csharp\MAF.HostedAgent.Solution\MAF.HostedAgent.Solution.csproj", "{DCA0DB2D-1DEA-4BA1-8595-B831ACFD2459}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -316,6 +320,18 @@ Global
 		{3CCCE370-79F4-47A6-8DD9-D50FF6F616A8}.Release|x64.Build.0 = Release|Any CPU
 		{3CCCE370-79F4-47A6-8DD9-D50FF6F616A8}.Release|x86.ActiveCfg = Release|Any CPU
 		{3CCCE370-79F4-47A6-8DD9-D50FF6F616A8}.Release|x86.Build.0 = Release|Any CPU
+		{DCA0DB2D-1DEA-4BA1-8595-B831ACFD2459}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DCA0DB2D-1DEA-4BA1-8595-B831ACFD2459}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DCA0DB2D-1DEA-4BA1-8595-B831ACFD2459}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{DCA0DB2D-1DEA-4BA1-8595-B831ACFD2459}.Debug|x64.Build.0 = Debug|Any CPU
+		{DCA0DB2D-1DEA-4BA1-8595-B831ACFD2459}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{DCA0DB2D-1DEA-4BA1-8595-B831ACFD2459}.Debug|x86.Build.0 = Debug|Any CPU
+		{DCA0DB2D-1DEA-4BA1-8595-B831ACFD2459}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DCA0DB2D-1DEA-4BA1-8595-B831ACFD2459}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DCA0DB2D-1DEA-4BA1-8595-B831ACFD2459}.Release|x64.ActiveCfg = Release|Any CPU
+		{DCA0DB2D-1DEA-4BA1-8595-B831ACFD2459}.Release|x64.Build.0 = Release|Any CPU
+		{DCA0DB2D-1DEA-4BA1-8595-B831ACFD2459}.Release|x86.ActiveCfg = Release|Any CPU
+		{DCA0DB2D-1DEA-4BA1-8595-B831ACFD2459}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -355,6 +371,7 @@ Global
 		{68EB30FB-0B06-4693-BA51-D8C1F861323D} = {1CCC1ED5-B36D-5399-10A7-75716E3E18E7}
 		{452A512A-429B-46E7-9F5B-34F69E8C923B} = {E8EA2FBA-E613-8D0B-BAEA-99ECEA119737}
 		{3CCCE370-79F4-47A6-8DD9-D50FF6F616A8} = {E8EA2FBA-E613-8D0B-BAEA-99ECEA119737}
+		{DCA0DB2D-1DEA-4BA1-8595-B831ACFD2459} = {13497039-5294-CFA5-DDC5-93AB0452325C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3C3BF20A-D497-4AEA-8600-5B2B4F6069FC}

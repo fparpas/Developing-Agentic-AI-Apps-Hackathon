@@ -33,8 +33,8 @@ class Program
 
         try
         {
-            var agentServiceEndpoint = configuration["AIAgentService:AiFFoundryEndpoint"];
-            var agentServiceId = configuration["AIAgentService:AgentId"];
+            var microsoftFoundryEndpoint = configuration["AIAgentService:MicrosoftFoundryEndpoint"];
+            var agentName = configuration["AIAgentService:AgentName"];
 
             Console.WriteLine("🔍 Azure Agent Service File Search Console Application");
             Console.WriteLine("===============================================");

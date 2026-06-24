@@ -1,4 +1,3 @@
-using Azure.AI.Agents.Persistent;
 using Azure.AI.OpenAI;
 using Azure.Core;
 using Azure.Identity;
@@ -48,8 +47,8 @@ class Program
 
             // //TASK 3: Implement Agent Service agent
             // // Get the AI Agent Service Agent
-            // //Complete the method to create the Agent Service agent.
-            var agentServiceAgent = await CreateAIAgentServiceAgent("AgentServiceAgent", "You are a helpful assistant that can provide agent service information using the available tools.");
+            // //Complete the method to call the Agent Service agent.
+            var agentServiceAgent = await GetAIAgentServiceAgent();
 
             // Start interactive chat
             await StartInteractiveChat(jokeAgent);
@@ -131,20 +130,20 @@ class Program
         return null; //return agent
     }  
 
-    private static async Task<AIAgent> CreateAIAgentServiceAgent(string agentName, string instructions)
+    private static async Task<AIAgent> GetAIAgentServiceAgent()
     {
         var endpoint = _configuration["AzureOpenAI:Endpoint"] ?? throw new InvalidOperationException("Azure OpenAI endpoint is required");
         var apiKey = _configuration["AzureOpenAI:ApiKey"] ?? throw new InvalidOperationException("Azure OpenAI API key is required");
         var deploymentName = _configuration["AzureOpenAI:DeploymentName"] ?? throw new InvalidOperationException("Azure OpenAI deployment name is required");
 
         var agentServiceEndpoint = _configuration["AgentService:Endpoint"] ?? throw new InvalidOperationException("Azure OpenAI agent service endpoint is required");
-        var agentServiceId = _configuration["AgentService:AgentId"] ?? throw new InvalidOperationException("Azure OpenAI agent service identity is required");
+        var agentServiceName = _configuration["AgentService:AgentName"] ?? throw new InvalidOperationException("Azure OpenAI agent service name is required");
 
-        // Create PersistentAgentsClient to connect to the Agent Service
+        // Get the agent from the agent service using the AIProjectClient
 
         throw new NotImplementedException("Method not implemented");
 
-        return null; //return agent
+        return null; //return the agent
     } 
     private static async Task StartInteractiveChat(AIAgent aIAgent)
     {
